@@ -1,117 +1,77 @@
-"use client"; // For components that need React hooks and browser APIs, SSR (server side rendering) has to be disabled. Read more here: https://nextjs.org/docs/pages/building-your-application/rendering/server-side-rendering
+"use client";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { Button } from "antd";
-import { BookOutlined, CodeOutlined, GlobalOutlined } from "@ant-design/icons";
-import styles from "@/styles/page.module.css";
 
 export default function Home() {
   const router = useRouter();
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <h2>Group 34</h2>
-        <ol>
-          <li>
-            <code>app/page.tsx</code>{" "}
-            is the landing page for your application, currently being displayed.
-          </li>
-          <li>
-            <code>app/login/page.tsx</code> is the login page for users.
-          </li>
-          <li>
-            <code>app/users/page.tsx</code>{" "}
-            is the dashboard that shows an overview of all users, fetched from
-            the server.
-          </li>
-          <li>
-            <code>app/users/[id]/page.tsx</code>{" "}
-            is a slug page that shows info of a particular user. Since each user
-            has its own id, each user has its own infopage, dynamically with the
-            use of slugs.
-          </li>
-          <li>
-            To test, modify the current page <code>app/page.tsx</code>{" "}
-            and save to see your changes instantly.
-          </li>
-        </ol>
 
-        <div className={styles.ctas}>
-          <Button
-            type="primary" // as defined in the ConfigProvider in [layout.tsx](./layout.tsx), all primary antd elements are colored #22426b, with buttons #75bd9d as override
-            color="red" // if a single/specific antd component needs yet a different color, it can be explicitly overridden in the component as shown here
-            variant="solid" // read more about the antd button and its options here: https://ant.design/components/button
-            onClick={() =>
-              globalThis.open(
-                "https://vercel.com/new",
-                "_blank",
-                "noopener,noreferrer",
-              )}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Deploy now
-          </Button>
-          <Button
-            type="default"
-            variant="solid"
-            onClick={() =>
-              globalThis.open(
-                "https://nextjs.org/docs",
-                "_blank",
-                "noopener,noreferrer",
-              )}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </Button>
-          <Button
-            type="primary"
-            variant="solid"
-            onClick={() => router.push("/login")}
-          >
-            Go to login
-          </Button>
-        </div>
-      </main>
-      <footer className={styles.footer}>
+  return (
+    <div style={{
+      minHeight: "100vh",
+      backgroundColor: "#6BAED6",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: "1.5rem"}}>
+      
+      <h1 style={{
+        fontSize: "5.5rem",
+        fontWeight: "400",
+        fontFamily: "var(--font-chewy)",
+        margin: 0,
+        color: "black"}}>
+        Think-off
+      </h1>
+
+      <Button
+        onClick={() => router.push("/login")}
+        style={{
+          backgroundColor: "#E8956D",
+          borderColor: "#E8956D",
+          borderRadius: "30px",
+          width: "260px",
+          height: "70px",
+          fontSize: "1.4rem",
+          fontWeight: "bold",
+          fontFamily: "var(--font-chewy)",
+          boxShadow: "0px 8px 10px rgba(0,0,0,0.2)",
+          color: "black",
+          border: "none"}}>
+        Login
+      </Button>
+
+      <div style={{ 
+        display: "flex",
+        alignItems: "center",
+        gap: "0.5rem" }}>
+
+        <span style={{ 
+          fontFamily: "var(--font-chewy)",
+          fontWeight: "600", 
+          color: "black",
+          fontSize: "1.5rem" }}>
+          No Account yet?
+        </span>
+
+
         <Button
-          type="link"
-          icon={<BookOutlined />}
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn
+          onClick={() => router.push("/register")}
+          style={{
+            backgroundColor: "#E8956D",
+            borderColor: "#E8956D",
+            borderRadius: "20px",
+            height: "55px",    
+            fontSize: "1.2rem",
+            padding: "0 30px",  
+            fontWeight: "bold",
+            color: "black",
+            fontFamily: "var(--font-chewy)",
+            border: "none",
+            boxShadow: "0px 8px 10px rgba(0,0,0,0.2)"}}>
+          Register
         </Button>
-        <Button
-          type="link"
-          icon={<CodeOutlined />}
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Examples
-        </Button>
-        <Button
-          type="link"
-          icon={<GlobalOutlined />}
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Go to nextjs.org →
-        </Button>
-      </footer>
+      </div>
     </div>
   );
 }

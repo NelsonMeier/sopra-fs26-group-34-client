@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Chewy } from "next/font/google";
 import { App as AntdApp, ConfigProvider, theme } from "antd";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import "@/styles/globals.css";
+
+const chewy = Chewy({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-chewy",
+});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${chewy.variable}`}>
         <ConfigProvider
           theme={{
             algorithm: theme.defaultAlgorithm,
