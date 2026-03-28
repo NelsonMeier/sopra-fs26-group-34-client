@@ -63,13 +63,14 @@ const Profile: React.FC = () => {
     <div className="card-container">
       <div className="profile-container">
         <h1>
-          <strong>User Profile:</strong>
+          <strong>Your Profile:</strong>
         </h1>
         <Card
           title={`Hello, ${user?.name}`}
           loading={!user}
           className="dashboard-container"
         >
+          <div>Username: {user?.username}</div>
         </Card>
         </div></div>
   );
