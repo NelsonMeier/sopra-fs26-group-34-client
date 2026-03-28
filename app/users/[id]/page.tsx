@@ -5,7 +5,7 @@
 
 "use client";
 import { useApi } from "@/hooks/useApi";
-import useLocalStorage from "@/hooks/useLocalStorage";
+//import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
 import { Card } from "antd";
 import { useParams, useRouter } from "next/navigation";
@@ -19,16 +19,16 @@ const Profile: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
 
-  const {
-      value: token,
-      clear: clearToken,
-    } = useLocalStorage<string>("token", "");
+  // const {
+  //     value: token,
+  //     clear: clearToken,
+  //   } = useLocalStorage<string>("token", "");
 
     const [mounted, setMounted] = useState(false);
     const params = useParams();
     const id = params.id;
     const  [user, setUser] = useState<User | null>(null);
-    const isMyProfile = user?.token === token;
+    // const isMyProfile = user?.token === token;
 
       useEffect(() =>{
       setMounted(true);
@@ -57,7 +57,7 @@ const Profile: React.FC = () => {
         }
       };
       fetchUser();
-    }, [mounted, id, token, apiService, router]);
+    }, [mounted, id, /*token,*/ apiService, router]);
 
   return (
     <div className="card-container">
