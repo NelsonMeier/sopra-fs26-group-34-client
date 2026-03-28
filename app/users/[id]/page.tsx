@@ -70,7 +70,12 @@ const Profile: React.FC = () => {
           loading={!user}
           className="dashboard-container"
         >
-          <div>Username: {user?.username}</div>
+          {user && (
+            <>
+              <p><strong>Username:</strong> {user.username}</p>
+              <p><strong>Account Creation Date:</strong> {user.createdDate}</p>
+            </>
+          )}
         </Card>
         </div></div>
   );
