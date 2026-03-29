@@ -9,6 +9,8 @@
 // Read more here: https://nextjs.org/docs/pages/building-your-application/rendering/server-side-rendering
 
 import React from "react";
+import Link from "next/link";
+import { Button } from "antd";
 
 const Profile: React.FC = () => {
   return (
@@ -16,6 +18,14 @@ const Profile: React.FC = () => {
       <p>
         <strong>SampleUser</strong>
       </p>
+      <div style={{ marginTop: "20px", display: "flex", gap: "10px" }}>
+        <Link href="/add-friend">
+          <Button type="primary">Add Friend</Button>
+        </Link>
+        <Link href="/friend-requests">
+          <Button>Friend Requests</Button>
+        </Link>
+      </div>
     </div>
   );
 };
