@@ -42,7 +42,8 @@ reason).
 | "" | [28.03.26]   | [7c31135f97ebc76664febc87e7ea564076fe725e] | Implemented user registration logic and duplicate username error handling in the service and repository file | Core requirement so the registerstration flow works including error handling |
 | "" | [28.03.26]  | [a73c6162b25e7549d6ddd9ac98bceed2241c25ec] | Implemented the landing page with Login and Register navigation buttons | Gives user an entry point to the application |
 | "" | [28.03.26]  | [6cab5d35b2679f062b5a83801db11ba86a529be2] | Created the registration page with form that sends username&password to the backend, saves token, redirects to the profile | Needed page for the users to be able to create an account |
-| **[@githubUser1]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+| **@Lukas81S** | 29.03.26   | a3b103a512929d8ba1c3819e04605e174b035a5f | Added initial (non-functional) "add friend" and "friend requests" pages and buttons to return to the user profile. | These pages are the places where the user can send and receive friend requests. |
+| "" | 29.03.26   | bcfd1a53e3aae50a7c791bfb89f0a343dc6cf1be | Implemented the full "add friend" page. | In this page, the user can successfully send a friend request. |
 
 ---
 
