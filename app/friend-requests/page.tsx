@@ -1,10 +1,21 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "antd";
+import useLocalStorage from "@/hooks/useLocalStorage";
 
 const FriendRequests: React.FC = () => {
+  const router = useRouter();
+  const { value: token } = useLocalStorage<string>("token", "");
+  const { value: userId } = useLocalStorage<string>("userId", "");
+
+  useEffect(() => {
+    if (!token || !userId) {
+      router.push("/login");
+    }
+  }, [token, userId, router]);
   return (
     <div style={{
       minHeight: "100vh",
@@ -36,7 +47,7 @@ const FriendRequests: React.FC = () => {
         {/* Friend requests functionality will go here */}
       </div>
 
-      <Link href="/users/1">
+      <Link href={`/users/${userId}`}>
         <Button
           style={{
             backgroundColor: "#E8956D",

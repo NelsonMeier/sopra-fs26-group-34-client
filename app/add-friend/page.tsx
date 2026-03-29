@@ -1,10 +1,52 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Button } from "antd";
+import { useRouter } from "next/navigation";
+import { Button, Input, message } from "antd";
+import { useApi } from "@/hooks/useApi";
+import useLocalStorage from "@/hooks/useLocalStorage";
 
 const AddFriend: React.FC = () => {
+  const router = useRouter();
+  const apiService = useApi();
+  const { value: token } = useLocalStorage<string>("token", "");
+  const { value: userId } = useLocalStorage<string>("userId", "");
+  const [friendId, setFriendId] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!token || !userId) {
+      router.push("/login");
+    }
+  }, [token, userId, router]);
+
+  const handleAddFriend = async () => {
+    if (!friendId.trim()) {
+      message.error("Please enter a friend's ID");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Make POST request to send friend request
+      await apiService.post(
+        `/users/${userId}/friends/requests`,
+        { receiverId: friendId }
+      );
+      message.success("Friend request sent successfully!");
+      setFriendId("");
+    } catch (error) {
+      if (error instanceof Error) {
+        message.error(`Failed to send friend request: ${error.message}`);
+      } else {
+        message.error("Failed to send friend request");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div style={{
       minHeight: "100vh",
@@ -32,11 +74,47 @@ const AddFriend: React.FC = () => {
         padding: "2rem",
         boxShadow: "0px 8px 10px rgba(0,0,0,0.2)",
         width: "100%",
-        maxWidth: "500px"}}>
-        {/* Add friend functionality will go here */}
+        maxWidth: "500px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "1rem"}}>
+        <div>
+          <label style={{
+            display: "block",
+            marginBottom: "0.5rem",
+            fontWeight: "bold",
+            fontFamily: "var(--font-chewy)"
+          }}>
+            Friend's ID
+          </label>
+          <Input
+            placeholder="Enter friend's user ID"
+            value={friendId}
+            onChange={(e) => setFriendId(e.target.value)}
+            onPressEnter={handleAddFriend}
+            size="large"
+          />
+        </div>
+        <Button
+          type="primary"
+          onClick={handleAddFriend}
+          loading={loading}
+          style={{
+            backgroundColor: "#E8956D",
+            borderColor: "#E8956D",
+            height: "50px",
+            fontSize: "1rem",
+            fontWeight: "bold",
+            color: "black",
+            fontFamily: "var(--font-chewy)",
+            border: "none"
+          }}
+        >
+          Send Friend Request
+        </Button>
       </div>
 
-      <Link href="/users/1">
+      <Link href={`/users/${userId}`}>
         <Button
           style={{
             backgroundColor: "#E8956D",

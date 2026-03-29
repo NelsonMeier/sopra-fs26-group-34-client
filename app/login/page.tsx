@@ -21,20 +21,23 @@ const Login: React.FC = () => {
   // The hook returns an object with the value and two functions
   // Simply choose what you need from the hook:
   const {
-    // value: token, // is commented out because we do not need the token value (we might need it later)
-    set: setToken, // we need this method to set the value of the token to the one we receive from the POST request to the backend server API
-    // clear: clearToken, // is commented out because we do not need to clear the token when logging in
-  } = useLocalStorage<string>("token", ""); // note that the key we are selecting is "token" and the default value we are setting is an empty string
-  // if you want to pick a different token, i.e "usertoken", the line above would look as follows: } = useLocalStorage<string>("usertoken", "");
+    set: setToken,
+  } = useLocalStorage<string>("token", "");
+  const {
+    set: setUserId,
+  } = useLocalStorage<string>("userId", "");
 
   const handleLogin = async (values: FormFieldProps) => {
     try {
       // Call the API service and let it handle JSON serialization and error handling
       const response = await apiService.post<User>("/users", values);
 
-      // Use the useLocalStorage hook that returned a setter function (setToken in line 41) to store the token if available
+      // Store token and user ID
       if (response.token) {
         setToken(response.token);
+      }
+      if (response.id) {
+        setUserId(response.id);
       }
 
       // Navigate to the user overview
