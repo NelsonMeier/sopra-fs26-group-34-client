@@ -24,7 +24,7 @@ const Register: React.FC = () => { //functional component called register
       return;
     }
 
-    localStorage.setItem("loggedInUserId", response.id || ""); //save info
+    localStorage.setItem("userId", response.id || ""); //save info
     setToken(response.token); //save token
 
     alert("Registration was successful! Redirecting...");

@@ -1,25 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Button, Input, message } from "antd";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 
 const AddFriend: React.FC = () => {
-  const router = useRouter();
   const apiService = useApi();
-  const { value: token } = useLocalStorage<string>("token", "");
   const { value: userId } = useLocalStorage<string>("userId", "");
   const [friendId, setFriendId] = useState<string>("");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!token || !userId) {
-      router.push("/login");
-    }
-  }, [token, userId, router]);
 
   const handleAddFriend = async () => {
     if (!friendId.trim()) {
@@ -29,10 +20,10 @@ const AddFriend: React.FC = () => {
 
     setLoading(true);
     try {
-      // Make POST request to send friend request
+      //POST request to send friend request
       await apiService.post(
         `/users/${userId}/friends/requests`,
-        { receiverId: friendId }
+        friendId
       );
       message.success("Friend request sent successfully!");
       setFriendId("");
@@ -72,7 +63,7 @@ const AddFriend: React.FC = () => {
         backgroundColor: "white",
         borderRadius: "15px",
         padding: "2rem",
-        boxShadow: "0px 8px 10px rgba(0,0,0,0.2)",
+        boxShadow: "0px 8px 10px rgba(12, 11, 11, 0.2)",
         width: "100%",
         maxWidth: "500px",
         display: "flex",

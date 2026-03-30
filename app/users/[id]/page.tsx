@@ -8,22 +8,13 @@
 // SSR (server side rendering) has to be disabled.
 // Read more here: https://nextjs.org/docs/pages/building-your-application/rendering/server-side-rendering
 
-import React, { useEffect } from "react";
+import React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Button } from "antd";
 import useLocalStorage from "@/hooks/useLocalStorage";
 
 const Profile: React.FC = () => {
-  const router = useRouter();
-  const { value: token } = useLocalStorage<string>("token", "");
   const { value: userId } = useLocalStorage<string>("userId", "");
-
-  useEffect(() => {
-    if (!token || !userId) {
-      router.push("/login");
-    }
-  }, [token, userId, router]);
   return (
     <div className="card-container">
       <p>
