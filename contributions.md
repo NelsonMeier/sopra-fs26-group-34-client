@@ -47,6 +47,7 @@ reason).
 | "" | 29.03.26 | ec2580db783ea56f2ccb029c56d012c2ee7e41b5 |  Implemented authentication of the user | The system has to verify if the tokens are correct for the respective user. |
 | "" | 29.03.26 | 256cc51a8f92afad5581df35cf91a225eaf01d0f | Update the DTO's, Mapper, Controller and Service | The variables have to be connected correctly for a smooth information flow. | 
 | "" | 29.03.26 | e1466a28a14507c227ce3a47937aff86f32d6bc0 | Implemented page for login | The user has to be able to log in to their account. |
+| ""| 30.03.26 | 60ffb0eb064d81f286390d6bf4518ae2f9daa7c0 | Implemented logout function in controller and service. | Handles the functionality of logging the user out. |
 | **[@githubUser1]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 
 
