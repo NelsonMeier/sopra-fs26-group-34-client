@@ -13,6 +13,29 @@ import { useParams, useRouter } from "next/navigation";
 // SSR (server side rendering) has to be disabled.
 // Read more here: https://nextjs.org/docs/pages/building-your-application/rendering/server-side-rendering
 
+<<<<<<< friends-branch
+import React from "react";
+import Link from "next/link";
+import { Button } from "antd";
+import useLocalStorage from "@/hooks/useLocalStorage";
+
+const Profile: React.FC = () => {
+  const { value: userId } = useLocalStorage<string>("userId", "");
+  return (
+    <div className="card-container">
+      <p>
+        <strong>SampleUser</strong>
+      </p>
+      <div style={{ marginTop: "20px", display: "flex", gap: "10px" }}>
+        <Link href="/add-friend">
+          <Button type="primary">Add Friend</Button>
+        </Link>
+        <Link href="/friend-requests">
+          <Button>Friend Requests</Button>
+        </Link>
+      </div>
+    </div>
+=======
 import React, { useEffect, useState } from "react";
 
 const Profile: React.FC = () => {
@@ -78,6 +101,7 @@ const Profile: React.FC = () => {
           )}
         </Card>
         </div></div>
+>>>>>>> main
   );
 };
 
