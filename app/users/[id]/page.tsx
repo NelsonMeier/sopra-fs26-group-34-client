@@ -100,11 +100,11 @@ const Profile: React.FC = () => {
     };
 
     const handleAddFriend = () => {
-      alert("Add Friend functionality coming soon");
+      router.push("/add-friend");
     };
 
     const handleFriendRequests = () => {
-      alert("Friend Requests functionality coming soon");
+      router.push("/friend-requests");
     };
 
     const handleSingleplayer = () => {
