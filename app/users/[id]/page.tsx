@@ -8,6 +8,7 @@ import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
 import { Card } from "antd";
+import { clear } from "console";
 import { useParams, useRouter } from "next/navigation";
 // For components that need React hooks and browser APIs,
 // SSR (server side rendering) has to be disabled.
@@ -28,6 +29,7 @@ const Profile: React.FC = () => {
   const apiService = useApi();
 
   const {
+      value: token,
       clear: clearToken,
     } = useLocalStorage<string>("token", "");
 
@@ -85,9 +87,16 @@ const Profile: React.FC = () => {
       fetchFriends();
     }, [id, apiService]);
 
-    const handleLogout = () => {
-      clearToken();
-      router.push("/login");
+    const handleLogout = async () => {
+      try{
+        await apiService.post(`/logout/${id}`, token);
+        clearToken();
+        router.push("/login");
+      } catch (error) {
+        console.error("Logout failed:", error);
+        clearToken();
+        router.push("/login");
+      }
     };
 
     const handleAddFriend = () => {
