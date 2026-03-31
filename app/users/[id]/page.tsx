@@ -1,8 +1,3 @@
-// your code here for S2 to display a single user profile after having clicked on it
-// each user has their own slug /[id] (/1, /2, /3, ...) and is displayed using this file
-// try to leverage the component library from antd by utilizing "Card" to display the individual user
-// import { Card } from "antd"; // similar to /app/users/page.tsx
-
 "use client";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
@@ -42,20 +37,23 @@ const Profile: React.FC = () => {
       setMounted(true);
     }, []);
 
-    // useEffect(() => {
-    //   if (!mounted) return;
-    //   if (!token) {
-    //     alert("Not verified, please log in first.");
-    //     router.push("/login");
-    //     return;
-    //   }
-    // }, [mounted, token, router]);
+    useEffect(() => {
+      if (!mounted) return;
+      if (!token) {
+        alert("Not verified, please log in first.");
+        router.push("/login");
+        return;
+      }
+    }, [mounted, token, router]);
 
     useEffect(() => { //Gets User
-      /*if (!mounted || !token) return;*/
+      if (!mounted || !token) return; 
       const fetchUser = async () => {
         try {
-          const fetchedUser = await apiService.get<User>(`/users/${id}`);
+          const storedToken = localStorage.getItem("token")?.replaceAll('"', ''); 
+          const fetchedUser = await apiService.get<User>(`/users/${id}`, {
+            Authorization: `Bearer ${storedToken}`, 
+          });
           setUser(fetchedUser);
         } catch (error) {
           if (error instanceof Error) {
@@ -65,7 +63,7 @@ const Profile: React.FC = () => {
         }
       };
       fetchUser();
-    }, [mounted, id, /*token,*/ apiService, router]);
+    }, [mounted, id, token, apiService, router]); 
 
     useEffect(() => {
       if (!id) return;
