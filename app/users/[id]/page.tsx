@@ -19,7 +19,7 @@ interface Friend {  //Defines what a friend object looks like
   name: string;
   username: string;
   status: string;
-  createdDate: string;
+  creationDate: string;
 }
 
 const Profile: React.FC = () => {
@@ -138,7 +138,7 @@ const Profile: React.FC = () => {
   <div data-layer="Friends:" className="Friends" style={{width: 165, height: 42, left: 377, top: 378, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>Friends:</div>
   <div data-layer="Rectangle 1" className="Rectangle1" style={{width: 200, height: 40, left: 598, top: 267, position: 'absolute', background: '#DBDBDB', borderRadius: 10}} />
   <div data-layer="Rectangle 7" className="Rectangle7" style={{width: 200, height: 42, left: 598, top: 321, position: 'absolute', background: '#DBDBDB', borderRadius: 10}} />
-  <div data-layer="CreationDateValue" className="creationDateValue" style={{width: 141, left: 598, top: 334, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>{user?.createdDate || "Loading..."}</div>
+  <div data-layer="CreationDateValue" className="creationDateValue" style={{width: 141, left: 598, top: 334, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>{user?.creationDate || "Loading..."}</div>
   <div data-layer="UsernameValue" className="usernameValue" style={{width: 153, height: 27, left: 612, top: 275, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>{user?.username || "Loading..."}</div>
   <div data-layer="Rectangle 8" className="Rectangle8" style={{width: 200, height: 80, left: 598, top: 384, position: 'absolute', background: '#DBDBDB', borderRadius: 10}} />
   <div data-layer="LetPlayLabel" className="letPlayLabel" style={{width: 225, height: 59, left: 637, top: 675, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>Let&apos;s Play:</div>
