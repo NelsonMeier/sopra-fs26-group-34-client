@@ -7,8 +7,6 @@
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
-import { Card } from "antd";
-import { clear } from "console";
 import { useParams, useRouter } from "next/navigation";
 // For components that need React hooks and browser APIs,
 // SSR (server side rendering) has to be disabled.
@@ -120,7 +118,7 @@ const Profile: React.FC = () => {
     };
 
   return (
-<div data-layer="User Profile" className="UserProfile" style={{width: 1440, height: 1024, position: 'relative', background: '#77B8D2', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', overflow: 'hidden', outline: '3px black solid', outlineOffset: '-1.50px'}}>
+<div data-layer="User Profile" className="UserProfile" style={{width: '100%', minHeight: '100vh', position: 'relative', background: '#77B8D2', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', overflow: 'hidden', outline: '3px black solid', outlineOffset: '-1.50px'}}>
   <div data-layer="User Profile" className="UserProfile" style={{width: 656, height: 123, left: 419, top: 77, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 64, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>User Profile</div>
   <div data-layer="Rectangle 3" className="Rectangle3" style={{width: 240, height: 80, left: 1096, top: 675, position: 'absolute', background: '#FBAB7A', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', borderRadius: 25, border: '1px #FBAB7A solid'}} />
   <div data-layer="Scoreboard" className="Scoreboard" style={{width: 250, height: 79, left: 1091, top: 675, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleScoreboard}>Scoreboard</div>
@@ -142,7 +140,7 @@ const Profile: React.FC = () => {
   <div data-layer="CreationDateValue" className="creationDateValue" style={{width: 141, left: 598, top: 334, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>{user?.createdDate || "Loading..."}</div>
   <div data-layer="UsernameValue" className="usernameValue" style={{width: 153, height: 27, left: 612, top: 275, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>{user?.username || "Loading..."}</div>
   <div data-layer="Rectangle 8" className="Rectangle8" style={{width: 200, height: 80, left: 598, top: 384, position: 'absolute', background: '#DBDBDB', borderRadius: 10}} />
-  <div data-layer="LetPlayLabel" className="letPlayLabel" style={{width: 225, height: 59, left: 637, top: 675, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>Let's Play:</div>
+  <div data-layer="LetPlayLabel" className="letPlayLabel" style={{width: 225, height: 59, left: 637, top: 675, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>Let&apos;s Play:</div>
   <div data-layer="FriendsListValue" className="friendsListValue" style={{width: 201, height: 73, left: 612, top: 387, position: 'absolute', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>{friendsLoading ? "Loading..." : friends.length > 0 ? friends.map(f => f.name).join("") : "No friends yet"}</div>
 </div>
   );
