@@ -14,7 +14,7 @@ import { useParams, useRouter } from "next/navigation";
 
 import React, { useEffect, useState } from "react";
 
-interface Friend {
+interface Friend {  //Defines what a friend object looks like
   id: string | number;
   name: string;
   username: string;
@@ -26,7 +26,7 @@ const Profile: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
 
-  const {
+  const { // retieves Token from local storage
       value: token,
       clear: clearToken,
     } = useLocalStorage<string>("token", "");
@@ -51,7 +51,7 @@ const Profile: React.FC = () => {
     //   }
     // }, [mounted, token, router]);
 
-    useEffect(() => {
+    useEffect(() => { //Gets User
       /*if (!mounted || !token) return;*/
       const fetchUser = async () => {
         try {
@@ -70,7 +70,7 @@ const Profile: React.FC = () => {
     useEffect(() => {
       if (!id) return;
       
-      const fetchFriends = async () => {
+      const fetchFriends = async () => {  // Gets friend list
         setFriendsLoading(true);
         try {
           const fetchedFriends = await apiService.get<Friend[]>(`/users/${id}/friends`);
@@ -85,7 +85,7 @@ const Profile: React.FC = () => {
       fetchFriends();
     }, [id, apiService]);
 
-    const handleLogout = async () => {
+    const handleLogout = async () => {  // Handles logout; Incomplete due to missing apiService.ts implementation
       try{
         await apiService.post(`/logout/${id}`, token);
         clearToken();
@@ -105,18 +105,19 @@ const Profile: React.FC = () => {
       router.push("/friend-requests");
     };
 
-    const handleSingleplayer = () => {
+    const handleSingleplayer = () => {  //To be implemented
       alert("Singleplayer mode coming soon");
     };
 
-    const handleMultiplayer = () => {
+    const handleMultiplayer = () => {   //To be implemented
       alert("Multiplayer mode coming soon");
     };
 
-    const handleScoreboard = () => {
+    const handleScoreboard = () => {  //To be implemented
       alert("Scoreboard coming soon");
     };
 
+    // From Figma template
   return (
 <div data-layer="User Profile" className="UserProfile" style={{width: '100%', minHeight: '100vh', position: 'relative', background: '#77B8D2', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', overflow: 'hidden', outline: '3px black solid', outlineOffset: '-1.50px'}}>
   <div data-layer="User Profile" className="UserProfile" style={{width: 656, height: 123, left: 419, top: 77, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 64, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>User Profile</div>
