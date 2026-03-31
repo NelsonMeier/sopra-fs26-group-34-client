@@ -76,10 +76,10 @@ const AddFriend: React.FC = () => {
             fontWeight: "bold",
             fontFamily: "var(--font-chewy)"
           }}>
-            Friend's ID
+            Friend&apos;s ID
           </label>
           <Input
-            placeholder="Enter friend's user ID"
+            placeholder="Enter friend&apos;s user ID"
             value={friendId}
             onChange={(e) => setFriendId(e.target.value)}
             onPressEnter={handleAddFriend}

@@ -32,18 +32,14 @@ const Login: React.FC = () => {
       // Call the API service and let it handle JSON serialization and error handling
       const response = await apiService.post<User>("/login", values);
 
-<<<<<<< friends-branch
-      // Store token and user ID
-      if (response.token) {
-        setToken(response.token);
-=======
-      // Use the useLocalStorage hook that returned a setter function (setToken in line 41) to store the token if available
       if (!response || !response.token) {
         alert("Login failed: Invalid credentials");
         router.push('/');
         return;
->>>>>>> main
       }
+
+      // Store token and user ID
+      setToken(response.token);
       if (response.id) {
         setUserId(response.id);
       }
