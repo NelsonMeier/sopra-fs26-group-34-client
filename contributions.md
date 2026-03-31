@@ -30,11 +30,10 @@ reason).
 
 ---
 
-## Contributions Week 1 - [Begin Date] to [End Date]
+## Contributions Week 1 - 24.03.26 to 31.03.26
 
 | **Student**        | **Date** | **Link to Commit** | **Description**                 | **Relevance**                       |
 | ------------------ | -------- | ------------------ | ------------------------------- | ----------------------------------- |
-| **@anitbaum** | 28.03.26   | 2ef02c38c298976e140e13427e8701a9aa33f72b | Implemented login in the backend | It's important for the user to log in to their account. |
 | **@jonasdkf** | [26.03.26]   | [8b945fab51437aa75dbe6659049ebd45fc4c179c] | Implemented Friend and FriendRequest entity, as well as the repository in backend | Whole friend relation system is based on these two entities |
 | "" | [28.03.26]   | [7bbf43949b76b08fab20e11f757d2a169e374305] | Implemented the Service Layer for friend system | Includes crucial operations like sending friendRequests, accepting / declining friendrequests, creating the friendships and deleting friendships |
 | "" |[28.03.26]|[7bbf43949b76b08fab20e11f757d2a169e374305]|Implemented the controller Layer (Including DTO Mapping) |Set up GET, POST, PUT and DELETE Mappings based on our REST specification, which allows for requests between the client and server|
@@ -42,7 +41,15 @@ reason).
 | "" | [28.03.26]   | [7c31135f97ebc76664febc87e7ea564076fe725e] | Implemented user registration logic and duplicate username error handling in the service and repository file | Core requirement so the registerstration flow works including error handling |
 | "" | [28.03.26]  | [a73c6162b25e7549d6ddd9ac98bceed2241c25ec] | Implemented the landing page with Login and Register navigation buttons | Gives user an entry point to the application |
 | "" | [28.03.26]  | [6cab5d35b2679f062b5a83801db11ba86a529be2] | Created the registration page with form that sends username&password to the backend, saves token, redirects to the profile | Needed page for the users to be able to create an account |
+| **@Lukas81S** | 29.03.26   | a3b103a512929d8ba1c3819e04605e174b035a5f | Added initial (non-functional) "add friend" and "friend requests" pages and buttons to return to the user profile. | These pages are the places where the user can send and receive friend requests. |
+| "" | 29.03.26   | bcfd1a53e3aae50a7c791bfb89f0a343dc6cf1be | Implemented the full "add friend" page. | In this page, the user can successfully send a friend request. |
+| **@anitbaum** | 29.03.26   | b435875b7605cb947c9b778b3b4525e8f9a5bd4f | Implemented login in the backend | The input from the user has to be processed in the backend to log in successfully. |
+| "" | 29.03.26 | ec2580db783ea56f2ccb029c56d012c2ee7e41b5 |  Implemented authentication of the user | The system has to verify if the tokens are correct for the respective user. |
+| "" | 29.03.26 | 256cc51a8f92afad5581df35cf91a225eaf01d0f | Update the DTO's, Mapper, Controller and Service | The variables have to be connected correctly for a smooth information flow. | 
+| "" | 29.03.26 | e1466a28a14507c227ce3a47937aff86f32d6bc0 | Implemented page for login | The user has to be able to log in to their account. |
+| ""| 30.03.26 | 60ffb0eb064d81f286390d6bf4518ae2f9daa7c0 | Implemented logout function in controller and service. | Handles the functionality of logging the user out. |
 | **[@githubUser1]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+
 
 ---
 

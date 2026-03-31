@@ -60,17 +60,17 @@ export class ApiService {
    * @param endpoint - The API endpoint (e.g. "/users").
    * @returns JSON data of type T.
    */
-  public async get<T>(endpoint: string): Promise<T> {
-    const url = `${this.baseURL}${endpoint}`;
-    const res = await fetch(url, {
-      method: "GET",
-      headers: this.defaultHeaders,
-    });
-    return this.processResponse<T>(
-      res,
-      "An error occurred while fetching the data.\n",
-    );
-  }
+  public async get<T>(endpoint: string, headers?: HeadersInit): Promise<T> {
+  const url = `${this.baseURL}${endpoint}`;
+  const res = await fetch(url, {
+    method: "GET",
+    headers: { ...this.defaultHeaders, ...headers },
+  });
+  return this.processResponse<T>(
+    res,
+    "An error occurred while fetching the data.\n",
+  );
+}
 
   /**
    * POST request.
@@ -78,11 +78,11 @@ export class ApiService {
    * @param data - The payload to post.
    * @returns JSON data of type T.
    */
-  public async post<T>(endpoint: string, data: unknown): Promise<T> {
+  public async post<T>(endpoint: string, data: unknown, headers?: HeadersInit): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     const res = await fetch(url, {
       method: "POST",
-      headers: this.defaultHeaders,
+      headers: { ...this.defaultHeaders, ...headers },
       body: JSON.stringify(data),
     });
     return this.processResponse<T>(
@@ -97,18 +97,15 @@ export class ApiService {
    * @param data - The payload to update.
    * @returns JSON data of type T.
    */
-  public async put<T>(endpoint: string, data: unknown): Promise<T> {
-    const url = `${this.baseURL}${endpoint}`;
-    const res = await fetch(url, {
-      method: "PUT",
-      headers: this.defaultHeaders,
-      body: JSON.stringify(data),
-    });
-    return this.processResponse<T>(
-      res,
-      "An error occurred while updating the data.\n",
-    );
-  }
+  public async put<T>(endpoint: string, data: unknown, headers?: HeadersInit): Promise<T> {
+  const url = `${this.baseURL}${endpoint}`;
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: { ...this.defaultHeaders, ...headers },
+    body: JSON.stringify(data),
+  });
+  return this.processResponse<T>(res, "An error occurred while updating the data.\n");
+}
 
   /**
    * DELETE request.
@@ -127,3 +124,4 @@ export class ApiService {
     );
   }
 }
+

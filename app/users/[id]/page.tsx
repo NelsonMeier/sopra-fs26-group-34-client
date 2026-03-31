@@ -4,10 +4,16 @@
 // import { Card } from "antd"; // similar to /app/users/page.tsx
 
 "use client";
+import { useApi } from "@/hooks/useApi";
+//import useLocalStorage from "@/hooks/useLocalStorage";
+import { User } from "@/types/user";
+import { Card } from "antd";
+import { useParams, useRouter } from "next/navigation";
 // For components that need React hooks and browser APIs,
 // SSR (server side rendering) has to be disabled.
 // Read more here: https://nextjs.org/docs/pages/building-your-application/rendering/server-side-rendering
 
+<<<<<<< friends-branch
 import React from "react";
 import Link from "next/link";
 import { Button } from "antd";
@@ -29,6 +35,73 @@ const Profile: React.FC = () => {
         </Link>
       </div>
     </div>
+=======
+import React, { useEffect, useState } from "react";
+
+const Profile: React.FC = () => {
+  const router = useRouter();
+  const apiService = useApi();
+
+  // const {
+  //     value: token,
+  //     clear: clearToken,
+  //   } = useLocalStorage<string>("token", "");
+
+    const [mounted, setMounted] = useState(false);
+    const params = useParams();
+    const id = params.id;
+    const  [user, setUser] = useState<User | null>(null);
+    // const isMyProfile = user?.token === token;
+
+      useEffect(() =>{
+      setMounted(true);
+    }, []);
+
+    // useEffect(() => {
+    //   if (!mounted) return;
+    //   if (!token) {
+    //     alert("Not verified, please log in first.");
+    //     router.push("/login");
+    //     return;
+    //   }
+    // }, [mounted, token, router]);
+
+    useEffect(() => {
+      /*if (!mounted || !token) return;*/
+      const fetchUser = async () => {
+        try {
+          const fetchedUser = await apiService.get<User>(`/users/${id}`);
+          setUser(fetchedUser);
+        } catch (error) {
+          if (error instanceof Error) {
+            alert(`Could not load user profile:\n${error.message}`)
+            router.push("/users")
+          }
+        }
+      };
+      fetchUser();
+    }, [mounted, id, /*token,*/ apiService, router]);
+
+  return (
+    <div className="card-container">
+      <div className="profile-container">
+        <h1>
+          <strong>Your Profile:</strong>
+        </h1>
+        <Card
+          title={`Hello, ${user?.name}`}
+          loading={!user}
+          className="dashboard-container"
+        >
+          {user && (
+            <>
+              <p><strong>Username:</strong> {user.username}</p>
+              <p><strong>Account Creation Date:</strong> {user.createdDate}</p>
+            </>
+          )}
+        </Card>
+        </div></div>
+>>>>>>> main
   );
 };
 
