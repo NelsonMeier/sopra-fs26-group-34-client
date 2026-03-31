@@ -84,6 +84,7 @@ const AddFriend: React.FC = () => {
             onChange={(e) => setFriendId(e.target.value)}
             onPressEnter={handleAddFriend}
             size="large"
+            style={{ color: "white" }}
           />
         </div>
         <Button
