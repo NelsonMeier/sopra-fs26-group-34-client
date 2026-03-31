@@ -5,7 +5,7 @@
 
 "use client";
 import { useApi } from "@/hooks/useApi";
-//import useLocalStorage from "@/hooks/useLocalStorage";
+import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
 import { Card } from "antd";
 import { useParams, useRouter } from "next/navigation";
@@ -15,20 +15,28 @@ import { useParams, useRouter } from "next/navigation";
 
 import React, { useEffect, useState } from "react";
 
+interface Friend {
+  id: string | number;
+  name: string;
+  username: string;
+  status: string;
+  createdDate: string;
+}
+
 const Profile: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
 
-  // const {
-  //     value: token,
-  //     clear: clearToken,
-  //   } = useLocalStorage<string>("token", "");
+  const {
+      clear: clearToken,
+    } = useLocalStorage<string>("token", "");
 
     const [mounted, setMounted] = useState(false);
     const params = useParams();
     const id = params.id;
-    const  [user, setUser] = useState<User | null>(null);
-    // const isMyProfile = user?.token === token;
+    const [user, setUser] = useState<User | null>(null);
+    const [friends, setFriends] = useState<Friend[]>([]);
+    const [friendsLoading, setFriendsLoading] = useState(false);
 
       useEffect(() =>{
       setMounted(true);
@@ -59,25 +67,75 @@ const Profile: React.FC = () => {
       fetchUser();
     }, [mounted, id, /*token,*/ apiService, router]);
 
+    useEffect(() => {
+      if (!id) return;
+      
+      const fetchFriends = async () => {
+        setFriendsLoading(true);
+        try {
+          const fetchedFriends = await apiService.get<Friend[]>(`/users/${id}/friends`);
+          setFriends(fetchedFriends);
+        } catch (error) {
+          console.error("Could not load friends:", error);
+        } finally {
+          setFriendsLoading(false);
+        }
+      };
+      
+      fetchFriends();
+    }, [id, apiService]);
+
+    const handleLogout = () => {
+      clearToken();
+      router.push("/login");
+    };
+
+    const handleAddFriend = () => {
+      alert("Add Friend functionality coming soon");
+    };
+
+    const handleFriendRequests = () => {
+      alert("Friend Requests functionality coming soon");
+    };
+
+    const handleSingleplayer = () => {
+      alert("Singleplayer mode coming soon");
+    };
+
+    const handleMultiplayer = () => {
+      alert("Multiplayer mode coming soon");
+    };
+
+    const handleScoreboard = () => {
+      alert("Scoreboard coming soon");
+    };
+
   return (
-    <div className="card-container">
-      <div className="profile-container">
-        <h1>
-          <strong>Your Profile:</strong>
-        </h1>
-        <Card
-          title={`Hello, ${user?.name}`}
-          loading={!user}
-          className="dashboard-container"
-        >
-          {user && (
-            <>
-              <p><strong>Username:</strong> {user.username}</p>
-              <p><strong>Account Creation Date:</strong> {user.createdDate}</p>
-            </>
-          )}
-        </Card>
-        </div></div>
+<div data-layer="User Profile" className="UserProfile" style={{width: 1440, height: 1024, position: 'relative', background: '#77B8D2', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', overflow: 'hidden', outline: '3px black solid', outlineOffset: '-1.50px'}}>
+  <div data-layer="User Profile" className="UserProfile" style={{width: 656, height: 123, left: 419, top: 77, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 64, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>User Profile</div>
+  <div data-layer="Rectangle 3" className="Rectangle3" style={{width: 240, height: 80, left: 1096, top: 675, position: 'absolute', background: '#FBAB7A', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', borderRadius: 25, border: '1px #FBAB7A solid'}} />
+  <div data-layer="Scoreboard" className="Scoreboard" style={{width: 250, height: 79, left: 1091, top: 675, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleScoreboard}>Scoreboard</div>
+  <div data-layer="Rectangle 9" className="Rectangle9" style={{width: 200, height: 80, left: 128, top: 99, position: 'absolute', background: '#FBAB7A', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', borderRadius: 25, border: '1px #FBAB7A solid'}} />
+  <div data-layer="Logout" className="Logout" style={{width: 190, height: 79, left: 133, top: 99, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleLogout}>Logout</div>
+  <div data-layer="Rectangle 4" className="Rectangle4" style={{width: 240, height: 55, left: 818, top: 387, position: 'absolute', background: '#FBAB7A', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', borderRadius: 25, border: '1px #FBAB7A solid'}} />
+  <div data-layer="add Friend" className="AddFriend" style={{width: 250, height: 61, left: 813, top: 387, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleAddFriend}>add Friend</div>
+  <div data-layer="Rectangle 10" className="Rectangle10" style={{width: 240, height: 55, left: 818, top: 464, position: 'absolute', background: '#FBAB7A', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', borderRadius: 25, border: '1px #FBAB7A solid'}} />
+  <div data-layer="Friend Requests" className="FriendRequests" style={{width: 250, height: 61, left: 813, top: 464, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleFriendRequests}>Friend Requests</div>
+  <div data-layer="Rectangle 5" className="Rectangle5" style={{width: 240, height: 80, left: 403, top: 798, position: 'absolute', background: '#FBAB7A', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', borderRadius: 25, border: '1px #FBAB7A solid'}} />
+  <div data-layer="Singleplayer" className="Singleplayer" style={{width: 250, height: 79, left: 403, top: 799, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleSingleplayer}>Singleplayer</div>
+  <div data-layer="Rectangle 6" className="Rectangle6" style={{width: 240, height: 80, left: 846, top: 799, position: 'absolute', background: '#FBAB7A', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', borderRadius: 25, border: '1px #FBAB7A solid'}} />
+  <div data-layer="Multiplayer" className="Multiplayer" style={{width: 250, height: 79, left: 841, top: 799, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleMultiplayer}>Multiplayer</div>
+  <div data-layer="Username:" className="Username" style={{width: 165, height: 42, left: 393, top: 267, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>Username:</div>
+  <div data-layer="Creation Date:" className="CreationDate" style={{width: 205, height: 39, left: 393, top: 324, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>Creation Date:</div>
+  <div data-layer="Friends:" className="Friends" style={{width: 165, height: 42, left: 377, top: 378, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>Friends:</div>
+  <div data-layer="Rectangle 1" className="Rectangle1" style={{width: 200, height: 40, left: 598, top: 267, position: 'absolute', background: '#DBDBDB', borderRadius: 10}} />
+  <div data-layer="Rectangle 7" className="Rectangle7" style={{width: 200, height: 42, left: 598, top: 321, position: 'absolute', background: '#DBDBDB', borderRadius: 10}} />
+  <div data-layer="CreationDateValue" className="creationDateValue" style={{width: 141, left: 598, top: 334, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>{user?.createdDate || "Loading..."}</div>
+  <div data-layer="UsernameValue" className="usernameValue" style={{width: 153, height: 27, left: 612, top: 275, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>{user?.username || "Loading..."}</div>
+  <div data-layer="Rectangle 8" className="Rectangle8" style={{width: 200, height: 80, left: 598, top: 384, position: 'absolute', background: '#DBDBDB', borderRadius: 10}} />
+  <div data-layer="LetPlayLabel" className="letPlayLabel" style={{width: 225, height: 59, left: 637, top: 675, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>Let's Play:</div>
+  <div data-layer="FriendsListValue" className="friendsListValue" style={{width: 201, height: 73, left: 612, top: 387, position: 'absolute', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>{friendsLoading ? "Loading..." : friends.length > 0 ? friends.map(f => f.name).join("") : "No friends yet"}</div>
+</div>
   );
 };
 
