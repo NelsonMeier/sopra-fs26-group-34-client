@@ -107,8 +107,8 @@ const Profile: React.FC = () => {
       alert("Singleplayer mode coming soon");
     };
 
-    const handleMultiplayer = () => {   //To be implemented
-      alert("Multiplayer mode coming soon");
+    const handleMultiplayer = () => {
+      router.push("/multiplayer");
     };
 
     const handleScoreboard = () => {  //To be implemented
