@@ -2,12 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
-import { Button, Form, Input } from "antd";
+import { Button, Form, Input, App } from "antd";
 import { User } from "@/types/user";
 import useLocalStorage from "@/hooks/useLocalStorage";
 
 const Register: React.FC = () => { //functional component called register
   const router = useRouter();
+  const { message} = App.useApp();
   const apiService = useApi();     //hooks
   const [form] = Form.useForm(); 
 
@@ -20,18 +21,18 @@ const Register: React.FC = () => { //functional component called register
     const response = await apiService.post<User>("/users", values); //send post request to your backend
 
     if (!response || !response.token) { //check if server returned 
-      alert("Registration failed: Invalid response");
+      message.error("Registration failed: Invalid response");
       return;
     }
 
     localStorage.setItem("userId", response.id || ""); //save info
     setToken(response.token); //save token
 
-    alert("Registration was successful! Redirecting...");
+    message.success("Registration was successful! Redirecting...");
     router.push(`/users/${response.id}`); //redirect to user page
 
   } catch (error) {
-    alert("Registration failed! Username might already be taken."); //error handliing
+    message.error("Registration failed! Username might already be taken."); //error handliing
     console.error("Registration error:", error);
   }
 };

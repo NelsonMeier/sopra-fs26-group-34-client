@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"; // use NextJS router for navigation
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
-import { Button, Form, Input } from "antd";
+import { Button, Form, Input, App } from "antd";
 // Optionally, you can import a CSS module or file for additional styling:
 // import styles from "@/styles/page.module.css";
 
@@ -17,6 +17,7 @@ const Login: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
   const [form] = Form.useForm();
+  const { message} = App.useApp();
   // useLocalStorage hook example use
   // The hook returns an object with the value and two functions
   // Simply choose what you need from the hook:
@@ -33,7 +34,7 @@ const Login: React.FC = () => {
       const response = await apiService.post<User>("/login", values);
 
       if (!response || !response.token) {
-        alert("Login failed: Invalid credentials");
+        message.error("Login failed: Invalid credentials");
         router.push('/');
         return;
       }
@@ -46,12 +47,12 @@ const Login: React.FC = () => {
 
       localStorage.setItem("loggedInUserId", response?.id || "");
       setToken(response.token);
-      alert("Login successful! Redirecting...");
+      message.success("Login successful! Redirecting...");
       router.push(`/users/${response.id}`);
 
     } catch (error) {
       if (error instanceof Error) {
-        alert(`Something went wrong during the login:\n${error.message}`);
+        message.error(`Something went wrong during the login:\n${error.message}`);
         router.push('/');
       } else {
         console.error("An unknown error occurred during login.");
