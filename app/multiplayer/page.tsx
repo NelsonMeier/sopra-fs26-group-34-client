@@ -1,19 +1,63 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button, Input, message } from "antd";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
+import { useParams, useRouter } from "next/navigation";
+
+interface Friend {  //Defines what a friend object looks like
+  id: string | number;
+  name: string;
+  username: string;
+  status: string;
+  creationDate: string;
+}
 
 const MultiplayerRoom: React.FC = () => {
+  const router = useRouter();
   const apiService = useApi();
+
   const { value: userId } = useLocalStorage<string>("userId", "");
+
+  const params = useParams();
+  const id = params.id;
   const [friendId, setFriendId] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [friendsLoading, setFriendsLoading] = useState(true);
+  const [selectedFriends, setSelectedFriends] = useState<(string | number)[]>([]);
 
-  const handleRoundInput = async () => {
+  const toggleFriend = (id: string | number) => {
+    const idStr = String(id); // convert to string
+    setSelectedFriends((prev) =>
+    prev.includes(idStr)
+      ? prev.filter((f) => f !== idStr)
+      : [...prev, idStr]
+    );
   };
+
+  const handleRoundInput = async () => { // need to implement this
+  };
+
+  useEffect(() => {
+      if (!id) return;
+      
+      const fetchFriends = async () => {  // Gets friend list
+        setFriendsLoading(true);
+        try {
+          const fetchedFriends = await apiService.get<Friend[]>(`/users/${id}/friends`);
+          setFriends(fetchedFriends);
+        } catch (error) {
+          console.error("Could not load friends:", error);
+        } finally {
+          setFriendsLoading(false);
+        }
+      };
+      
+      fetchFriends();
+    }, [id, apiService]);
 
   return (
     <div style={{
@@ -109,7 +153,75 @@ const MultiplayerRoom: React.FC = () => {
           }}>
             Invite Friends:
           </div>
-      </div>
+          <div style={{
+            width: "100%",
+            maxHeight: "250px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.8rem",
+            overflowY: "auto",
+            marginTop: "1rem",
+            alignItems: "center"
+          }}
+        >
+          {friendsLoading ? (
+            <div style={{
+              position: "absolute",
+              top: "55%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              fontFamily: "var(--font-chewy)",
+              fontSize: "1.2rem",
+              color: "#666",
+              textAlign: "center",
+            }}>
+            Loading...
+            </div>
+          ) : friends.length > 0 ? (
+            friends.map((friend) => {
+              const isSelected = selectedFriends.includes(String(friend.id));
+
+              return (
+                <div
+                  key={friend.id}
+                  onClick={() => toggleFriend(friend.id)}
+                  style={{
+                    width: "90%",
+                    padding: "0.8rem",
+                    borderRadius: "12px",
+                    backgroundColor: isSelected ? "#E8956D" : "#B8D8E8",
+                    cursor: "pointer",
+                    textAlign: "center",
+                    fontSize: "1.2rem",
+                    fontFamily: "var(--font-chewy)",
+                    boxShadow: "0px 4px 6px rgba(0,0,0,0.15)",
+                    transition: "0.2s"
+                  }}
+                >
+                  {friend.username}
+                </div>
+              );
+            })
+          ) : (
+            <div
+              style={{
+                position: "absolute",
+                top: "55%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "300px",
+                fontSize: "1.2rem",
+                color: "#666",
+                fontFamily: "var(--font-chewy)"
+              }}>
+              No friends yet
+            </div>
+          )}
+        </div>
+        </div>
 
       <div style={{
         backgroundColor: "#B8D8E8",
@@ -129,9 +241,7 @@ const MultiplayerRoom: React.FC = () => {
             Ready Players:
           </div>
       </div>
-    
-      </div>
-
+    </div>
     </div>
   );
 };
