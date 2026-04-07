@@ -44,10 +44,13 @@ const Profile: React.FC = () => {
 
     const [modalVisibility, setModalVisibility] = useState(false);
     const [form] = Form.useForm();
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(false);
+    const [loggedInUserId, setLoggedInUserId] = useState<string | null>(null);
 
       useEffect(() =>{
       setMounted(true);
+      const userId = localStorage.getItem("loggedInUserId");
+      setLoggedInUserId(userId);
     }, []);
 
     useEffect(() => {
@@ -210,8 +213,12 @@ const Profile: React.FC = () => {
       <div key={friend.id}>{friend.username}</div>
     )) : "No friends yet"}
   </div>
-  <div data-layer="Rectangle 11" className="Rectangle11" style={{width: 240, height: 42, left: 818, top: 267, position: 'absolute', background: '#E8A09F', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', borderRadius: 25, border: '1px #E8A09F solid'}} />
-  <div data-layer="Change Password" className="ChangePassword" style={{width: 250, height: 48, left: 813, top: 267, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleChangePassword}>Change Password</div>
+  {loggedInUserId && loggedInUserId === String(id) && (
+    <>
+      <div data-layer="Rectangle 11" className="Rectangle11" style={{width: 240, height: 42, left: 818, top: 267, position: 'absolute', background: '#E8A09F', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', borderRadius: 25, border: '1px #E8A09F solid'}} />
+      <div data-layer="Change Password" className="ChangePassword" style={{width: 250, height: 48, left: 813, top: 267, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleChangePassword}>Change Password</div>
+    </>
+  )}
   <Modal
   open={modalVisibility}
   onCancel={handleCancelPasswordChange}
