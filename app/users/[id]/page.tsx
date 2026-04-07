@@ -188,9 +188,6 @@ const Profile: React.FC = () => {
     },
     body: {
       backgroundColor: "#77B8D2"
-    },
-    content: {
-      backgroundColor: "#77B8D2"
     }
   }}
   >
