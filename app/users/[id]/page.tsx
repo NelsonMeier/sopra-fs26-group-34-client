@@ -53,7 +53,7 @@ const Profile: React.FC = () => {
     useEffect(() => {
       if (!mounted) return;
       if (!token) {
-        alert("Not verified, please log in first.");
+        //alert("Not verified, please log in first.");
         router.push("/login");
         return;
       }
