@@ -1,0 +1,16 @@
+.gameCard {
+    color: black !important;
+    background-color: rgb(166, 199, 214) !important;
+    cursor: pointer !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    font-size: 1.8rem !important;
+}
+
+.gameCard .ant-card-head-title {
+    font-size: 1.8rem !important; 
+    font-family: var(--font-chewy);
+}

@@ -1,10 +1,12 @@
 "use client";
+//@ts-ignore
+import "./styles.css";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Row, Col, Card } from "antd";
+import { Row, Col, Card, Button } from "antd";
 
 
 
@@ -13,6 +15,7 @@ import path from "path";
 
 const Singleplayer: React.FC = () => {
     const router = useRouter();
+    const { value: userId } = useLocalStorage<string>("userId", "");
 
     return (
     <div style={{
@@ -36,13 +39,30 @@ const Singleplayer: React.FC = () => {
         >
         Singleplayer
         </h1>
+        
+        <Link href={`/users/${userId}`} style = {{position: "absolute", top: "3rem", left: "3rem" }}>
+            <Button
+                style={{
+                backgroundColor: "#E8956D",
+                borderColor: "#E8956D",
+                borderRadius: "20px",
+                height: "75px",
+                fontSize: "1.8rem",
+                padding: "0 30px",
+                fontWeight: "bold",
+                color: "black",
+                fontFamily: "var(--font-chewy)",
+                border: "none",
+                boxShadow: "0px 8px 10px rgba(0,0,0,0.2)"}}
+                type="primary">Back to Profile</Button>
+        </Link>
 
         <Row gutter={[15, 15]} justify="center">
             <Col key = "reaction-time" xs={24} sm={12} md={8} lg={6}>
                 <Card 
                     title="Reaction Time"
                     onClick={() => router.push("/singleplayer/reaction-time")}
-                    style={{cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center"}}
+                    className = "gameCard"
                     hoverable>
                     Click as soon as the screen turns green!
                 </Card>
@@ -51,7 +71,7 @@ const Singleplayer: React.FC = () => {
                 <Card 
                     title="Typing Speed"
                     onClick={() => router.push("/singleplayer/typing-speed")}
-                    style={{cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center"}}
+                    className = "gameCard"
                     hoverable>
                     Type the given text as fast as you can!
                 </Card>
