@@ -107,14 +107,50 @@ const Profile: React.FC = () => {
 
   const handleSubmit = async (values: FormFieldProps) => {
     setLoading(true)
-    //This all will still need to be implemented, but backend logic is needed here
-    setLoading(false)
-    return;
-  }
+    try{
+      if (values.newPassword !== values.confirmPassword) {
+        message.warning("New and confirming passwords don't match!")
+        setLoading(false);
+        return;
+      }
+      if (values.oldPassword == values.newPassword) {
+        message.warning("New password must be different from old password")
+        setLoading(false);
+        return;
+      }
+      if (!values.newPassword || values.newPassword == "") {
+        message.warning("New password can't be empty")
+        setLoading(false);
+        return;
+      }
 
-    const handleLogout = async () => {  // Handles logout; Incomplete due to missing apiService.ts implementation
+    const currentToken = localStorage.getItem("token")?.replaceAll('"', '');
+
+    await apiService.put(`/users/${id}`, 
+      {password: values.newPassword}, 
+      {Authorization: `Bearer ${currentToken}`});
+    
+    message.success("Password changed successfully!");
+    setModalVisibility(false);
+    form.resetFields();
+    await handleLogout();    
+    
+  }
+    catch (error) {
+        if (error instanceof Error) {
+        alert(`Unable to change password: \n${error.message}`);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+    const handleLogout = async () => {
       try{
-        await apiService.post(`/logout/${id}`, token);
+        const storedToken = localStorage.getItem("token")?.replaceAll('"', '');
+        await apiService.post(`/logout/${id}`, {}, {
+          Authorization: `Bearer ${storedToken}`
+        });
         clearToken();
         router.push("/login");
       } catch (error) {
@@ -150,7 +186,7 @@ const Profile: React.FC = () => {
   <div data-layer="User Profile" className="UserProfile" style={{width: 656, height: 123, left: 419, top: 77, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 64, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>User Profile</div>
   <div data-layer="Rectangle 3" className="Rectangle3" style={{width: 240, height: 80, left: 1096, top: 675, position: 'absolute', background: '#FBAB7A', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', borderRadius: 25, border: '1px #FBAB7A solid'}} />
   <div data-layer="Scoreboard" className="Scoreboard" style={{width: 250, height: 79, left: 1091, top: 675, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleScoreboard}>Scoreboard</div>
-  <div data-layer="Rectangle 9" className="Rectangle9" style={{width: 200, height: 80, left: 128, top: 99, position: 'absolute', background: '#FBAB7A', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', borderRadius: 25, border: '1px #FBAB7A solid'}} />
+  <div data-layer="Rectangle 9" className="Rectangle9" style={{width: 200, height: 80, left: 128, top: 99, position: 'absolute', background: '#E8A09F', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', borderRadius: 25, border: '1px #E8A09F solid'}} />
   <div data-layer="Logout" className="Logout" style={{width: 190, height: 79, left: 133, top: 99, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleLogout}>Logout</div>
   <div data-layer="Rectangle 4" className="Rectangle4" style={{width: 240, height: 55, left: 818, top: 387, position: 'absolute', background: '#FBAB7A', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', borderRadius: 25, border: '1px #FBAB7A solid'}} />
   <div data-layer="add Friend" className="AddFriend" style={{width: 250, height: 61, left: 813, top: 387, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleAddFriend}>add Friend</div>
