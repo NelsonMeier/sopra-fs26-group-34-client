@@ -2,12 +2,14 @@
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
+import Password from "antd/es/input/Password";
 import { useParams, useRouter } from "next/navigation";
 // For components that need React hooks and browser APIs,
 // SSR (server side rendering) has to be disabled.
 // Read more here: https://nextjs.org/docs/pages/building-your-application/rendering/server-side-rendering
 
 import React, { useEffect, useState } from "react";
+import {Modal, Form, Input, Button, message} from "antd"
 
 interface Friend {  //Defines what a friend object looks like
   id: string | number;
@@ -15,6 +17,12 @@ interface Friend {  //Defines what a friend object looks like
   username: string;
   status: string;
   creationDate: string;
+}
+
+interface FormFieldProps {
+  oldPassword: string;
+  newPassword: string;
+  confirmPassword: string;
 }
 
 const Profile: React.FC = () => {
@@ -30,8 +38,13 @@ const Profile: React.FC = () => {
     const params = useParams();
     const id = params.id;
     const [user, setUser] = useState<User | null>(null);
+
     const [friends, setFriends] = useState<Friend[]>([]);
     const [friendsLoading, setFriendsLoading] = useState(false);
+
+    const [modalVisibility, setModalVisibility] = useState(false);
+    const [form] = Form.useForm();
+    const [loading, setLoading] = useState(false)
 
       useEffect(() =>{
       setMounted(true);
@@ -82,6 +95,22 @@ const Profile: React.FC = () => {
       
       fetchFriends();
     }, [id, apiService]);
+
+    const handleChangePassword = () => {
+      setModalVisibility(true);
+    };
+
+    const handleCancelPasswordChange = () => {
+    setModalVisibility(false);
+    form.resetFields();
+  };
+
+  const handleSubmit = async (values: FormFieldProps) => {
+    setLoading(true)
+    //This all will still need to be implemented, but backend logic is needed here
+    setLoading(false)
+    return;
+  }
 
     const handleLogout = async () => {  // Handles logout; Incomplete due to missing apiService.ts implementation
       try{
@@ -145,6 +174,104 @@ const Profile: React.FC = () => {
       <div key={friend.id}>{friend.username}</div>
     )) : "No friends yet"}
   </div>
+  <div data-layer="Rectangle 11" className="Rectangle11" style={{width: 240, height: 42, left: 818, top: 267, position: 'absolute', background: '#E8A09F', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', borderRadius: 25, border: '1px #E8A09F solid'}} />
+  <div data-layer="Change Password" className="ChangePassword" style={{width: 250, height: 48, left: 813, top: 267, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleChangePassword}>Change Password</div>
+  <Modal
+  open={modalVisibility}
+  onCancel={handleCancelPasswordChange}
+  title="Change Password"
+  footer={null}
+  styles={{
+    header: {
+      backgroundColor: "#77B8D2",
+      borderBottom: "2px solid #6BAED6"
+    },
+    body: {
+      backgroundColor: "#77B8D2"
+    },
+    content: {
+      backgroundColor: "#77B8D2"
+    }
+  }}
+  >
+    <Form
+      form={form}
+      layout="vertical"
+      onFinish={handleSubmit}
+    >
+      <Form.Item
+        label="Old Password"
+        name="oldPassword"
+        rules={[{ required: true, message: "Enter your OLD password" }]}
+        labelCol={{ style: { fontFamily: "var(--font-chewy)", fontSize: "1.2rem", color: "black" } }}
+      >
+        <Password
+          placeholder="Enter your old password"
+          style={{ borderRadius: "12px", height: "50px", backgroundColor: "white", color: "black" }}
+        />
+      </Form.Item>
+
+      <Form.Item
+        label="New Password"
+        name="newPassword"
+        rules={[{ required: true, message: "Enter your NEW password" }]}
+        labelCol={{ style: { fontFamily: "var(--font-chewy)", fontSize: "1.2rem", color: "black" } }}
+      >
+        <Password
+          placeholder="Enter your new password"
+          style={{ borderRadius: "12px", height: "50px", backgroundColor: "white", color: "black" }}
+        />
+      </Form.Item>
+
+      <Form.Item
+        label="Confirm Password"
+        name="confirmPassword"
+        rules={[{ required: true, message: "Confirm your password" }]}
+        labelCol={{ style: { fontFamily: "var(--font-chewy)", fontSize: "1.2rem", color: "black" } }}
+      >
+        <Password
+          placeholder="Confirm your new password"
+          style={{ borderRadius: "12px", height: "50px", backgroundColor: "white", color: "black" }}
+        />
+      </Form.Item>
+
+      <Form.Item style={{ marginTop: "2rem", marginBottom: 0 }}>
+        <Button
+          onClick={handleCancelPasswordChange}
+          style={{
+            backgroundColor: "#FBAB7A",
+            borderRadius: "15px",
+            height: "45px",
+            fontSize: "1rem",
+            fontFamily: "var(--font-chewy)",
+            border: "none",
+            color: "black",
+            boxShadow: "0px 4px 4px rgba(0,0,0,0.25)",
+            marginRight: "8px"
+          }}
+        >
+          Cancel
+        </Button>
+        <Button
+          type="primary"
+          htmlType="submit"
+          loading={loading}
+          style={{
+            backgroundColor: "#E8A09F",
+            borderRadius: "15px",
+            height: "45px",
+            fontSize: "1rem",
+            fontFamily: "var(--font-chewy)",
+            border: "none",
+            color: "black",
+            boxShadow: "0px 4px 4px rgba(0,0,0,0.25)"
+          }}
+        >
+          Confirm Change
+        </Button>
+      </Form.Item>
+    </Form>
+  </Modal>
 </div>
   );
 };
