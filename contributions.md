@@ -63,8 +63,8 @@ reason).
 |                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@githubUser2]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@githubUser3]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **Lukas81S** | 07.04.26   | https://github.com/NelsonMeier/sopra-fs26-group-34-client/commit/a69f6a2be50820785ba0a3582bdca57466339110 | Implemented the singleplayer room page. | Allows the player to choose a game to play in singleplayer. |
+| "" | 07.04.26   | https://github.com/NelsonMeier/sopra-fs26-group-34-client/commit/38b253431b50589a20556d07a47dc869592514c7 | Implemented basic functionality of the reaction time game (no backend communication for high scores yet). | The user can now play a functional reaction speed game. |
 | **@NelsonMeier** |  7.4.26  | https://github.com/NelsonMeier/sopra-fs26-group-34-client/commit/b88851c60f39537a9fc587e54be2b05a7f556ebb | Commit implements frontend logic and apiService calls for changing password. | With these final changes to the password changing functionality, the user can now click on the "change password" button, fill out the form, and request the change from the backend. |
 |                    |  7.4.26  | https://github.com/NelsonMeier/sopra-fs26-group-34-server/commit/ed7a44d3c98c560411a892cd73bf8173d562357d | This commit relates to the backend logic which allows the password to be changed. UserService and UserControler files now have methods to handle a request from the frontend to change the password. | This change makes it so, that the changed password is sent to the backend and actually saved in the database (along with some checks). This makes it possible to log in with the new changed password. |
 
