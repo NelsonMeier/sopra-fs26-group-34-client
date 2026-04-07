@@ -54,11 +54,12 @@ reason).
 
 ---
 
-## Contributions Week 2 - [Begin Date] to [End Date]
+## Contributions Week 2 - 01.04.26 to 08.04.26
 
 | **Student**        | **Date** | **Link to Commit** | **Description**                 | **Relevance**                       |
 | ------------------ | -------- | ------------------ | ------------------------------- | ----------------------------------- |
-| **[@githubUser1]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+| **@anitbaum** | 05.04.26   | https://github.com/NelsonMeier/sopra-fs26-group-34-client/commit/d716f091a6811ab0812f5cc4f08d67e02f53aefa | Started working on the multiplayer room page and implmeneted the "Back to Profile" button and general layout of it. | The suer should be able to go back to their profile. Additionally the multiplayer page should be clear and easy for the user to understand. |
+| "" | 06.04.26 | https://github.com/NelsonMeier/sopra-fs26-group-34-client/commit/1f8772019a45022797339cd0cf22362daf7bbb72 | Started with the implmenetation of the friend-selection. | The user should be able to choose from their friend list, with who they want to play. |
 |                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@githubUser2]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
@@ -69,7 +70,7 @@ reason).
 
 ---
 
-## Contributions Week 3 - [Begin Date] to [End Date]
+## Contributions Week 3 - 08.04.26 to 15.04.26
 
 _Continue with the same table format as above._
 
