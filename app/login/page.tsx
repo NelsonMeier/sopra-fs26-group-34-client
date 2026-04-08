@@ -17,7 +17,7 @@ const Login: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
   const [form] = Form.useForm();
-  // useLocalStorage hook example use
+// useLocalStorage hook example use
   // The hook returns an object with the value and two functions
   // Simply choose what you need from the hook:
   const {
@@ -27,25 +27,30 @@ const Login: React.FC = () => {
     set: setUserId,
   } = useLocalStorage<string>("userId", "");
 
+  const { 
+    set: setUsername 
+  } = useLocalStorage<string>("username", ""); 
+
   const handleLogin = async (values: FormFieldProps) => {
-    try {
+     try {
       // Call the API service and let it handle JSON serialization and error handling
-      const response = await apiService.post<User>("/login", values);
+            const response = await apiService.post<User>("/login", values);
 
       if (!response || !response.token) {
         alert("Login failed: Invalid credentials");
         router.push('/');
         return;
       }
-
       // Store token and user ID
       setToken(response.token);
       if (response.id) {
         setUserId(response.id);
       }
+      if (response.username) {
+        setUsername(response.username); 
+      }
 
       localStorage.setItem("loggedInUserId", response?.id || "");
-      setToken(response.token);
       alert("Login successful! Redirecting...");
       router.push(`/users/${response.id}`);
 
@@ -60,87 +65,83 @@ const Login: React.FC = () => {
     }
   };
 
-
   return (
-  <div style={{
-    minHeight: "100vh",
-    backgroundColor: "#6BAED6",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-  }}>
-
-    <h1 style={{
-      fontFamily: "var(--font-chewy)",
-      fontSize: "3.5rem",
-      color: "black",
-      margin: 0,
-      marginBottom: "2rem"
+    <div style={{
+      minHeight: "100vh",
+      backgroundColor: "#6BAED6",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
     }}>
-      Login
-    </h1>
 
-    <div style={{ width: "350px" }}>
-      <Form
-        form={form}
-        name="login"
-        layout="vertical"
-        onFinish={handleLogin}
-        size="large"
-        variant="outlined">
+      <h1 style={{
+        fontFamily: "var(--font-chewy)",
+        fontSize: "3.5rem",
+        color: "black",
+        margin: 0,
+        marginBottom: "2rem"
+      }}>
+        Login
+      </h1>
 
-        <Form.Item
-        name="username"
-        label="Username"
-        rules={[{ required: true, message: "Please input your username!" }]}
-        style={{ color: "black" }}
-        labelCol={{ style: { fontFamily: "var(--font-chewy)", fontSize: "1.2rem" } }}>
+      <div style={{ width: "350px" }}>
+        <Form
+          form={form}
+          name="login"
+          layout="vertical"
+          onFinish={handleLogin}
+          size="large"
+          variant="outlined">
 
-          <Input
-            placeholder="Enter username"
-            style={{ borderRadius: "12px", height: "50px", backgroundColor: "white", color: "black" }}
-          />
-        </Form.Item>
+          <Form.Item
+            name="username"
+            label="Username"
+            rules={[{ required: true, message: "Please input your username!" }]}
+            style={{ color: "black" }}
+            labelCol={{ style: { fontFamily: "var(--font-chewy)", fontSize: "1.2rem" } }}>
+            <Input
+              placeholder="Enter username"
+              style={{ borderRadius: "12px", height: "50px", backgroundColor: "white", color: "black" }}
+            />
+          </Form.Item>
 
-        <Form.Item
-        name="password"
-        label="Password"
-        rules={[{ required: true, message: "Please input your password!" }]}
-        style={{ color: "black" }}
-        labelCol={{ style: { fontFamily: "var(--font-chewy)", fontSize: "1.2rem" } }}>
-            
-          <Input.Password
-            placeholder="Enter password"
-            style={{ borderRadius: "12px", height: "50px", backgroundColor: "white", color: "black" }}
-          />
-        </Form.Item>
+          <Form.Item
+            name="password"
+            label="Password"
+            rules={[{ required: true, message: "Please input your password!" }]}
+            style={{ color: "black" }}
+            labelCol={{ style: { fontFamily: "var(--font-chewy)", fontSize: "1.2rem" } }}>
+            <Input.Password
+              placeholder="Enter password"
+              style={{ borderRadius: "12px", height: "50px", backgroundColor: "white", color: "black" }}
+            />
+          </Form.Item>
 
-        <Form.Item>
-          <Button
-            type="primary"
-            htmlType="submit"
-            style={{
-              backgroundColor: "#E8956D",
-              borderRadius: "30px",
-              width: "100%",
-              height: "65px",
-              fontSize: "1.4rem",
-              fontFamily: "var(--font-chewy)",
-              border: "none",
-              color: "black",
-              boxShadow: "0px 8px 10px rgba(0,0,0,0.4)",
-              marginTop: "1rem"
-            }}
-          >
-            Login
-          </Button>
-        </Form.Item>
-      </Form>
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              style={{
+                backgroundColor: "#E8956D",
+                borderRadius: "30px",
+                width: "100%",
+                height: "65px",
+                fontSize: "1.4rem",
+                fontFamily: "var(--font-chewy)",
+                border: "none",
+                color: "black",
+                boxShadow: "0px 8px 10px rgba(0,0,0,0.4)",
+                marginTop: "1rem"
+              }}
+            >
+              Login
+            </Button>
+          </Form.Item>
+        </Form>
+      </div>
     </div>
-  </div>
-);
+  );
 };
-
 
 export default Login;

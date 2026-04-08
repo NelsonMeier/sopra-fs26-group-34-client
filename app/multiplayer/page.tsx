@@ -6,6 +6,8 @@ import { Button, Input, message } from "antd";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { useParams, useRouter } from "next/navigation";
+import { v4 as uuidv4 } from "uuid";
+import { useWebSocket } from "@/hooks/useWebSocket";
 
 interface Friend {  //Defines what a friend object looks like
   id: string | number;
@@ -20,19 +22,29 @@ const MultiplayerRoom: React.FC = () => {
   const apiService = useApi();
 
   const { value: userId } = useLocalStorage<string>("userId", "");
+
+  const { value: username } = useLocalStorage<string>("username", "");
+
+  console.log("userId:", userId, "username:", username);
+  
+  const [roomId] = useState<string>(() => uuidv4());
+  const { joinedPlayers, gameStarted, selectedGame, send } = useWebSocket(roomId, userId);
   
   const [friends, setFriends] = useState<Friend[]>([]);
   const [friendsLoading, setFriendsLoading] = useState(true);
   const [selectedFriends, setSelectedFriends] = useState<(string | number)[]>([]);
 
-  const toggleFriend = (id: string | number) => {
-    const idStr = String(id); // convert to string
-    setSelectedFriends((prev) =>
-    prev.includes(idStr)
-      ? prev.filter((f) => f !== idStr)
-      : [...prev, idStr]
-    );
-  };
+  const toggleFriend = (id: string | number, friendUsername: string) => {
+  const idStr = String(id);
+  setSelectedFriends((prev) => {
+    if (prev.includes(idStr)) {
+      return prev.filter((f) => f !== idStr);
+    } else {
+      send("/app/inviteRoom", { roomId, username: friendUsername });
+      return [...prev, idStr];
+    }
+  });
+};
 
   useEffect(() => {
       if (!userId) return;
@@ -52,7 +64,25 @@ const MultiplayerRoom: React.FC = () => {
       fetchFriends();
     }, [userId, apiService]);
 
-  return (
+  
+    useEffect(() => {
+    if (!userId || !roomId) return;
+    
+    send("/app/createRoom", {
+    roomId,
+    adminId: userId,
+  });
+    }, [roomId, userId]);
+
+
+    useEffect(() => {
+    if (gameStarted && selectedGame) {
+    router.push(`/game/${selectedGame.toLowerCase().replace(" ", "-")}`);
+  }
+    }, [gameStarted, selectedGame]);
+
+  
+    return (
     <div style={{
       minHeight: "100vh",
       backgroundColor: "#6BAED6",
@@ -75,7 +105,6 @@ const MultiplayerRoom: React.FC = () => {
       Games (Multiplayer)
     </h1>
 
-
     <div style={{
       position: "absolute",
       right: "200px",
@@ -84,7 +113,6 @@ const MultiplayerRoom: React.FC = () => {
       gap: "1rem",
       alignItems: "center"
       }}>
-        
       <Link href={`/users/${userId}`}>
         <Button
           style={{
@@ -105,7 +133,6 @@ const MultiplayerRoom: React.FC = () => {
       </Link>
     </div>
 
-
     <div style={{
       display: "flex",
       flexDirection: "row",
@@ -113,6 +140,7 @@ const MultiplayerRoom: React.FC = () => {
       gap: "1.5rem"
     }}>
 
+      
       <div style={{
         backgroundColor: "#B8D8E8",
         borderRadius: "15px",
@@ -142,7 +170,23 @@ const MultiplayerRoom: React.FC = () => {
             alignItems: "center", 
             gap: "10px", 
             fontFamily: "var(--font-chewy)" }}>
-            <input type="number" min="0" defaultValue="0" style={{ width: "40px" }} />
+            <input 
+              type="number" 
+              min="0" 
+              defaultValue="0" 
+              style={{ width: "40px" }}
+              onChange={(e) => {
+                const rounds = e.target.value;
+                if (parseInt(rounds) > 0) {
+                  send("/app/selectGame", {
+                    roomId,
+                    game: "Reaction Time",
+                    rounds,
+                    userId,
+                  });
+                }
+              }}
+            />
             Reaction Time
           </div>
           <div style={{ 
@@ -150,12 +194,29 @@ const MultiplayerRoom: React.FC = () => {
             alignItems: "center", 
             gap: "10px", 
             fontFamily: "var(--font-chewy)" }}>
-            <input type="number" min="0" defaultValue="0" style={{ width: "40px" }} />
+            <input 
+              type="number" 
+              min="0" 
+              defaultValue="0" 
+              style={{ width: "40px" }}
+              onChange={(e) => {
+                const rounds = e.target.value;
+                if (parseInt(rounds) > 0) {
+                  send("/app/selectGame", {
+                    roomId,
+                    game: "Typing Test", // ← fixed
+                    rounds,
+                    userId,
+                  });
+                }
+              }}
+            />
             Typing Test
           </div>
         </div>
       </div>
 
+     
       <div style={{
         backgroundColor: "#B8D8E8",
         borderRadius: "15px",
@@ -182,7 +243,8 @@ const MultiplayerRoom: React.FC = () => {
             overflowY: "auto",
             marginTop: "2rem",
             alignItems: "center"
-          }}> {friendsLoading ? (
+          }}>
+          {friendsLoading ? (
             <div style={{
               position: "absolute",
               top: "55%",
@@ -211,33 +273,33 @@ const MultiplayerRoom: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={isSelected}
-                    onChange={() => toggleFriend(friend.id)}
+                    onChange={() => toggleFriend(friend.id, friend.username)}
                   />
                   {friend.username}
                 </div>
               );
             })
           ) : (
-            <div
-              style={{
-                position: "absolute",
-                top: "55%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "300px",
-                fontSize: "1.2rem",
-                color: "#666",
-                fontFamily: "var(--font-chewy)"
-              }}>
+            <div style={{
+              position: "absolute",
+              top: "55%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "300px",
+              fontSize: "1.2rem",
+              color: "#666",
+              fontFamily: "var(--font-chewy)"
+            }}>
               No friends yet
             </div>
           )}
         </div>
-        </div>
+      </div>
 
+      
       <div style={{
         backgroundColor: "#B8D8E8",
         borderRadius: "15px",
@@ -260,21 +322,16 @@ const MultiplayerRoom: React.FC = () => {
             flexDirection: "column", 
             gap: "0.5rem", 
             marginTop: "2rem" }}>
-            {selectedFriends.map((id) => {
-              const friend = friends.find((f) => String(f.id) === String(id));
-              if (!friend) return null;
-              return (
-                <div 
-                  key={id} 
-                  style={{ fontFamily: "var(--font-chewy)" 
-                  }}>
-                  {friend.username}
-                </div>
-              );
-            })}
+            {joinedPlayers.map((player) => ( // ← fixed
+              <div key={player} style={{ fontFamily: "var(--font-chewy)" }}>
+                {player}
+              </div>
+            ))}
           </div>
       </div>
     </div>
+
+  
     <div style={{
       width: "100%",
       display: "flex",
@@ -282,6 +339,13 @@ const MultiplayerRoom: React.FC = () => {
       marginTop: "2rem"
       }}>
         <Button
+          onClick={() => { // ← fixed
+            if (!selectedGame) {
+              alert("Please select a game first!");
+              return;
+            }
+            send("/app/startGame", { roomId });
+          }}
           style={{
             marginTop: "2rem",
             backgroundColor: "#E8956D",
