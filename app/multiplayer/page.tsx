@@ -77,7 +77,7 @@ const MultiplayerRoom: React.FC = () => {
 
     useEffect(() => {
     if (gameStarted && selectedGame) {
-    router.push(`/game/${selectedGame.toLowerCase().replace(" ", "-")}`);
+    router.push(`/game/${selectedGame.toLowerCase().replace(" ", "-")}?roomId=${roomId}`);
   }
     }, [gameStarted, selectedGame]);
 
@@ -247,7 +247,7 @@ const MultiplayerRoom: React.FC = () => {
           {friendsLoading ? (
             <div style={{
               position: "absolute",
-              top: "55%",
+              top: "47%",
               left: "50%",
               transform: "translate(-50%, -50%)",
               fontFamily: "var(--font-chewy)",
@@ -282,7 +282,7 @@ const MultiplayerRoom: React.FC = () => {
           ) : (
             <div style={{
               position: "absolute",
-              top: "55%",
+              top: "47%",
               left: "50%",
               transform: "translate(-50%, -50%)",
               display: "flex",
