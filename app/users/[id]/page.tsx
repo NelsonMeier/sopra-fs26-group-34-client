@@ -1,6 +1,7 @@
 "use client";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
+import useWindowSize from "@/hooks/useWndowSize";
 import { User } from "@/types/user";
 import Password from "antd/es/input/Password";
 import { useParams, useRouter } from "next/navigation";
@@ -9,7 +10,7 @@ import { useParams, useRouter } from "next/navigation";
 // Read more here: https://nextjs.org/docs/pages/building-your-application/rendering/server-side-rendering
 
 import React, { useEffect, useState } from "react";
-import {Modal, Form, Input, Button, message} from "antd"
+import {Modal, Form, Button, message} from "antd"
 
 interface Friend {  //Defines what a friend object looks like
   id: string | number;
@@ -28,6 +29,7 @@ interface FormFieldProps {
 const Profile: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
+  const { windowSize } = useWindowSize();
 
   const { // retieves Token from local storage
       value: token,
@@ -55,7 +57,6 @@ const Profile: React.FC = () => {
 
     useEffect(() => {
       if (!mounted) return;
-      const storedToken = localStorage.getItem("token")?.replaceAll('"', '');
       if (!token) {
         //alert("Not verified, please log in first.");
         router.push("/login");
@@ -99,6 +100,25 @@ const Profile: React.FC = () => {
       
       fetchFriends();
     }, [id, apiService]);
+
+    const baseCanvasWidth = 1440;
+    const baseCanvasHeight = 1024;
+    const viewportPadding = 16;
+    const availableWidth =
+      windowSize.width > 0
+        ? Math.max(1, windowSize.width - viewportPadding * 2)
+        : baseCanvasWidth;
+    const availableHeight =
+      windowSize.height > 0
+        ? Math.max(1, windowSize.height - viewportPadding * 2)
+        : baseCanvasHeight;
+    const pageScale = Math.min(
+      1,
+      availableWidth / baseCanvasWidth,
+      availableHeight / baseCanvasHeight,
+    );
+    const scaledCanvasWidth = baseCanvasWidth * pageScale;
+    const scaledCanvasHeight = baseCanvasHeight * pageScale;
 
     const handleChangePassword = () => {
       setModalVisibility(true);
@@ -186,7 +206,9 @@ const Profile: React.FC = () => {
 
     // From Figma template
   return (
-<div data-layer="User Profile" className="UserProfile" style={{width: '100%', minHeight: '100vh', position: 'relative', background: '#77B8D2', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', overflow: 'hidden', outline: '3px black solid', outlineOffset: '-1.50px'}}>
+<div style={{width: '100%', minHeight: '100vh', background: '#77B8D2', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '16px', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', outline: '3px black solid', outlineOffset: '-1.50px'}}>
+<div style={{width: scaledCanvasWidth, height: scaledCanvasHeight, position: 'relative'}}>
+<div data-layer="User Profile" className="UserProfile" style={{width: baseCanvasWidth, height: baseCanvasHeight, position: 'relative', background: '#77B8D2', overflow: 'hidden', transform: `scale(${pageScale})`, transformOrigin: 'top left'}}>
   <div data-layer="User Profile" className="UserProfile" style={{width: 656, height: 123, left: 419, top: 77, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 64, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>User Profile</div>
   <div data-layer="Rectangle 3" className="Rectangle3" style={{width: 240, height: 80, left: 1096, top: 675, position: 'absolute', background: '#FBAB7A', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', borderRadius: 25, border: '1px #FBAB7A solid'}} />
   <div data-layer="Scoreboard" className="Scoreboard" style={{width: 250, height: 79, left: 1091, top: 675, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleScoreboard}>Scoreboard</div>
@@ -313,6 +335,8 @@ const Profile: React.FC = () => {
       </Form.Item>
     </Form>
   </Modal>
+</div>
+</div>
 </div>
   );
 };
