@@ -55,12 +55,13 @@ const Profile: React.FC = () => {
 
     useEffect(() => {
       if (!mounted) return;
+      const storedToken = localStorage.getItem("token")?.replaceAll('"', '');
       if (!token) {
         //alert("Not verified, please log in first.");
         router.push("/login");
         return;
       }
-    }, [mounted, token, router]);
+    }, [mounted, router]);
 
     useEffect(() => { //Gets User
       if (!mounted || !token) return; 
