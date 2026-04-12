@@ -40,7 +40,7 @@ const MultiplayerRoom: React.FC = () => {
     if (prev.includes(idStr)) {
       return prev.filter((f) => f !== idStr);
     } else {
-      send("/app/inviteRoom", { roomId, username: friendUsername });
+      send("/app/inviteRoom", { roomId, username: friendUsername, inviterName: username });
       return [...prev, idStr];
     }
   });
