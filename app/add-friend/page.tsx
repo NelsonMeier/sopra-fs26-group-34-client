@@ -5,28 +5,32 @@ import Link from "next/link";
 import { Button, Input, message } from "antd";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
+import { User } from "@/types/user";
 
 const AddFriend: React.FC = () => {
   const apiService = useApi();
   const { value: userId } = useLocalStorage<string>("userId", "");
-  const [friendId, setFriendId] = useState<string>("");
+  const [friendUsername, setFriendUsername] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
   const handleAddFriend = async () => {
-    if (!friendId.trim()) {
-      message.error("Please enter a friend's ID");
+    if (!friendUsername.trim()) {
+      message.error("Please enter a friend's username");
       return;
     }
 
     setLoading(true);
     try {
+      //GET request to find friend by username and retrieve their ID
+      const friend = await apiService.get<User>(`/users/search/${friendUsername}`); 
+      const friendId = friend.id; 
       //POST request to send friend request
       await apiService.post(
         `/users/${userId}/friends/requests`,
         friendId
       );
       message.success("Friend request sent successfully!");
-      setFriendId("");
+      setFriendUsername("");
     } catch (error) {
       if (error instanceof Error) {
         message.error(`Failed to send friend request: ${error.message}`);
@@ -76,12 +80,12 @@ const AddFriend: React.FC = () => {
             fontWeight: "bold",
             fontFamily: "var(--font-chewy)"
           }}>
-            Friend&apos;s ID
+            Friend&apos;s Username
           </label>
           <Input
-            placeholder="Enter friend&apos;s user ID"
-            value={friendId}
-            onChange={(e) => setFriendId(e.target.value)}
+            placeholder="Enter friend&apos;s username"
+            value={friendUsername}
+            onChange={(e) => setFriendUsername(e.target.value)}
             onPressEnter={handleAddFriend}
             size="large"
             style={{ color: "white" }}
