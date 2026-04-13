@@ -197,8 +197,8 @@ const Profile: React.FC = () => {
     </div>
   </div>
 
-  <div data-layer="Middle" className="Middle" style={{display: "grid", gridTemplateColumns: "1fr 260px", columnGap: "42px", alignItems: "start"}}>
-    <div data-layer="Left Info" className="Left Info" style={{display: "grid", rowGap: "16px"}}>
+  <div data-layer="Middle" className="Middle" style={{display: "grid", marginTop: "50px",gridTemplateColumns: "1fr 260px", columnGap: "42px", alignItems: "start"}}>
+    <div data-layer="Left Info" className="Left Info" style={{display: "grid", rowGap: "16px", marginLeft: "200px"}}>
       <div data-layer="Username Row" className="Username Row" style={{display: "grid", gridTemplateColumns: "190px 250px", columnGap: "12px", alignItems: "center"}}>
         <div data-layer="Username:" className="Username" style={{textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>Username:</div>
         <div data-layer="UsernameValue" className="usernameValue" style={{background: "#DBDBDB", borderRadius: 10, padding: "6px 12px", minHeight: "42px", display: "flex", alignItems: "center", textAlign: 'center', justifyContent: 'center', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>{user?.username || "Loading..."}</div>
@@ -209,7 +209,7 @@ const Profile: React.FC = () => {
       </div>
       <div data-layer="Friends Row" className="Friends Row" style={{display: "grid", gridTemplateColumns: "190px 250px", columnGap: "12px", alignItems: "center"}}>
         <div data-layer="Friends:" className="Friends" style={{textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>Friends:</div>
-        <div data-layer="FriendsListValue" className="friendsListValue" style={{background: "#DBDBDB", borderRadius: 10, padding: "6px 12px", minHeight: "42px", maxHeight: "140px", display: "flex", justifyContent: 'flex-start', alignItems: "flex-start", flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', overflowY: 'auto'}}>
+        <div data-layer="FriendsListValue" className="friendsListValue" style={{background: "#DBDBDB", borderRadius: 10, padding: "6px 12px", minHeight: "90px", maxHeight: "140px", display: "flex", justifyContent: 'flex-start', alignItems: "flex-start", flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', overflowY: 'auto'}}>
           {friendsLoading ? "Loading..." : friends.length > 0 ? friends.map((friend) => (
             <div key={friend.id}>{friend.username}</div>
           )) : "No friends yet"}
@@ -217,13 +217,13 @@ const Profile: React.FC = () => {
       </div>
     </div>
 
-    <div data-layer="Right Buttons" className="Right Buttons" style={{display: "grid", rowGap: "16px", paddingTop: "118px"}}>
+    <div data-layer="Right Buttons" className="Right Buttons" style={{display: "grid", rowGap: "16px", paddingTop: "0px"}}>
       <div data-layer="add Friend" className="AddFriend" style={{width: "240px", height: "61px", background: "#FBAB7A", borderRadius: 25, border: "1px #FBAB7A solid", boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleAddFriend}>add Friend</div>
       <div data-layer="Friend Requests" className="FriendRequests" style={{width: "240px", height: "61px", background: "#FBAB7A", borderRadius: 25, border: "1px #FBAB7A solid", boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleFriendRequests}>Friend Requests</div>
     </div>
   </div>
 
-  <div data-layer="Bottom" className="Bottom" style={{display: "grid", gridTemplateColumns: "1fr 250px", columnGap: "40px", alignItems: "center"}}>
+  <div data-layer="Bottom" className="Bottom" style={{display: "grid", gridTemplateColumns: "1fr 250px", marginTop: "30px", columnGap: "40px", alignItems: "center"}}>
     <div data-layer="Play Group" className="Play Group" style={{display: "grid", rowGap: "20px", justifyItems: "center"}}>
       <div data-layer="LetPlayLabel" className="letPlayLabel" style={{textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>Let&apos;s Play:</div>
       <div data-layer="Play Buttons" className="Play Buttons" style={{display: "grid", gridTemplateColumns: "240px 240px", columnGap: "30px"}}>
@@ -232,7 +232,7 @@ const Profile: React.FC = () => {
       </div>
     </div>
 
-    <div data-layer="Scoreboard" className="Scoreboard" style={{width: "240px", height: "79px", background: "#FBAB7A", borderRadius: 25, border: "1px #FBAB7A solid", boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleScoreboard}>Scoreboard</div>
+    <div data-layer="Scoreboard" className="Scoreboard" style={{width: "240px", height: "79px", marginTop: "200px",background: "#FBAB7A", borderRadius: 25, border: "1px #FBAB7A solid", boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleScoreboard}>Scoreboard</div>
   </div>
 
   <Modal
