@@ -28,23 +28,28 @@ const MultiplayerRoom: React.FC = () => {
   console.log("userId:", userId, "username:", username);
   
   const [roomId] = useState<string>(() => uuidv4());
-  const { joinedPlayers, gameStarted, selectedGame, send } = useWebSocket(roomId, userId);
+  const { joinedPlayers, gameStarted, selectedGame, send, incomingInvite, setIncomingInvite } = useWebSocket(roomId, userId, username);
   
   const [friends, setFriends] = useState<Friend[]>([]);
   const [friendsLoading, setFriendsLoading] = useState(true);
   const [selectedFriends, setSelectedFriends] = useState<(string | number)[]>([]);
 
   const toggleFriend = (id: string | number, friendUsername: string) => {
-  const idStr = String(id);
-  setSelectedFriends((prev) => {
-    if (prev.includes(idStr)) {
-      return prev.filter((f) => f !== idStr);
+    const idStr = String(id);
+    const isSelected = selectedFriends.includes(idStr);
+
+    if (isSelected) {
+      setSelectedFriends((prev) => prev.filter((f) => f !== idStr));
     } else {
-      send("/app/inviteRoom", { roomId, username: friendUsername, inviterName: username });
-      return [...prev, idStr];
+      setSelectedFriends((prev) => [...prev, idStr]);
+
+      send("/app/inviteRoom", {
+        roomId,
+        username: friendUsername,
+        inviterName: username,
+      });
     }
-  });
-};
+  };
 
   useEffect(() => {
       if (!userId) return;
@@ -72,7 +77,7 @@ const MultiplayerRoom: React.FC = () => {
     roomId,
     adminId: userId,
   });
-    }, [roomId, userId]);
+    }, [roomId, userId, send]);
 
 
     useEffect(() => {

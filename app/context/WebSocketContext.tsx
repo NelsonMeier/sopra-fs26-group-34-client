@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useRef, useState } from "r
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { getApiDomain } from "@/utils/domain";
+import GlobalInvitePopup from "@/components/GlobalInvitePopup";
 
 interface Invite {
   roomId: string;
@@ -23,9 +24,14 @@ const WebSocketContext = createContext<WebSocketContextType>({ //creates instanc
 export function WebSocketContextProvider({ children }: { children: React.ReactNode }) { // to wrap whole app so pop up can show up everyhwerw
   const [invite, setInvite] = useState<Invite | null>(null);
   const clientRef = useRef<Client | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
-    const username = localStorage.getItem("username")?.replaceAll('"', ''); // gets username
+    const stored = localStorage.getItem("username")?.replaceAll('"', '');
+    if (stored) setUsername(stored);
+  }, []);
+
+  useEffect(() => {
     if (!username) 
         return;
 
@@ -45,13 +51,14 @@ export function WebSocketContextProvider({ children }: { children: React.ReactNo
     clientRef.current = client; // starts connection
 
     return () => { client.deactivate(); };
-  }, []);
+  }, [username]);
 
   const clearInvite = () => setInvite(null); // to clear invite after accepting or declining, so pop up disappears
 
-  return (
-    <WebSocketContext.Provider value={{ invite, clearInvite }}> //share w all pages, so they can show pop up when invite received
+  return ( //so pop up can be shown anywhere in app when invite received
+    <WebSocketContext.Provider value={{ invite, clearInvite }}>
       {children}
+      <GlobalInvitePopup /> 
     </WebSocketContext.Provider>
   );
 }

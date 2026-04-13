@@ -3,11 +3,15 @@ import { Client } from "@stomp/stompjs"; // to talk w server
 import SockJS from "sockjs-client"; //connection to talk to server
 import { getApiDomain } from "@/utils/domain";
 
-export function useWebSocket(roomId: string, userId: string) {  //hook
+export function useWebSocket(roomId: string, userId: string, username: string) {  //hook
   const clientRef = useRef<Client | null>(null); //store client instance
   const [joinedPlayers, setJoinedPlayers] = useState<string[]>([]); //players
   const [gameStarted, setGameStarted] = useState(false); //status
   const [selectedGame, setSelectedGame] = useState<string>(""); //games
+  const [incomingInvite, setIncomingInvite] = useState<{
+    roomId: string;
+    inviterName: string;
+    } | null>(null);
 
   useEffect(() => { // when page loads
     if (!roomId || !userId) return; // defensive check
@@ -33,6 +37,16 @@ export function useWebSocket(roomId: string, userId: string) {  //hook
             setGameStarted(true);
             setSelectedGame(data.game); }
         });
+        client.subscribe(`/topic/invite/${username}`, (message) => {
+        const data = JSON.parse(message.body);
+
+          if (data.type === "PLAYER_INVITED") {
+            setIncomingInvite({
+              roomId: data.roomId,
+              inviterName: data.inviterName,
+            });
+          }
+        });
       },
     });
 
@@ -56,5 +70,5 @@ export function useWebSocket(roomId: string, userId: string) {  //hook
   
 
 
-  return { joinedPlayers, gameStarted, selectedGame, send };
+  return { joinedPlayers, gameStarted, selectedGame, send, incomingInvite, setIncomingInvite };
 }
