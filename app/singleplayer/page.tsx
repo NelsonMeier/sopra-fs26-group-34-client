@@ -1,23 +1,57 @@
 "use client";
-//@ts-ignore
-import "./styles.css";
-import { useApi } from "@/hooks/useApi";
-import useLocalStorage from "@/hooks/useLocalStorage";
-import { User } from "@/types/user";
-import { useParams, useRouter } from "next/navigation";
+
+import React from "react";
 import Link from "next/link";
-import { Row, Col, Card, Button } from "antd";
+import { Button, message } from "antd";
+import useLocalStorage from "@/hooks/useLocalStorage";
+import { useRouter } from "next/navigation";
 
+interface SingleplayerRounds {
+  reactionTime: number;
+  typingSpeed: number;
+}
 
+const clampRounds = (value: number): number => {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(99, Math.trunc(value)));
+};
 
-import React, { useEffect, useState } from "react";
-import path from "path";
+const SingleplayerRoom: React.FC = () => {
+  const router = useRouter();
 
-const Singleplayer: React.FC = () => {
-    const router = useRouter();
-    const { value: userId } = useLocalStorage<string>("userId", "");
+  const { value: userId } = useLocalStorage<string>("userId", "");
 
-    return (
+  const { value: rounds, set: setRounds } = useLocalStorage<SingleplayerRounds>(
+    "singleplayerRounds",
+    { reactionTime: 0, typingSpeed: 0 },
+  );
+
+  const reactionTimeRounds = clampRounds(rounds?.reactionTime ?? 0);
+  const typingSpeedRounds = clampRounds(rounds?.typingSpeed ?? 0);
+
+  const updateRounds = (key: keyof SingleplayerRounds, rawValue: string): void => {
+    const nextValue = rawValue === "" ? 0 : clampRounds(Number(rawValue));
+    setRounds({
+      ...rounds,
+      [key]: nextValue,
+    });
+  };
+
+  const handleStart = (): void => {
+    if (reactionTimeRounds <= 0 && typingSpeedRounds <= 0) {
+      message.error("Please enter rounds for at least one game.");
+      return;
+    }
+
+    if (reactionTimeRounds > 0) {
+      router.push("/games/reaction-time");
+      return;
+    }
+
+    router.push("/games/typing-speed");
+  };
+
+  return (
     <div style={{
       minHeight: "100vh",
       backgroundColor: "#6BAED6",
@@ -25,61 +59,139 @@ const Singleplayer: React.FC = () => {
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      gap: "1.5rem",
-      padding: "2rem"}}
-    >
+      padding: "2rem",
+      gap: "2rem"
+    }}>
+      
+    <h1 style={{
+      fontSize: "3.5rem",
+      fontWeight: "400",
+      fontFamily: "var(--font-chewy)",
+      margin: 0,
+      color: "black",
+      marginBottom: "2rem"
+    }}>
+      Games (Singleplayer)
+    </h1>
 
-        <h1 style={{
-            fontSize: "4rem",
-            fontWeight: "400",
-            fontFamily: "var(--font-chewy)",
-            margin: 0,
+    <div style={{
+      position: "absolute",
+      right: "200px",
+      top: "100px",
+      display: "flex",
+      gap: "1rem",
+      alignItems: "center"
+      }}>
+      <Link href={`/users/${userId}`}>
+        <Button
+          style={{
+            backgroundColor: "#E8956D",
+            borderColor: "#E8956D",
+            borderRadius: "15px",
+            height: "55px",
+            fontSize: "1.4rem",
+            padding: "0 30px",
+            fontWeight: "bold",
             color: "black",
-            textAlign: "center"}}
-        >
-        Singleplayer
-        </h1>
-        
-        <Link href={`/users/${userId}`} style = {{position: "absolute", top: "3rem", left: "3rem" }}>
-            <Button
-                style={{
-                backgroundColor: "#E8956D",
-                borderColor: "#E8956D",
-                borderRadius: "20px",
-                height: "75px",
-                fontSize: "1.8rem",
-                padding: "0 30px",
-                fontWeight: "bold",
-                color: "black",
-                fontFamily: "var(--font-chewy)",
-                border: "none",
-                boxShadow: "0px 8px 10px rgba(0,0,0,0.2)"}}
-                type="primary">Back to Profile</Button>
-        </Link>
-
-        <Row gutter={[15, 15]} justify="center">
-            <Col key = "reaction-time" xs={24} sm={12} md={8} lg={6}>
-                <Card 
-                    title="Reaction Time"
-                    onClick={() => router.push("/singleplayer/reaction-time")}
-                    className = "gameCard"
-                    hoverable>
-                    Click as soon as the screen turns green!
-                </Card>
-            </Col>
-            <Col key = "typing-speed" xs={24} sm={12} md={8} lg={6}>
-                <Card 
-                    title="Typing Speed"
-                    onClick={() => router.push("/singleplayer/typing-speed")}
-                    className = "gameCard"
-                    hoverable>
-                    Type the given text as fast as you can!
-                </Card>
-            </Col>
-        </Row>
-
+            fontFamily: "var(--font-chewy)",
+            border: "none",
+            boxShadow: "0px 8px 10px rgba(0,0,0,0.2)"}}
+          type="primary">
+            Back
+        </Button>
+      </Link>
     </div>
-    );
+
+    <div style={{
+      display: "flex",
+      justifyContent: "center",
+      width: "100%"
+    }}>
+      <div style={{
+        backgroundColor: "#B8D8E8",
+        borderRadius: "15px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        padding: "2rem",
+        width: "350px",
+        height: "400px"}}>
+        <div style={{
+          display: "flex",
+          justifyContent: "center",
+          fontSize: "1.5rem",
+          color: "#000000",
+          fontFamily: "var(--font-chewy)"
+        }}>
+          Games:
+        </div>
+        <div style={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          gap: "1rem",
+          marginTop: "2rem" }}>
+          <div style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: "10px", 
+            fontFamily: "var(--font-chewy)" }}>
+            <input
+              type="number" 
+              min="0" 
+              max="99"
+              value={reactionTimeRounds}
+              style={{ width: "40px" }}
+              onChange={(e) => updateRounds("reactionTime", e.target.value)}
+            />
+            Reaction Time
+          </div>
+          <div style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: "10px", 
+            fontFamily: "var(--font-chewy)" }}>
+            <input
+              type="number" 
+              min="0" 
+              max="99"
+              value={typingSpeedRounds}
+              style={{ width: "40px" }}
+              onChange={(e) => updateRounds("typingSpeed", e.target.value)}
+            />
+            Typing Speed
+          </div>
+        </div>
+      </div>
+    </div>
+
+  
+    <div style={{
+      width: "100%",
+      display: "flex",
+      justifyContent: "center",
+      marginTop: "2rem"
+      }}>
+        <Button
+          onClick={handleStart}
+          style={{
+            marginTop: "2rem",
+            backgroundColor: "#E8956D",
+            borderRadius: "15px",
+            height: "55px",
+            width: "150px",
+            fontSize: "1.4rem",
+            fontWeight: "bold",
+            color: "black",
+            fontFamily: "var(--font-chewy)",
+            border: "none",
+            boxShadow: "0px 8px 10px rgba(0,0,0,0.2)"
+          }}>
+          Start
+        </Button>
+    </div>
+    </div>
+  );
 };
 
-export default Singleplayer;
+export default SingleplayerRoom;
