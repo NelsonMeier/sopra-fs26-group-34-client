@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 
 type GameState = "idle" | "waiting" | "active" | "result";
 
-interface SingleplayerRounds {
+export interface SingleplayerRounds {
   reactionTime: number;
   typingSpeed: number;
 }

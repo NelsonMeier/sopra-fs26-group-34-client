@@ -18,7 +18,6 @@ const clampRounds = (value: number): number => {
 const TypingSpeedGame: React.FC = () => {
     const router = useRouter();
     const inputRef = useRef<HTMLTextAreaElement>(null);
-    const { set: setTypingScores } = useLocalStorage<number[]>("typingScores", []);
     const apiService = useApi();
 
     const [gameState, setGameState] = useState<GameState>("idle");
@@ -62,7 +61,9 @@ const TypingSpeedGame: React.FC = () => {
 
         setReactionRounds(reaction);
         setTotalRounds(typing);
-        setTypingScores([]);
+        if (typeof window !== "undefined") {
+            globalThis.sessionStorage.setItem("typingScores", JSON.stringify([]));
+        }
         setScores([]);
         setCurrentRound(1);
         setSessionInitialized(true);
@@ -147,7 +148,9 @@ const TypingSpeedGame: React.FC = () => {
 
         const nextScores = [...scores, wpm];
         setScores(nextScores);
-        setTypingScores(nextScores);
+        if (typeof window !== "undefined") {
+            globalThis.sessionStorage.setItem("typingScores", JSON.stringify(nextScores));
+        }
         
         //prepare next round or finish game
         if (currentRound >= totalRounds) {
