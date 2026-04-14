@@ -1,12 +1,11 @@
-"use client"; // For components that need React hooks and browser APIs, SSR (server side rendering) has to be disabled. Read more here: https://nextjs.org/docs/pages/building-your-application/rendering/server-side-rendering
+"use client";
 
-import { useRouter } from "next/navigation"; // use NextJS router for navigation
+import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
 import { Button, Form, Input, App } from "antd";
-// Optionally, you can import a CSS module or file for additional styling:
-// import styles from "@/styles/page.module.css";
+import React from "react";
 
 interface FormFieldProps {
   username: string;
@@ -17,38 +16,30 @@ const Login: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
   const [form] = Form.useForm();
-  const { message} = App.useApp();
-  // useLocalStorage hook example use
-  // The hook returns an object with the value and two functions
-  // Simply choose what you need from the hook:
-  const {
-    set: setToken,
-  } = useLocalStorage<string>("token", "");
-  const {
-    set: setUserId,
-  } = useLocalStorage<string>("userId", "");
+  const { message } = App.useApp();
 
-  const { 
-    set: setUsername 
-  } = useLocalStorage<string>("username", ""); 
+  const { set: setToken } = useLocalStorage<string>("token", "");
+  const { set: setUserId } = useLocalStorage<string>("userId", "");
+  const { set: setUsername } = useLocalStorage<string>("username", "");
 
   const handleLogin = async (values: FormFieldProps) => {
-     try {
-      // Call the API service and let it handle JSON serialization and error handling
-            const response = await apiService.post<User>("/login", values);
+    try {
+      const response = await apiService.post<User>("/login", values);
 
       if (!response || !response.token) {
         message.error("Login failed: Invalid credentials");
         router.push('/');
         return;
       }
-      // Store token and user ID
+
       setToken(response.token);
       if (response.id) {
         setUserId(response.id);
       }
       if (response.username) {
-        setUsername(response.username); 
+        setUsername(response.username);
+        //tell weboscket context about the new username so it can subscribe to the personal invite topic
+        window.dispatchEvent(new Event("username-set"));
       }
 
       localStorage.setItem("loggedInUserId", response?.id || "");
