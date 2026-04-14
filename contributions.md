@@ -75,8 +75,8 @@ reason).
 
 | **Student**        | **Date** | **Link to Commit** | **Description**                 | **Relevance**                       |
 | ------------------ | -------- | ------------------ | ------------------------------- | ----------------------------------- |
-| **[@githubUser1]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@githubUser2]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+| **zar4hmed** | 12.04.2026   | https://github.com/NelsonMeier/sopra-fs26-group-34-client/commit/b3122802a5950458c927ddbcce0094294b608c96 | Created WebSocketContext to manage incoming invites and share them across the entire application + accordingly adjusted layout.txt and the multiplayer page | This contribution is relevant because it enables real time handling of the game invitations |
+| **""** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@githubUser3]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 | **NelsonMeier** | 13.04.2026  | https://github.com/NelsonMeier/sopra-fs26-group-34-client/commit/4be2a715267ff97777428ccdcab10b390e68980a | This commit completly overhauls/refactors the scaling for th user profile page to use flexible scaling. | This allows for the user to resize the window and still look at the page within a reasonable margin. It also means that the user profile page now uses the same scaling logic as other pages, unifying the feel and style across pages. |
 | **NelsonMeier** | 14.04.2026  | https://github.com/NelsonMeier/sopra-fs26-group-34-client/commit/e4c6f339a5ed21d5dcb094061121b0a15a698e55 | This task required implementation of a new scoreboard page and integrating navigation to that page via the user profile page. The Scoreboard page displays two boards for the two games.  | The commit is important because it allows the users to navigate to the new scoreboard page, where they can see lists with the top scoring players in different games (once the games are implemented). |
