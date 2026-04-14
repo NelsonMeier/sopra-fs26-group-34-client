@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "antd";
 import { useApi } from "@/hooks/useApi";
@@ -17,7 +17,7 @@ interface Friend { //Defines what a friend object looks like
   creationDate: string;
 }
 
-const MultiplayerRoom: React.FC = () => {
+function MultiplayerRoomInner() {
   const router = useRouter();
   const apiService = useApi();
   const searchParams = useSearchParams();
@@ -369,6 +369,12 @@ const MultiplayerRoom: React.FC = () => {
       )}
     </div>
   );
-};
+}
 
-export default MultiplayerRoom;
+export default function MultiplayerRoom() {
+  return (
+    <Suspense>
+      <MultiplayerRoomInner />
+    </Suspense>
+  );
+}
