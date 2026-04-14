@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import useLocalStorage from "@/hooks/useLocalStorage";
 
 type GameState = "idle" | "waiting" | "active" | "result";
 
@@ -17,13 +16,12 @@ const clampRounds = (value: number): number => {
 
 const ReactionTime: React.FC = () => {
   const router = useRouter();
-  const { set: setReactionScores } = useLocalStorage<number[]>("reactionScores", []);
 
   const [gameState, setGameState] = useState<GameState>("idle");
   const [reactionTime, setReactionTime] = useState<number>(0);
   const [startTime, setStartTime] = useState<number>(0);
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
-  const [totalRounds, setTotalRounds] = useState<number>(0);
+  const [reactionRounds, setReactionRounds] = useState<number>(0);
   const [typingRounds, setTypingRounds] = useState<number>(0);
   const [currentRound, setCurrentRound] = useState<number>(1);
   const [scores, setScores] = useState<number[]>([]);
@@ -40,9 +38,9 @@ const ReactionTime: React.FC = () => {
     if (typeof window === "undefined") return;
 
     try {
-      const storedRounds = globalThis.localStorage.getItem("singleplayerRounds");
+      const storedRounds = globalThis.sessionStorage.getItem("singleplayerRounds");
       if (!storedRounds) {
-        setTotalRounds(0);
+        setReactionRounds(0);
         setTypingRounds(0);
         setSessionInitialized(true);
         return;
@@ -52,18 +50,18 @@ const ReactionTime: React.FC = () => {
       const reaction = clampRounds(Number(parsed?.reactionTime ?? 0));
       const typing = clampRounds(Number(parsed?.typingSpeed ?? 0));
 
-      setTotalRounds(reaction);
+      setReactionRounds(reaction);
       setTypingRounds(typing);
-      setReactionScores([]);
+      globalThis.sessionStorage.setItem("reactionScores", JSON.stringify([]));
       setScores([]);
       setCurrentRound(1);
       setSessionInitialized(true);
     } catch {
-      setTotalRounds(0);
+      setReactionRounds(0);
       setTypingRounds(0);
       setSessionInitialized(true);
     }
-  }, [setReactionScores]);
+  }, []);
 
   const startGame = () => {
     setGameState("waiting");
@@ -81,7 +79,7 @@ const ReactionTime: React.FC = () => {
   useEffect(() => {
     if (!sessionInitialized) return;
 
-    if (totalRounds <= 0) {
+    if (reactionRounds <= 0) {
       if (typingRounds > 0) {
         router.push("/games/typing-speed");
       } else {
@@ -91,7 +89,7 @@ const ReactionTime: React.FC = () => {
     }
 
     startGame();
-  }, [sessionInitialized, totalRounds, typingRounds]);
+  }, [sessionInitialized, reactionRounds, typingRounds]);
 
   const finishRound = (score: number) => {
     setReactionTime(score);
@@ -99,9 +97,11 @@ const ReactionTime: React.FC = () => {
 
     const nextScores = [...scores, score];
     setScores(nextScores);
-    setReactionScores(nextScores);
+    if (typeof window !== "undefined") {
+      globalThis.sessionStorage.setItem("reactionScores", JSON.stringify(nextScores));
+    }
 
-    if (currentRound >= totalRounds) {
+    if (currentRound >= reactionRounds) {
       const redirectTimeout = setTimeout(() => {
         if (typingRounds > 0) {
           router.push("/games/typing-speed");
@@ -171,9 +171,9 @@ const ReactionTime: React.FC = () => {
         Reaction Time
       </h1>
 
-      {totalRounds > 0 && (
+      {reactionRounds > 0 && (
         <div style={{ fontFamily: "var(--font-chewy)", fontSize: "1.5rem", color: "black" }}>
-          Round {currentRound} of {totalRounds}
+          Round {currentRound} of {reactionRounds}
         </div>
       )}
 
