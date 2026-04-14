@@ -1,15 +1,12 @@
 "use client";
 import { useApi } from "@/hooks/useApi";
+import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
 import { useParams, useRouter } from "next/navigation";
 
 import React, { useEffect, useState, useRef } from "react";
 import { Card, Button, Row, Col, Space, Statistic, Input } from "antd";
-
-interface SingleplayerRounds {
-    reactionTime: number;
-    typingSpeed: number;
-}
+import { SingleplayerRounds } from "../reaction-time/page";
 
 type GameState = "idle" | "waiting" | "active" | "result";
 
@@ -21,6 +18,8 @@ const clampRounds = (value: number): number => {
 const TypingSpeedGame: React.FC = () => {
     const router = useRouter();
     const inputRef = useRef<HTMLTextAreaElement>(null);
+    const { set: setTypingScores } = useLocalStorage<number[]>("typingScores", []);
+    const apiService = useApi();
 
     const [gameState, setGameState] = useState<GameState>("idle");
     const [quote, setQuote] = useState<string>("");
@@ -49,7 +48,7 @@ const TypingSpeedGame: React.FC = () => {
         if (typeof window === "undefined") return;
 
         try {
-        const storedRounds = globalThis.sessionStorage.getItem("singleplayerRounds");
+        const storedRounds = globalThis.localStorage.getItem("singleplayerRounds");
         if (!storedRounds) {
             setTotalRounds(0);
             setReactionRounds(0);
@@ -63,7 +62,7 @@ const TypingSpeedGame: React.FC = () => {
 
         setReactionRounds(reaction);
         setTotalRounds(typing);
-    globalThis.sessionStorage.setItem("typingScores", JSON.stringify([]));
+        setTypingScores([]);
         setScores([]);
         setCurrentRound(1);
         setSessionInitialized(true);
@@ -72,19 +71,16 @@ const TypingSpeedGame: React.FC = () => {
         setReactionRounds(0);
         setSessionInitialized(true);
         }
-    }, []);
+    }, []); 
 
     // Get quote from API
     const fetchQuote = async () => {
         try {
-            const response = await fetch("https://api.quotable.io/random?minLength=100&maxLength=300");
-            const data = await response.json();
+            const data = await apiService.get<{ content: string }>("/api/games/quote");
             setQuote(data.content);
             setUserInput("");
             setGameState("active");
-            setStartTime(Date.now());
             setTimeout(() => inputRef.current?.focus(), 0);
-
         } catch (error) {
             alert("Failed to fetch quote. Please try again.");
         }
@@ -125,6 +121,11 @@ const TypingSpeedGame: React.FC = () => {
     const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const newInput = e.target.value;
 
+        // Start timer on first keystroke
+        if (userInput.length === 0 && newInput.length > 0 && startTime === 0) {
+            setStartTime(Date.now());
+        }
+
         //only allow if it matches the letters of quote
         if (newInput.length <= quote.length && quote.startsWith(newInput)) {
             setUserInput(newInput);
@@ -146,9 +147,7 @@ const TypingSpeedGame: React.FC = () => {
 
         const nextScores = [...scores, wpm];
         setScores(nextScores);
-        if (typeof window !== "undefined") {
-            globalThis.sessionStorage.setItem("typingScores", JSON.stringify(nextScores));
-        }
+        setTypingScores(nextScores);
         
         //prepare next round or finish game
         if (currentRound >= totalRounds) {
@@ -174,9 +173,9 @@ const TypingSpeedGame: React.FC = () => {
         return (
         <div style={{ fontSize: "18px", lineHeight: "1.8", wordBreak: "break-word" }}>
             {quote.split("").map((char, i) => {
-            let color = "#999"; // untyped - gray
+            let color = "white"; // untyped 
             if (i < userInput.length) {
-                color = "#22c55e"; // typed - green
+                color = "black"; // typed 
             }
             return (
                 <span key={i} style={{ color }}>
@@ -228,22 +227,17 @@ const TypingSpeedGame: React.FC = () => {
     </div>
     )}
 
-    {/* stats row */}
+    {/* timer display */}
     {gameState === "active" && (
-    <Row
-        gutter={[32, 16]}
-        justify="center"
-        style={{ width: "100%", maxWidth: "600px" }}
+    <div
+        style={{
+        fontSize: "20px",
+        fontFamily: "var(--font-chewy)",
+        textAlign: "center",
+        }}
     >
-        <Col xs={12} sm={12}>
-        <Statistic
-            title="Time"
-            value={timeElapsed}
-            suffix="s"
-            valueStyle={{ color: "#1890ff", fontSize: "24px" }}
-        />
-        </Col>
-    </Row>
+        Time: {timeElapsed}s
+    </div>
     )}
 
     {/* quote display card */}
@@ -251,7 +245,7 @@ const TypingSpeedGame: React.FC = () => {
     style={{
         width: "100%",
         maxWidth: "600px",
-        backgroundColor: "#f5f5f5",
+        backgroundColor: "#86b6cf",
         minHeight: "120px",
         display: "flex",
         alignItems: "center",
@@ -260,9 +254,9 @@ const TypingSpeedGame: React.FC = () => {
     bordered={false}
     >
     {gameState === "waiting" ? (
-        <p style={{ color: "#999", textAlign: "center" }}>Loading quote...</p>
+        <p style={{ textAlign: "center" }}>Loading quote...</p>
     ) : gameState === "result" ? (
-        <p style={{ color: "#999", textAlign: "center" }}>Great job!</p>
+        <p style={{ textAlign: "center" }}>Great job!</p>
     ) : (
         renderQuote()
     )}
@@ -280,13 +274,14 @@ const TypingSpeedGame: React.FC = () => {
         maxWidth: "600px",
         height: "120px",
         fontSize: "16px",
+        backgroundColor: "white",
         }}
     />
     )}
 
     {/* result display */}
     {gameState === "result" && (
-    <Card style={{ width: "100%", maxWidth: "600px", textAlign: "center" }}>
+    <Card style={{ width: "100%", maxWidth: "600px", textAlign: "center", backgroundColor: "white" }} bordered={false}>
         <Row gutter={[16, 16]} justify="center">
         <Col xs={24} sm={24}>
             <Statistic
@@ -303,5 +298,3 @@ const TypingSpeedGame: React.FC = () => {
 };
 
 export default TypingSpeedGame;
-
-
