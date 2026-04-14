@@ -21,7 +21,7 @@ const WebSocketContext = createContext<WebSocketContextType>({ //creates instanc
   clearInvite: () => {},
 });
 
-export function WebSocketContextProvider({ children }: { children: React.ReactNode }) { // to wrap whole app so pop up can show up everyhwerw
+export function WebSocketContextProvider({ children }: { children: React.ReactNode }) { // to wrap whole app so pop up can show up everywhere
   const [invite, setInvite] = useState<Invite | null>(null);
   const clientRef = useRef<Client | null>(null);
   const [username, setUsername] = useState<string | null>(null);
@@ -46,7 +46,7 @@ export function WebSocketContextProvider({ children }: { children: React.ReactNo
     console.log("[InviteContext] Connecting WS, will listen on /topic/invite/" + username);
 
     const client = new Client({
-      webSocketFactory: () => new SockJS(`${getApiDomain()}/ws`), // new connection to endpoin
+      webSocketFactory: () => new SockJS(`${getApiDomain()}/ws`), // new connection to endpoint
       onConnect: () => {
         console.log("[InviteContext] Connected! Subscribed to /topic/invite/" + username);
         client.subscribe(`/topic/invite/${username}`, (message) => { //subscribe to personal invite topic
