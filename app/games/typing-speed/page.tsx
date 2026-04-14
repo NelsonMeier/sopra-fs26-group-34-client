@@ -47,7 +47,7 @@ const TypingSpeedGame: React.FC = () => {
         if (typeof window === "undefined") return;
 
         try {
-        const storedRounds = globalThis.localStorage.getItem("singleplayerRounds");
+        const storedRounds = globalThis.sessionStorage.getItem("singleplayerRounds");
         if (!storedRounds) {
             setTotalRounds(0);
             setReactionRounds(0);
