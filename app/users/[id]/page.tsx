@@ -183,56 +183,205 @@ const Profile: React.FC = () => {
       router.push("/scoreboard");
     };
 
-    // From Figma template
+  
   return (
-<div style={{width: '100%', minHeight: '100vh', background: '#77B8D2', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflow: 'auto', padding: '16px', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', outline: '3px black solid', outlineOffset: '-1.50px'}}>
-<div data-layer="User Profile" className="UserProfile" style={{width: "min(1100px, 100%)", display: "grid", gridTemplateRows: "auto auto auto", rowGap: "28px", paddingTop: "28px", paddingBottom: "24px", background: '#77B8D2'}}>
-  <div data-layer="Header" className="Header" style={{display: "grid", gridTemplateColumns: "220px 1fr 260px", alignItems: "center", columnGap: "24px"}}>
-    <div data-layer="Logout" className="Logout" style={{width: "200px", height: "79px", background: "#E8A09F", borderRadius: 25, border: "1px #E8A09F solid", boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleLogout}>Logout</div>
-    <div data-layer="User Profile" className="UserProfile" style={{textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 64, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>User Profile</div>
-    <div style={{display: 'flex', justifyContent: 'flex-end'}}>
-      {loggedInUserId && loggedInUserId === String(id) ? (
-        <div data-layer="Change Password" className="ChangePassword" style={{width: "240px", height: "48px", background: "#E8A09F", borderRadius: 25, border: "1px #E8A09F solid", boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleChangePassword}>Change Password</div>
-      ) : <div style={{width: '240px'}} />}
+<div
+  style={{
+  width: "100%",
+  minHeight: "100vh",
+  backgroundColor: "#6BAED6",
+  fontFamily: "var(--font-chewy)",
+  display: "flex",
+  justifyContent: "center",
+  paddingTop: "40px",
+  }}
+  >
+  <div style={{ width: "900px" }}>
+
+  {/* Title and Logout Button */}
+  <div style={{ position: "relative", textAlign: "center" }}>
+    <h1 style={{ fontSize: "56px" }}>User Profile</h1>
+
+    <div
+      style={{ position: "absolute", left: 0, top: 0 }}
+      onClick={handleLogout}
+      >
+      <div style={{
+        backgroundColor: "#E8956D",
+        borderRadius: "20px",
+        padding: "18px 28px",
+        cursor: "pointer",
+        textAlign: "center" as const,
+        boxShadow: "0px 4px 4px rgba(0,0,0,0.25)",
+        fontSize: "20px",
+        }}>Logout</div>
     </div>
   </div>
 
-  <div data-layer="Middle" className="Middle" style={{display: "grid", marginTop: "50px",gridTemplateColumns: "1fr 260px", columnGap: "42px", alignItems: "start"}}>
-    <div data-layer="Left Info" className="Left Info" style={{display: "grid", rowGap: "16px", marginLeft: "200px"}}>
-      <div data-layer="Username Row" className="Username Row" style={{display: "grid", gridTemplateColumns: "190px 250px", columnGap: "12px", alignItems: "center"}}>
-        <div data-layer="Username:" className="Username" style={{textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>Username:</div>
-        <div data-layer="UsernameValue" className="usernameValue" style={{background: "#DBDBDB", borderRadius: 10, padding: "6px 12px", minHeight: "42px", display: "flex", alignItems: "center", textAlign: 'center', justifyContent: 'center', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>{user?.username || "Loading..."}</div>
-      </div>
-      <div data-layer="Creation Date Row" className="Creation Date Row" style={{display: "grid", gridTemplateColumns: "190px 250px", columnGap: "12px", alignItems: "center"}}>
-        <div data-layer="Creation Date:" className="CreationDate" style={{textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>Creation Date:</div>
-        <div data-layer="CreationDateValue" className="creationDateValue" style={{background: "#DBDBDB", borderRadius: 10, padding: "6px 12px", minHeight: "42px", display: "flex", alignItems: "center", textAlign: 'center', justifyContent: 'center', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>{user?.creationDate || "Loading..."}</div>
-      </div>
-      <div data-layer="Friends Row" className="Friends Row" style={{display: "grid", gridTemplateColumns: "190px 250px", columnGap: "12px", alignItems: "center"}}>
-        <div data-layer="Friends:" className="Friends" style={{textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>Friends:</div>
-        <div data-layer="FriendsListValue" className="friendsListValue" style={{background: "#DBDBDB", borderRadius: 10, padding: "6px 12px", minHeight: "90px", maxHeight: "140px", display: "flex", justifyContent: 'flex-start', alignItems: "flex-start", flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', overflowY: 'auto'}}>
-          {friendsLoading ? "Loading..." : friends.length > 0 ? friends.map((friend) => (
-            <div key={friend.id}>{friend.username}</div>
-          )) : "No friends yet"}
-        </div>
-      </div>
-    </div>
-
-    <div data-layer="Right Buttons" className="Right Buttons" style={{display: "grid", rowGap: "16px", paddingTop: "0px"}}>
-      <div data-layer="add Friend" className="AddFriend" style={{width: "240px", height: "61px", background: "#FBAB7A", borderRadius: 25, border: "1px #FBAB7A solid", boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleAddFriend}>add Friend</div>
-      <div data-layer="Friend Requests" className="FriendRequests" style={{width: "240px", height: "61px", background: "#FBAB7A", borderRadius: 25, border: "1px #FBAB7A solid", boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleFriendRequests}>Friend Requests</div>
+  {/* User Info */}
+  <div
+    style={{
+      marginTop: "60px",
+      display: "grid",
+      gridTemplateColumns: "160px 260px 360px",
+      rowGap: "20px",
+      columnGap: "10px",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: "20px",
+    }}
+  >
+    {/* Username */}
+    <div>Username:</div>
+    <div style={{
+      backgroundColor: "#D9D9D9",
+      borderRadius: "10px",
+      padding: "8px",
+      textAlign: "left",
+      }}>{user?.username}</div>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "flex-start",
+      }}
+    >
+    <div
+      onClick={handleChangePassword}
+      style={{
+        backgroundColor: "#E8956D",
+        borderRadius: "20px",
+        padding: "10px 16px",
+        cursor: "pointer",
+        textAlign: "center",
+        boxShadow: "0px 4px 4px rgba(0,0,0,0.25)",
+        fontSize: "20px",
+      }}>
+      Change Password
     </div>
   </div>
+      
+  {/* Creation Date */}
+  <div>Creation Date:</div>
+  <div style={{
+    backgroundColor: "#D9D9D9",
+    borderRadius: "10px",
+    padding: "8px",
+    textAlign: "left",
+    }}>{user?.creationDate}</div>
+  <div />
 
-  <div data-layer="Bottom" className="Bottom" style={{display: "grid", gridTemplateColumns: "1fr 250px", marginTop: "30px", columnGap: "40px", alignItems: "center"}}>
-    <div data-layer="Play Group" className="Play Group" style={{display: "grid", rowGap: "20px", justifyItems: "center"}}>
-      <div data-layer="LetPlayLabel" className="letPlayLabel" style={{textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>Let&apos;s Play:</div>
-      <div data-layer="Play Buttons" className="Play Buttons" style={{display: "grid", gridTemplateColumns: "240px 240px", columnGap: "30px"}}>
-        <div data-layer="Singleplayer" className="Singleplayer" style={{width: "240px", height: "79px", background: "#FBAB7A", borderRadius: 25, border: "1px #FBAB7A solid", boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleSingleplayer}>Singleplayer</div>
-        <div data-layer="Multiplayer" className="Multiplayer" style={{width: "240px", height: "79px", background: "#FBAB7A", borderRadius: 25, border: "1px #FBAB7A solid", boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleMultiplayer}>Multiplayer</div>
+  {/* Friends */}
+  <div>Friends:</div>
+
+  <div style={{
+    backgroundColor: "#D9D9D9",
+    borderRadius: "10px",
+    padding: "8px",
+    textAlign: "left", 
+    minHeight: "80px", 
+    }}>
+    {friendsLoading
+          ? "Loading..."
+          : friends.length > 0
+          ? friends.map((f) => <div key={f.id}>{f.username}</div>)
+          : "No friends yet"}
+  </div>
+
+    {/* Buttons column */}
+      <div style={{display: "flex", flexDirection: "column", gap: "12px" }}>
+          <div style={{
+            backgroundColor: "#E8956D",
+            borderRadius: "20px",
+            padding: "14px",
+            width: "100%",
+            textAlign: "center",
+            cursor: "pointer",
+            boxShadow: "0px 4px 4px rgba(0,0,0,0.25)",
+            }}
+            onClick={handleAddFriend}>
+            Add Friend
+          </div>
+          <div style={{
+            backgroundColor: "#E8956D",
+            borderRadius: "20px",
+            padding: "14px",
+            width: "100%",
+            textAlign: "center",
+            cursor: "pointer",
+            boxShadow: "0px 4px 4px rgba(0,0,0,0.25)",
+            }}
+            onClick={handleFriendRequests}>
+            Friend Requests
+          </div>
       </div>
     </div>
 
-    <div data-layer="Scoreboard" className="Scoreboard" style={{width: "240px", height: "79px", marginTop: "200px",background: "#FBAB7A", borderRadius: 25, border: "1px #FBAB7A solid", boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleScoreboard}>Scoreboard</div>
+  {/* Bottom Section */}
+  <div
+      style={{
+        marginTop: "80px",
+        position: "relative",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <h2 style={{ fontSize: "32px", margin: 0 }}>
+        Let’s Play:
+      </h2>
+
+      <div
+        style={{
+          position: "absolute",
+          right: 0,
+          backgroundColor: "#E8956D",
+          borderRadius: "20px",
+          padding: "12px 20px",
+          cursor: "pointer",
+          textAlign: "center",
+          boxShadow: "0px 4px 4px rgba(0,0,0,0.25)",
+          width: "200px",
+          fontSize: "20px",
+        }}
+        onClick={handleScoreboard}
+      >
+        Scoreboard
+      </div>
+  </div>
+        
+  <div
+    style={{
+      marginTop: "40px",
+      display: "flex",
+      justifyContent: "center",
+      gap: "70px",
+    }}
+  >
+    <div style={{
+      backgroundColor: "#E8956D",
+      borderRadius: "20px",
+      padding: "12px 20px",
+      cursor: "pointer",
+      textAlign: "center",
+      boxShadow: "0px 4px 4px rgba(0,0,0,0.25)",
+      width: "200px",
+      fontSize: "20px",
+    }} onClick={handleSingleplayer}>
+      Singleplayer
+    </div>
+
+    <div style={{
+      backgroundColor: "#E8956D",
+      borderRadius: "20px",
+      padding: "12px 20px",
+      cursor: "pointer",
+      textAlign: "center",
+      boxShadow: "0px 4px 4px rgba(0,0,0,0.25)",
+      width: "200px",
+      fontSize: "20px",
+    }} onClick={handleMultiplayer}>
+      Multiplayer
+    </div>
   </div>
 
   <Modal
