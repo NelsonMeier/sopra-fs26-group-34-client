@@ -171,8 +171,8 @@ const Profile: React.FC = () => {
       router.push("/friend-requests");
     };
 
-    const handleSingleplayer = () => {  //To be implemented
-      alert("Singleplayer mode coming soon");
+    const handleSingleplayer = () => {  
+      router.push("/singleplayer");
     };
 
     const handleMultiplayer = () => {
