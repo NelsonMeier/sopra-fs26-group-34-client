@@ -12,7 +12,7 @@ interface Invite {
 }
 
 interface WebSocketContextType {
-  invite: Invite | null;     //what we share w all pages when invite 
+  invite: Invite | null; //what we share w all pages when invite 
   clearInvite: () => void;
 }
 
@@ -26,39 +26,54 @@ export function WebSocketContextProvider({ children }: { children: React.ReactNo
   const clientRef = useRef<Client | null>(null);
   const [username, setUsername] = useState<string | null>(null);
 
+  // reads username from localStorage
   useEffect(() => {
-    const stored = localStorage.getItem("username")?.replaceAll('"', '');
-    if (stored) setUsername(stored);
+    const syncUsername = () => {
+      const stored = localStorage.getItem("username")?.replaceAll('"', '');
+      console.log("[InviteContext] syncUsername called, found:", stored);
+      if (stored) setUsername(stored);
+    };
+
+    syncUsername();
+    window.addEventListener("username-set", syncUsername);
+    return () => window.removeEventListener("username-set", syncUsername);
   }, []);
 
   useEffect(() => {
-    if (!username) 
-        return;
+    console.log("[InviteContext] username state is now:", username);
+    if (!username) return;
+
+    console.log("[InviteContext] Connecting WS, will listen on /topic/invite/" + username);
 
     const client = new Client({
-      webSocketFactory: () => new SockJS(`${getApiDomain()}/ws`), // new connection to endpoint
+      webSocketFactory: () => new SockJS(`${getApiDomain()}/ws`), // new connection to endpoin
       onConnect: () => {
-        client.subscribe(`/topic/invite/${username}`, (message) => {
-          const data = JSON.parse(message.body);
+        console.log("[InviteContext] Connected! Subscribed to /topic/invite/" + username);
+        client.subscribe(`/topic/invite/${username}`, (message) => { //subscribe to personal invite topic
+          console.log("[InviteContext] Message received:", message.body); 
+          const data = JSON.parse(message.body); // when meessage received, parse it
           if (data.type === "PLAYER_INVITED") { // if invite received, set invite state to show pop up
+            console.log("[InviteContext] Showing invite popup from:", data.inviterName);
             setInvite({ roomId: data.roomId, inviterName: data.inviterName });
           }
         });
       },
+      onDisconnect: () => console.log("[InviteContext] Disconnected"),
+      onStompError: (frame) => console.error("[InviteContext] STOMP error:", frame),
     });
 
     client.activate(); //activate 
     clientRef.current = client; // starts connection
-
     return () => { client.deactivate(); };
   }, [username]);
 
   const clearInvite = () => setInvite(null); // to clear invite after accepting or declining, so pop up disappears
 
+
   return ( //so pop up can be shown anywhere in app when invite received
     <WebSocketContext.Provider value={{ invite, clearInvite }}>
       {children}
-      <GlobalInvitePopup /> 
+      <GlobalInvitePopup />
     </WebSocketContext.Provider>
   );
 }
