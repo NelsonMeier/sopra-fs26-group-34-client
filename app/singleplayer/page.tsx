@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button, message } from "antd";
 import useLocalStorage from "@/hooks/useLocalStorage";
@@ -21,26 +21,54 @@ const SingleplayerRoom: React.FC = () => {
 
   const { value: userId } = useLocalStorage<string>("userId", "");
 
-  const { value: rounds, set: setRounds } = useLocalStorage<SingleplayerRounds>(
-    "singleplayerRounds",
-    { reactionTime: 0, typingSpeed: 0 },
-  );
+  const [rounds, setRounds] = useState<SingleplayerRounds>({
+    reactionTime: 0,
+    typingSpeed: 0,
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const storedRounds = globalThis.sessionStorage.getItem("singleplayerRounds");
+      if (!storedRounds) return;
+
+      const parsed = JSON.parse(storedRounds) as Partial<SingleplayerRounds>;
+      setRounds({
+        reactionTime: clampRounds(Number(parsed?.reactionTime ?? 0)),
+        typingSpeed: clampRounds(Number(parsed?.typingSpeed ?? 0)),
+      });
+    } catch {
+      setRounds({ reactionTime: 0, typingSpeed: 0 });
+    }
+  }, []);
 
   const reactionTimeRounds = clampRounds(rounds?.reactionTime ?? 0);
   const typingSpeedRounds = clampRounds(rounds?.typingSpeed ?? 0);
 
   const updateRounds = (key: keyof SingleplayerRounds, rawValue: string): void => {
     const nextValue = rawValue === "" ? 0 : clampRounds(Number(rawValue));
-    setRounds({
+    const nextRounds = {
       ...rounds,
       [key]: nextValue,
-    });
+    };
+    setRounds(nextRounds);
+
+    if (typeof window !== "undefined") {
+      globalThis.sessionStorage.setItem("singleplayerRounds", JSON.stringify(nextRounds));
+    }
   };
 
   const handleStart = (): void => {
     if (reactionTimeRounds <= 0 && typingSpeedRounds <= 0) {
       message.error("Please enter rounds for at least one game.");
       return;
+    }
+
+    // Clear previous scores
+    if (typeof window !== "undefined") {
+      globalThis.sessionStorage.setItem("reactionScores", JSON.stringify([]));
+      globalThis.sessionStorage.setItem("typingScores", JSON.stringify([]));
     }
 
     if (reactionTimeRounds > 0) {

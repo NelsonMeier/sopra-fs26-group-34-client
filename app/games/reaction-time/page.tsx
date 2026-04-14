@@ -52,7 +52,7 @@ const ReactionTime: React.FC = () => {
 
       setReactionRounds(reaction);
       setTypingRounds(typing);
-      globalThis.sessionStorage.setItem("reactionScores", JSON.stringify([]));
+  globalThis.sessionStorage.setItem("reactionScores", JSON.stringify([]));
       setScores([]);
       setCurrentRound(1);
       setSessionInitialized(true);
