@@ -1,7 +1,6 @@
 "use client";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
-import useWindowSize from "@/hooks/useWndowSize";
 import { User } from "@/types/user";
 import Password from "antd/es/input/Password";
 import { useParams, useRouter } from "next/navigation";
@@ -29,7 +28,6 @@ interface FormFieldProps {
 const Profile: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
-  const { windowSize } = useWindowSize();
 
   const { // retieves Token from local storage
       value: token,
@@ -100,25 +98,6 @@ const Profile: React.FC = () => {
       
       fetchFriends();
     }, [id, apiService]);
-
-    const baseCanvasWidth = 1440;
-    const baseCanvasHeight = 1024;
-    const viewportPadding = 16;
-    const availableWidth =
-      windowSize.width > 0
-        ? Math.max(1, windowSize.width - viewportPadding * 2)
-        : baseCanvasWidth;
-    const availableHeight =
-      windowSize.height > 0
-        ? Math.max(1, windowSize.height - viewportPadding * 2)
-        : baseCanvasHeight;
-    const pageScale = Math.min(
-      1,
-      availableWidth / baseCanvasWidth,
-      availableHeight / baseCanvasHeight,
-    );
-    const scaledCanvasWidth = baseCanvasWidth * pageScale;
-    const scaledCanvasHeight = baseCanvasHeight * pageScale;
 
     const handleChangePassword = () => {
       setModalVisibility(true);
@@ -206,56 +185,70 @@ const Profile: React.FC = () => {
 
     // From Figma template
   return (
-<div style={{width: '100%', minHeight: '100vh', background: '#77B8D2', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '16px', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', outline: '3px black solid', outlineOffset: '-1.50px'}}>
-<div style={{width: scaledCanvasWidth, height: scaledCanvasHeight, position: 'relative'}}>
-<div data-layer="User Profile" className="UserProfile" style={{width: baseCanvasWidth, height: baseCanvasHeight, position: 'relative', background: '#77B8D2', overflow: 'hidden', transform: `scale(${pageScale})`, transformOrigin: 'top left'}}>
-  <div data-layer="User Profile" className="UserProfile" style={{width: 656, height: 123, left: 419, top: 77, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 64, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>User Profile</div>
-  <div data-layer="Rectangle 3" className="Rectangle3" style={{width: 240, height: 80, left: 1096, top: 675, position: 'absolute', background: '#FBAB7A', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', borderRadius: 25, border: '1px #FBAB7A solid'}} />
-  <div data-layer="Scoreboard" className="Scoreboard" style={{width: 250, height: 79, left: 1091, top: 675, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleScoreboard}>Scoreboard</div>
-  <div data-layer="Rectangle 9" className="Rectangle9" style={{width: 200, height: 80, left: 128, top: 99, position: 'absolute', background: '#E8A09F', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', borderRadius: 25, border: '1px #E8A09F solid'}} />
-  <div data-layer="Logout" className="Logout" style={{width: 190, height: 79, left: 133, top: 99, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleLogout}>Logout</div>
-  <div data-layer="Rectangle 4" className="Rectangle4" style={{width: 240, height: 55, left: 818, top: 387, position: 'absolute', background: '#FBAB7A', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', borderRadius: 25, border: '1px #FBAB7A solid'}} />
-  <div data-layer="add Friend" className="AddFriend" style={{width: 250, height: 61, left: 813, top: 387, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleAddFriend}>add Friend</div>
-  <div data-layer="Rectangle 10" className="Rectangle10" style={{width: 240, height: 55, left: 818, top: 464, position: 'absolute', background: '#FBAB7A', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', borderRadius: 25, border: '1px #FBAB7A solid'}} />
-  <div data-layer="Friend Requests" className="FriendRequests" style={{width: 250, height: 61, left: 813, top: 464, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleFriendRequests}>Friend Requests</div>
-  <div data-layer="Rectangle 5" className="Rectangle5" style={{width: 240, height: 80, left: 403, top: 798, position: 'absolute', background: '#FBAB7A', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', borderRadius: 25, border: '1px #FBAB7A solid'}} />
-  <div data-layer="Singleplayer" className="Singleplayer" style={{width: 250, height: 79, left: 403, top: 799, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleSingleplayer}>Singleplayer</div>
-  <div data-layer="Rectangle 6" className="Rectangle6" style={{width: 240, height: 80, left: 846, top: 799, position: 'absolute', background: '#FBAB7A', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', borderRadius: 25, border: '1px #FBAB7A solid'}} />
-  <div data-layer="Multiplayer" className="Multiplayer" style={{width: 250, height: 79, left: 841, top: 799, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleMultiplayer}>Multiplayer</div>
-  <div data-layer="Username:" className="Username" style={{width: 165, height: 42, left: 393, top: 267, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>Username:</div>
-  <div data-layer="Creation Date:" className="CreationDate" style={{width: 205, height: 39, left: 393, top: 324, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>Creation Date:</div>
-  <div data-layer="Friends:" className="Friends" style={{width: 165, height: 42, left: 377, top: 378, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>Friends:</div>
-  <div data-layer="Rectangle 1" className="Rectangle1" style={{width: 200, height: 40, left: 598, top: 267, position: 'absolute', background: '#DBDBDB', borderRadius: 10}} />
-  <div data-layer="Rectangle 7" className="Rectangle7" style={{width: 200, height: 42, left: 598, top: 321, position: 'absolute', background: '#DBDBDB', borderRadius: 10}} />
-  <div data-layer="CreationDateValue" className="creationDateValue" style={{width: 141, left: 598, top: 334, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>{user?.creationDate || "Loading..."}</div>
-  <div data-layer="UsernameValue" className="usernameValue" style={{width: 153, height: 27, left: 612, top: 275, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>{user?.username || "Loading..."}</div>
-  <div data-layer="Rectangle 8" className="Rectangle8" style={{width: 200, height: 80, left: 598, top: 384, position: 'absolute', background: '#DBDBDB', borderRadius: 10}} />
-  <div data-layer="LetPlayLabel" className="letPlayLabel" style={{width: 225, height: 59, left: 637, top: 675, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>Let&apos;s Play:</div>
-  <div data-layer="FriendsListValue" className="friendsListValue" style={{width: 201, height: 73, left: 612, top: 387, position: 'absolute', justifyContent: 'flex-start', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', overflowY: 'auto'}}>
-    {friendsLoading ? "Loading..." : friends.length > 0 ? friends.map((friend) => (
-      <div key={friend.id}>{friend.username}</div>
-    )) : "No friends yet"}
+<div style={{width: '100%', minHeight: '100vh', background: '#77B8D2', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflow: 'auto', padding: '16px', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', outline: '3px black solid', outlineOffset: '-1.50px'}}>
+<div data-layer="User Profile" className="UserProfile" style={{width: "min(1100px, 100%)", display: "grid", gridTemplateRows: "auto auto auto", rowGap: "28px", paddingTop: "28px", paddingBottom: "24px", background: '#77B8D2'}}>
+  <div data-layer="Header" className="Header" style={{display: "grid", gridTemplateColumns: "220px 1fr 260px", alignItems: "center", columnGap: "24px"}}>
+    <div data-layer="Logout" className="Logout" style={{width: "200px", height: "79px", background: "#E8A09F", borderRadius: 25, border: "1px #E8A09F solid", boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleLogout}>Logout</div>
+    <div data-layer="User Profile" className="UserProfile" style={{textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 64, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>User Profile</div>
+    <div style={{display: 'flex', justifyContent: 'flex-end'}}>
+      {loggedInUserId && loggedInUserId === String(id) ? (
+        <div data-layer="Change Password" className="ChangePassword" style={{width: "240px", height: "48px", background: "#E8A09F", borderRadius: 25, border: "1px #E8A09F solid", boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleChangePassword}>Change Password</div>
+      ) : <div style={{width: '240px'}} />}
+    </div>
   </div>
-  {loggedInUserId && loggedInUserId === String(id) && (
-    <>
-      <div data-layer="Rectangle 11" className="Rectangle11" style={{width: 240, height: 42, left: 818, top: 267, position: 'absolute', background: '#E8A09F', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', borderRadius: 25, border: '1px #E8A09F solid'}} />
-      <div data-layer="Change Password" className="ChangePassword" style={{width: 250, height: 48, left: 813, top: 267, position: 'absolute', textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleChangePassword}>Change Password</div>
-    </>
-  )}
+
+  <div data-layer="Middle" className="Middle" style={{display: "grid", marginTop: "50px",gridTemplateColumns: "1fr 260px", columnGap: "42px", alignItems: "start"}}>
+    <div data-layer="Left Info" className="Left Info" style={{display: "grid", rowGap: "16px", marginLeft: "200px"}}>
+      <div data-layer="Username Row" className="Username Row" style={{display: "grid", gridTemplateColumns: "190px 250px", columnGap: "12px", alignItems: "center"}}>
+        <div data-layer="Username:" className="Username" style={{textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>Username:</div>
+        <div data-layer="UsernameValue" className="usernameValue" style={{background: "#DBDBDB", borderRadius: 10, padding: "6px 12px", minHeight: "42px", display: "flex", alignItems: "center", textAlign: 'center', justifyContent: 'center', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>{user?.username || "Loading..."}</div>
+      </div>
+      <div data-layer="Creation Date Row" className="Creation Date Row" style={{display: "grid", gridTemplateColumns: "190px 250px", columnGap: "12px", alignItems: "center"}}>
+        <div data-layer="Creation Date:" className="CreationDate" style={{textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>Creation Date:</div>
+        <div data-layer="CreationDateValue" className="creationDateValue" style={{background: "#DBDBDB", borderRadius: 10, padding: "6px 12px", minHeight: "42px", display: "flex", alignItems: "center", textAlign: 'center', justifyContent: 'center', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>{user?.creationDate || "Loading..."}</div>
+      </div>
+      <div data-layer="Friends Row" className="Friends Row" style={{display: "grid", gridTemplateColumns: "190px 250px", columnGap: "12px", alignItems: "center"}}>
+        <div data-layer="Friends:" className="Friends" style={{textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>Friends:</div>
+        <div data-layer="FriendsListValue" className="friendsListValue" style={{background: "#DBDBDB", borderRadius: 10, padding: "6px 12px", minHeight: "90px", maxHeight: "140px", display: "flex", justifyContent: 'flex-start', alignItems: "flex-start", flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', overflowY: 'auto'}}>
+          {friendsLoading ? "Loading..." : friends.length > 0 ? friends.map((friend) => (
+            <div key={friend.id}>{friend.username}</div>
+          )) : "No friends yet"}
+        </div>
+      </div>
+    </div>
+
+    <div data-layer="Right Buttons" className="Right Buttons" style={{display: "grid", rowGap: "16px", paddingTop: "0px"}}>
+      <div data-layer="add Friend" className="AddFriend" style={{width: "240px", height: "61px", background: "#FBAB7A", borderRadius: 25, border: "1px #FBAB7A solid", boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleAddFriend}>add Friend</div>
+      <div data-layer="Friend Requests" className="FriendRequests" style={{width: "240px", height: "61px", background: "#FBAB7A", borderRadius: 25, border: "1px #FBAB7A solid", boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 24, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleFriendRequests}>Friend Requests</div>
+    </div>
+  </div>
+
+  <div data-layer="Bottom" className="Bottom" style={{display: "grid", gridTemplateColumns: "1fr 250px", marginTop: "30px", columnGap: "40px", alignItems: "center"}}>
+    <div data-layer="Play Group" className="Play Group" style={{display: "grid", rowGap: "20px", justifyItems: "center"}}>
+      <div data-layer="LetPlayLabel" className="letPlayLabel" style={{textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>Let&apos;s Play:</div>
+      <div data-layer="Play Buttons" className="Play Buttons" style={{display: "grid", gridTemplateColumns: "240px 240px", columnGap: "30px"}}>
+        <div data-layer="Singleplayer" className="Singleplayer" style={{width: "240px", height: "79px", background: "#FBAB7A", borderRadius: 25, border: "1px #FBAB7A solid", boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleSingleplayer}>Singleplayer</div>
+        <div data-layer="Multiplayer" className="Multiplayer" style={{width: "240px", height: "79px", background: "#FBAB7A", borderRadius: 25, border: "1px #FBAB7A solid", boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleMultiplayer}>Multiplayer</div>
+      </div>
+    </div>
+
+    <div data-layer="Scoreboard" className="Scoreboard" style={{width: "240px", height: "79px", marginTop: "200px",background: "#FBAB7A", borderRadius: 25, border: "1px #FBAB7A solid", boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 32, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word', cursor: 'pointer'}} onClick={handleScoreboard}>Scoreboard</div>
+  </div>
+
   <Modal
-  open={modalVisibility}
-  onCancel={handleCancelPasswordChange}
-  title="Change Password"
-  footer={null}
-  styles={{
-    header: {
-      backgroundColor: "#77B8D2",
-      borderBottom: "2px solid #6BAED6"
-    },
-    body: {
-      backgroundColor: "#77B8D2"
-    }
-  }}
+    open={modalVisibility}
+    onCancel={handleCancelPasswordChange}
+    title="Change Password"
+    footer={null}
+    styles={{
+      header: {
+        backgroundColor: "#77B8D2",
+        borderBottom: "2px solid #6BAED6"
+      },
+      body: {
+        backgroundColor: "#77B8D2"
+      }
+    }}
   >
     <Form
       form={form}
@@ -335,7 +328,6 @@ const Profile: React.FC = () => {
       </Form.Item>
     </Form>
   </Modal>
-</div>
 </div>
 </div>
   );
