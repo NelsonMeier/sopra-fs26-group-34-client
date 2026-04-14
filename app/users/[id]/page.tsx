@@ -201,7 +201,7 @@ const Profile: React.FC = () => {
     };
 
     const handleScoreboard = () => {  //To be implemented
-      alert("Scoreboard coming soon");
+      router.push("/scoreboard");
     };
 
     // From Figma template

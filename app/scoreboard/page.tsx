@@ -2,6 +2,7 @@
 
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { useRouter } from "next/navigation";
+import { Button } from "antd"
 
 const Scoreboard: React.FC = () => {
     const router = useRouter();
@@ -34,19 +35,37 @@ const Scoreboard: React.FC = () => {
                     fontWeight: '400', 
                     wordWrap: 'break-word'}}>Scoreboard</div>
                 
-                <div data-layer="Back Button" className="Back Button" style={{
+                <Button data-layer="Back Button" className="Back Button" style={{
                     width: '200px', 
                     height: '55px', 
                     justifySelf: "end",
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'black',
+                    fontSize: 32,
+                    fontFamily: 'Gluten',
+                    fontWeight: '400',
                     background: '#FBAB7A', 
                     boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', 
                     borderRadius: 25, 
-                    border: '1px #FBAB7A solid'}} onClick={() => router.push(userId ? `/users/${userId}` : "/users")}>Back</div> 
+                    border: '1px #FBAB7A solid'}} onClick={() => router.push(userId ? `/users/${userId}` : "/users")}>Back</Button> 
               </div>
-              <div data-layer="Middle" className="Middle" style={{display: "grid", marginTop: "50px",gridTemplateColumns: "1fr 260px", alignItems: "start"}}>
+                            <div data-layer="Middle" className="Middle" style={{display: "grid", marginTop: "50px", rowGap: "14px"}}>
+                                <div style={{display: "grid", gridTemplateColumns: "1fr 1fr", alignItems: "center"}}>
+                                    <div style={{textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 36, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>Reaction Time</div>
+                                    <div style={{textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 36, fontFamily: 'Gluten', fontWeight: '400', wordWrap: 'break-word'}}>Typing Test</div>
+                                </div>
 
-
-              </div>
+                                <div style={{width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '40px'}}>
+                                    <div style={{minHeight: '578px', background: '#ACCEDC', borderRadius: 10, padding: '35px 24px'}} >
+                                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: '#2f4f5a', fontSize: 36, fontFamily: 'Gluten'}}>Record Holders Coming Soon</div>
+                                        </div>
+                                    <div style={{minHeight: '578px', background: '#ACCEDC', borderRadius: 10, padding: '35px 24px'}} >
+                                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: '#2f4f5a', fontSize: 36, fontFamily: 'Gluten'}}>Record Holders Coming Soon</div>
+                                    </div>
+                                </div>
+                            </div>
     </div>
     </div>
     );
