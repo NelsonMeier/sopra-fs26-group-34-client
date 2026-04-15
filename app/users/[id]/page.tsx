@@ -260,7 +260,7 @@ style={{
       display: 'flex', 
       justifyContent: 'flex-end'}}>
 
-      {loggedInUserId && loggedInUserId === String(id) ? (
+      {userId && userId === String(id) ? (
         <div 
         data-layer="Change Password" 
         className="ChangePassword" 
