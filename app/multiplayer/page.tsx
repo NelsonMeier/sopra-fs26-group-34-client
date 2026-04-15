@@ -22,8 +22,13 @@ function MultiplayerRoomInner() {
   const apiService = useApi();
   const searchParams = useSearchParams();
 
-  const { value: userId } = useLocalStorage<string>("userId", "");
-  const { value: username } = useLocalStorage<string>("username", "");
+  const [userId,   setUserIdState  ] = useState("");
+  const [username, setUsernameState] = useState("");
+
+  useEffect(() => {
+    setUserIdState  (localStorage.getItem("userId")  ?.replaceAll('"', "") ?? "");
+    setUsernameState(localStorage.getItem("username")?.replaceAll('"', "") ?? "");
+  }, []);
 
   // roomid in URL means we're joining an existing room, no roomId means we're creating a new one 
   const roomIdFromUrl = searchParams.get("roomId");
