@@ -29,11 +29,7 @@ const Profile: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
 
-  const { // retieves Token from local storage
-      value: token,
-      clear: clearToken,
-    } = useLocalStorage<string>("token", "");
-
+    const { value: token, clear: clearToken } = useLocalStorage<string>("token", "");
     const [mounted, setMounted] = useState(false);
     const params = useParams();
     const id = params.id;
@@ -60,15 +56,15 @@ const Profile: React.FC = () => {
         router.push("/login");
         return;
       }
-    }, [mounted, router]);
+    }, [mounted, token, router]);
 
     useEffect(() => { //Gets User
       if (!mounted || !token) return; 
+      
       const fetchUser = async () => {
         try {
-          const storedToken = localStorage.getItem("token")?.replaceAll('"', ''); 
           const fetchedUser = await apiService.get<User>(`/users/${id}`, {
-            Authorization: `Bearer ${storedToken}`, 
+            Authorization: `Bearer ${token}`, 
           });
           setUser(fetchedUser);
         } catch (error) {
@@ -79,7 +75,7 @@ const Profile: React.FC = () => {
         }
       };
       fetchUser();
-    }, [mounted, id, token, apiService, router]); 
+    }, [mounted, token, id, apiService, router]);
 
     useEffect(() => {
       if (!id) return;
@@ -127,7 +123,7 @@ const Profile: React.FC = () => {
         return;
       }
 
-    const currentToken = localStorage.getItem("token")?.replaceAll('"', '');
+    const currentToken = token;
 
     await apiService.put(`/users/${id}`, 
       {password: values.newPassword}, 
@@ -150,9 +146,8 @@ const Profile: React.FC = () => {
 
     const handleLogout = async () => {
       try{
-        const storedToken = localStorage.getItem("token")?.replaceAll('"', '');
         await apiService.post(`/logout/${id}`, {}, {
-          Authorization: `Bearer ${storedToken}`
+          Authorization: `Bearer ${token}`
         });
         clearToken();
         router.push("/login");
