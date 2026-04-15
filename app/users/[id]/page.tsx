@@ -45,12 +45,12 @@ const Profile: React.FC = () => {
     const [modalVisibility, setModalVisibility] = useState(false);
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
-    const [loggedInUserId, setLoggedInUserId] = useState<string | null>(null);
+    const [userId, SetUserId] = useState<string | null>(null);
 
       useEffect(() =>{
       setMounted(true);
-      const userId = localStorage.getItem("loggedInUserId");
-      setLoggedInUserId(userId);
+      const userId = localStorage.getItem("userId");
+      SetUserId(userId);
     }, []);
 
     useEffect(() => {

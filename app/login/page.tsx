@@ -42,7 +42,7 @@ const Login: React.FC = () => {
         window.dispatchEvent(new Event("username-set"));
       }
 
-      localStorage.setItem("loggedInUserId", response?.id || "");
+      localStorage.setItem("userId", response?.id || "");
       message.success("Login successful! Redirecting...");
       router.push(`/users/${response.id}`);
 

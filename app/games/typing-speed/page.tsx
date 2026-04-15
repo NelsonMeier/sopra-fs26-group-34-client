@@ -155,11 +155,7 @@ const TypingSpeedGame: React.FC = () => {
         //prepare next round or finish game
         if (currentRound >= totalRounds) {
             const redirectTimeout = setTimeout(() => {
-                if (reactionRounds > 0) {
-                    router.push("/games/reaction-time");
-                } else {
-                    router.push("/singleplayer/results");
-                }
+                router.push("/singleplayer/results");
             }, 1000);
             setTimeoutId(redirectTimeout);
             return;
