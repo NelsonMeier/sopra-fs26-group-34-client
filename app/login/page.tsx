@@ -34,7 +34,7 @@ const Login: React.FC = () => {
 
       setToken(response.token);
       if (response.id) {
-        setUserId(response.id);
+        setUserId(String(response.id));
       }
       if (response.username) {
         setUsername(response.username);
@@ -42,7 +42,6 @@ const Login: React.FC = () => {
         window.dispatchEvent(new Event("username-set"));
       }
 
-      localStorage.setItem("userId", response?.id || "");
       message.success("Login successful! Redirecting...");
       router.push(`/users/${response.id}`);
 

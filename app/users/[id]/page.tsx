@@ -30,6 +30,7 @@ const Profile: React.FC = () => {
   const apiService = useApi();
 
     const { value: token, clear: clearToken } = useLocalStorage<string>("token", "");
+    const { value: userId } = useLocalStorage<string>("userId", "");
     const [mounted, setMounted] = useState(false);
     const params = useParams();
     const id = params.id;
@@ -41,12 +42,9 @@ const Profile: React.FC = () => {
     const [modalVisibility, setModalVisibility] = useState(false);
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
-    const [userId, SetUserId] = useState<string | null>(null);
 
       useEffect(() =>{
       setMounted(true);
-      const userId = localStorage.getItem("userId");
-      SetUserId(userId);
     }, []);
 
     useEffect(() => {

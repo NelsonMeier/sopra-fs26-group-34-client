@@ -13,20 +13,28 @@ const Register: React.FC = () => { //functional component called register
   const [form] = Form.useForm(); 
 
   const { set: setToken } = useLocalStorage("token", "");   //storing token
+  const { set: setUserId } = useLocalStorage<string>("userId", "");
+  const { set: setUsername } = useLocalStorage<string>("username", "");
 
   const handleRegister = async ( values: { username: string; password: string;} //function runs when form is submitted
-) => { console.log("Registering with values: ", values); 
+) => { console.log("Registering with values: ", values);
 
   try {
     const response = await apiService.post<User>("/users", values); //send post request to your backend
 
-    if (!response || !response.token) { //check if server returned 
+    if (!response || !response.token) { //check if server returned
       message.error("Registration failed: Invalid response");
       return;
     }
 
-    localStorage.setItem("userId", response.id || ""); //save info
     setToken(response.token); //save token
+    if (response.id) {
+      setUserId(String(response.id));
+    }
+    if (response.username) {
+      setUsername(response.username);
+      window.dispatchEvent(new Event("username-set"));
+    }
 
     message.success("Registration was successful! Redirecting...");
     router.push(`/users/${response.id}`); //redirect to user page
