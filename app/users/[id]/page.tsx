@@ -30,10 +30,7 @@ const Profile: React.FC = () => {
   const apiService = useApi();
 
     const { value: token, clear: clearToken } = useLocalStorage<string>("token", "");
-    const { value: userId } = useLocalStorage<string>("userId", "");
-    const [mounted, setMounted] = useState(false);
-    const params = useParams();
-    const id = params.id;
+    const { id } = useParams();
     const [user, setUser] = useState<User | null>(null);
 
     const [friends, setFriends] = useState<Friend[]>([]);
@@ -43,37 +40,35 @@ const Profile: React.FC = () => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
 
-      useEffect(() =>{
-      setMounted(true);
-    }, []);
-
     useEffect(() => {
-      if (!mounted) return;
-      if (!token) {
-        //alert("Not verified, please log in first.");
-        router.push("/login");
-        return;
-      }
-    }, [mounted, token, router]);
+    const storedToken = localStorage.getItem("token"); //authetication checks
+    if (!storedToken) {
+      router.push("/login");
+    }
+  }, [router]);
 
-    useEffect(() => { //Gets User
-      if (!mounted || !token) return; 
-      
-      const fetchUser = async () => {
-        try {
-          const fetchedUser = await apiService.get<User>(`/users/${id}`, {
-            Authorization: `Bearer ${token}`, 
-          });
-          setUser(fetchedUser);
-        } catch (error) {
-          if (error instanceof Error) {
-            alert(`Could not load user profile:\n${error.message}`)
-            router.push("/users")
-          }
-        }
-      };
-      fetchUser();
-    }, [mounted, token, id, apiService, router]);
+  useEffect(() => {
+    if (!id || !token || !apiService) return; //userdata if not stop execution
+
+    const fetchUser = async () => {
+  try {
+    const storedToken = localStorage.getItem("token")?.replaceAll('"', '');
+    const userData: User = await apiService.get<User>(`/users/${id}`, {
+      Authorization: `Bearer ${storedToken}`,
+    });
+    setUser(userData);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      alert(`Error: ${error.message}`);
+    } else {
+      alert("An unknown error occurred while fetching user data.");
+    }
+  }
+};
+
+    fetchUser();
+
+  }, [id, token, apiService]);
 
     useEffect(() => {
       if (!id) return;
@@ -142,19 +137,27 @@ const Profile: React.FC = () => {
     }
   };
 
-    const handleLogout = async () => {
-      try{
-        await apiService.post(`/logout/${id}`, {}, {
-          Authorization: `Bearer ${token}`
-        });
-        clearToken();
-        router.push("/login");
-      } catch (error) {
-        console.error("Logout failed:", error);
-        clearToken();
-        router.push("/login");
-      }
-    };
+  
+  const handleLogout = async (): Promise<void> => { //async func that returns nothing
+  try {
+  const userId = localStorage.getItem("userId"); //get userid
+  const token = localStorage.getItem("token")?.replace(/^"|"$/g, "");  //get token and strip from ""
+
+if (userId && token) { //check that both r here
+  await apiService.post(`/logout/${userId}`, {}, { //call backend post
+    Authorization: `Bearer ${token}`,
+  });
+}
+
+    clearToken(); //remove token
+    localStorage.removeItem("userId");
+    localStorage.removeItem("username"); //remove id
+    router.push("/login"); //reroute to start aka login
+
+  } catch (error) {
+    console.error("Logout error:", error); //if not work
+  }
+};
 
     const handleAddFriend = () => {
       router.push("/add-friend");
@@ -253,7 +256,7 @@ style={{
       display: 'flex', 
       justifyContent: 'flex-end'}}>
 
-      {userId && userId === String(id) ? (
+      {id && id === String(id) ? (
         <div 
         data-layer="Change Password" 
         className="ChangePassword" 

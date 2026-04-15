@@ -19,8 +19,7 @@ const Login: React.FC = () => {
   const { message } = App.useApp();
 
   const { set: setToken } = useLocalStorage<string>("token", "");
-  const { set: setUserId } = useLocalStorage<string>("userId", "");
-  const { set: setUsername } = useLocalStorage<string>("username", "");
+  
 
   const handleLogin = async (values: FormFieldProps) => {
     try {
@@ -32,28 +31,27 @@ const Login: React.FC = () => {
         return;
       }
 
+      
+
+      localStorage.setItem("userId", response?.id || ""); //store userdata
+      localStorage.setItem("username", response?.username || "");
+      
+      window.dispatchEvent(new Event("username-set"));
+       
       setToken(response.token);
-      if (response.id) {
-        setUserId(String(response.id));
-      }
-      if (response.username) {
-        setUsername(response.username);
-        //tell weboscket context about the new username so it can subscribe to the personal invite topic
-        window.dispatchEvent(new Event("username-set"));
-      }
+      message.success("Login successful! Redirecting..");
+      router.push(`/users/${response.id}`); // directed to userpage
 
-      message.success("Login successful! Redirecting...");
-      router.push(`/users/${response.id}`);
-
-    } catch (error) {
-      if (error instanceof Error) {
-        message.error(`Something went wrong during the login:\n${error.message}`);
-        router.push('/');
+    } catch (error) { //cacthes errors
+      if (error instanceof Error) { //if value is javascript error object
+        alert(`Something went wrong during the login:\n${error.message}`);
       } else {
-        console.error("An unknown error occurred during login.");
-        router.push('/');
+        console.error("An unknown error occurred during login."); //else this
       }
     }
+
+  
+
   };
 
   return (
