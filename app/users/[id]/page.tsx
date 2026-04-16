@@ -52,9 +52,8 @@ const Profile: React.FC = () => {
 
     const fetchUser = async () => {
   try {
-    const storedToken = localStorage.getItem("token")?.replaceAll('"', '');
     const userData: User = await apiService.get<User>(`/users/${id}`, {
-      Authorization: `Bearer ${storedToken}`,
+      Authorization: `Bearer ${token}`,
     });
     setUser(userData);
   } catch (error: unknown) {
