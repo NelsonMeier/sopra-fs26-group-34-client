@@ -5,4 +5,6 @@ export interface User {
   token: string | null;
   status: string | null;
   creationDate: string | null;
+  reactionTimeHighScore: number | null;
+  typingSpeedHighScore: number | null;
 }

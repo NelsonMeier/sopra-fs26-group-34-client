@@ -3,7 +3,8 @@ import useLocalStorage from "@/hooks/useLocalStorage";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { Button, ConfigProvider, Table } from "antd";
+import { Button, ConfigProvider, Table, message } from "antd";
+import { useApi } from "@/hooks/useApi";
 
 interface ResultRow {
 	key: string;
@@ -29,7 +30,9 @@ const toNumberArray = (raw: string | null): number[] => {
 
 const ResultsPage: React.FC = () => {
 	const router = useRouter();
+	const apiService = useApi();
 	const { value: userId } = useLocalStorage<string>("userId", "");
+	const { value: token } = useLocalStorage<string>("token", "");
 	const [rows, setRows] = useState<ResultRow[]>([]);
 
 	useEffect(() => {
@@ -53,7 +56,41 @@ const ResultsPage: React.FC = () => {
 		}));
 
 		setRows([...reactionRows, ...typingRows]);
-	}, []);
+
+		// Submit high scores
+		const submitHighScores = async () => {
+			try {
+				interface HighScoreResponse {
+					reactionHighScoreUpdated: boolean;
+					typingHighScoreUpdated: boolean;
+				}
+
+				const response = await apiService.put<HighScoreResponse>(
+					`/users/${userId}/highscores`,
+					{
+						reactionScores: reactionScores.length > 0 ? reactionScores : [],
+						typingScores: typingScores.length > 0 ? typingScores : [],
+					},
+					{ Authorization: `Bearer ${token}` }
+				);
+
+				// Display appropriate message based on high scores
+				if (response.reactionHighScoreUpdated && response.typingHighScoreUpdated) {
+					message.success("New High Score: Reaction Time & Typing Speed");
+				} else if (response.reactionHighScoreUpdated) {
+					message.success("New High Score: Reaction Time");
+				} else if (response.typingHighScoreUpdated) {
+					message.success("New High Score: Typing Speed");
+				}
+			} catch (error) {
+				console.error("Error submitting high scores:", error);
+			}
+		};
+
+		if (userId && token && (reactionScores.length > 0 || typingScores.length > 0)) {
+			submitHighScores();
+		}
+	}, [userId, token]);
 
 	return (
 		<div
