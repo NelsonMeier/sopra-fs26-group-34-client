@@ -1,8 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useWebSocket } from "@/hooks/useWebSocket";
-import Scorecard, { calcPointsForRound } from "@/components/Scorecard";
 
 type GameState = "idle" | "waiting" | "active" | "result" | "waiting_others";
 
@@ -20,12 +20,21 @@ const clampRounds = (value: number): number => {
 
 const ReactionTime: React.FC = () => {
   const router = useRouter();
-  const params = useParameter();
+  const params = useParams();
 
-  const {lastMessage, sendMessage} = useWebSocket();
+  const roomId = params?.roomID as string | undefined;
+  const username =
+    typeof window !== "undefined"
+      ? sessionStorage.getItem("username") ?? ""
+      : "";
+  const userId =
+    typeof window !== "undefined"
+      ? sessionStorage.getItem("userId") ?? ""
+      : "";
 
-  const roomID = params?.roomID as string | undefined;
-  const mode: Mode = roomID ? "multiplayer" : "singleplayer";
+  const {send, roundComplete, roundStart, rounds} = useWebSocket(roomId ?? "", userId, username);
+
+  const mode: Mode = roomId ? "multiplayer" : "singleplayer";
 
   const [gameState, setGameState] = useState<GameState>("idle");
   const [reactionTime, setReactionTime] = useState<number>(0);
@@ -38,8 +47,6 @@ const ReactionTime: React.FC = () => {
 
   const [scores, setScores] = useState<number[]>([]);
   const [sessionInitialized, setSessionInitialized] = useState<boolean>(false);
-
-  const [username, setUsername] = useState<string>("");
 
   // Cleanup timeouts on unmount
   useEffect(() => {
@@ -85,7 +92,6 @@ const ReactionTime: React.FC = () => {
   const startSingleplayerRound = () => {
     setGameState("waiting");
 
-    // Random delay between 2-6 seconds
     const delay = Math.random() * 4000 + 2000;
     const id = setTimeout(() => {
       setGameState("active");
@@ -95,72 +101,52 @@ const ReactionTime: React.FC = () => {
     setTimeoutId(id);
   };
 
-  // multiplayer round
-  const startMultiplayerRound = (round: number) => {
-    setGameState("waiting");
-
-    const delay = (round * 137) % 4000 + 2000;
-
-    setTimeout(() => {
-      setGameState("active");
-      setStartTime(Date.now());
-    }, delay);
-  };
-
   // singleplayer start game
   useEffect(() => {
+    if (mode !== "singleplayer") return;
     if (!sessionInitialized) return;
-
-    if (mode === "singleplayer") {
-      if (reactionRounds <= 0) {
-        if (typingRounds > 0) {
-          router.push("/games/typing-speed");
-        } else {
-          router.push("/singleplayer/results");
-        }
-        return;
+    
+    if (reactionRounds <= 0) {
+      if (typingRounds > 0) {
+        router.push("/games/typing-speed");
+      } else {
+        router.push("/singleplayer/results");
       }
-    startSingleplayerRound();
+      return;
     }
+    startSingleplayerRound();
   }, [sessionInitialized, mode]);
 
   // multiplayer start game
   useEffect(() => {
-    if (mode !== "multiplayer" || !lastMessage) return;
+    if (mode !== "multiplayer") return;
+    if (!roundStart) return;
 
-    const data = JSON.parse(lastMessage.data);
+    setGameState("waiting");
 
-    switch (data.type) {
-      case "GAME_STARTED":
-        setReactionRounds(Number(data.rounds));
-        startMultiplayerRound(1);
-        break;
+    const delay = roundStart.startAt - Date.now();
 
-      case "NEXT_ROUND":
-        const next = Number(data.round);
-        setCurrentRound(next);
-        startMultiplayerRound(next);
-        break;
+    const t = setTimeout(() => {
+      setGameState("active");
+      setStartTime(roundStart.startAt);
+    }, Math.max(0, delay));
 
-      case "ROUND_COMPLETE":
-        setGameState("result");
+    return () => clearTimeout(t);
+  }, [roundStart, mode]);
 
-        setTimeout(() => {
-          if (currentRound >= reactionRounds) {
-            router.push("/multiplayer/scorecard");
-          } else {
-            sendMessage({
-              destination: "/app/nextRound",
-              body: { roomId, round: String(currentRound + 1) },
-            });
-          }
-        }, 1000);
-        break;
+  useEffect(() => {
+    if (mode !== "multiplayer") return;
+    if (!roundComplete || !rounds) return;
+
+    const isGameFinished = roundComplete.round >= rounds;
+
+    if (isGameFinished) {
+      router.push("/multiplayer/results");
     }
-  }, [lastMessage, mode]);
-
+  }, [roundComplete, rounds, mode, router]);
 
   const finishSingleplayerRound = (score: number) => {
+    if (mode !== "singleplayer") return;
     setReactionTime(score);
     setGameState("result");
 
@@ -184,7 +170,7 @@ const ReactionTime: React.FC = () => {
 
     const nextRoundTimeout = setTimeout(() => {
       setCurrentRound((prev) => prev + 1);
-      startGame();
+      startSingleplayerRound();
     }, 1000);
     setTimeoutId(nextRoundTimeout);
   };
@@ -200,46 +186,40 @@ const ReactionTime: React.FC = () => {
   const handleSingleplayerClick = () => {
     if (gameState === "waiting") {
       if (timeoutId) clearTimeout(timeoutId);
-      finishRound(-1);
+      finishSingleplayerRound(-1);
     } else if (gameState === "active") {
       const time = Date.now() - startTime;
       finishSingleplayerRound(time);
     }
   };
 
+  const finishMultiplayerRound = (score: number) => {
+    if (mode !== "multiplayer") return;
+    if (!roomId) return;
+
+    send("/app/submitScore", {
+      roomId,
+      username,
+      round: String(currentRound),
+      score,
+    });
+
+    setReactionTime(score);
+    setGameState("waiting_others");
+  };
+
   const handleMultiplayerClick = () => {
     if (!roomId) return;
 
     if (gameState === "waiting") {
-      sendMessage({
-        destination: "/app/submitScore",
-        body: {
-          roomId,
-          username,
-          round: String(currentRound),
-          score: -1,
-        },
-      });
-
-      setReactionTime(-1);
-      setGameState("waiting_others");
+      finishMultiplayerRound(-1);
+      return;
     }
 
     if (gameState === "active") {
       const reaction = Date.now() - startTime;
-
-      sendMessage({
-        destination: "/app/submitScore",
-        body: {
-          roomId,
-          username,
-          round: String(currentRound),
-          score: reaction,
-        },
-      });
-
-      setReactionTime(reaction);
-      setGameState("waiting_others");
+      finishMultiplayerRound(reaction);
+      return;
     }
   };
 

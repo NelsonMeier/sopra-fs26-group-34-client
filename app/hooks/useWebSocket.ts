@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Client } from "@stomp/stompjs"; // to talk w server
 import SockJS from "sockjs-client"; //connection to talk to server
 import { getApiDomain } from "@/utils/domain";
+import type { GameState } from "@/types/game";
 
 export function useWebSocket(roomId: string, userId: string, username: string) { //hook
   const clientRef = useRef<Client | null>(null); //store client instance
@@ -15,6 +16,9 @@ export function useWebSocket(roomId: string, userId: string, username: string) {
   const [sharedQuoteRound, setSharedQuoteRound] = useState<number>(0);
 
   const [submittedInRound, setSubmittedInRound] = useState<string[]>([]);
+  const [roundStart, setRoundStart] = useState<{
+    startAt: number;
+  } | null>(null);
   const [roundComplete, setRoundComplete] = useState<{
     round:  number;
     scores: Record<string, number>;
@@ -73,9 +77,10 @@ export function useWebSocket(roomId: string, userId: string, username: string) {
             setSubmittedInRound([]); //reset for next round
           }
 
-        if (data.type === "NEXT_ROUND") {
-            setRoundComplete(null); //clear scorecard
-            setNextRoundSignal((prev) => prev + 1);
+          if (data.type === "ROUND_START") {
+              setRoundStart({
+                startAt: Number(data.startAt),
+              });
           }
 });
 
@@ -119,7 +124,8 @@ export function useWebSocket(roomId: string, userId: string, username: string) {
   sharedQuoteRound,    
   submittedInRound,    
   roundComplete,       
-  nextRoundSignal,     
+  nextRoundSignal,   
+  roundStart,  
   send,
   incomingInvite,
   setIncomingInvite,
