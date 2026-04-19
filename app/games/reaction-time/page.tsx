@@ -1,8 +1,12 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useWebSocket } from "@/hooks/useWebSocket";
+import Scorecard, { calcPointsForRound } from "@/components/Scorecard";
 
-type GameState = "idle" | "waiting" | "active" | "result";
+type GameState = "idle" | "waiting" | "active" | "result" | "waiting_others";
+
+type Mode = "singleplayer" | "multiplayer"
 
 export interface SingleplayerRounds {
   reactionTime: number;
@@ -16,16 +20,26 @@ const clampRounds = (value: number): number => {
 
 const ReactionTime: React.FC = () => {
   const router = useRouter();
+  const params = useParameter();
+
+  const {lastMessage, sendMessage} = useWebSocket();
+
+  const roomID = params?.roomID as string | undefined;
+  const mode: Mode = roomID ? "multiplayer" : "singleplayer";
 
   const [gameState, setGameState] = useState<GameState>("idle");
   const [reactionTime, setReactionTime] = useState<number>(0);
   const [startTime, setStartTime] = useState<number>(0);
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+
   const [reactionRounds, setReactionRounds] = useState<number>(0);
   const [typingRounds, setTypingRounds] = useState<number>(0);
   const [currentRound, setCurrentRound] = useState<number>(1);
+
   const [scores, setScores] = useState<number[]>([]);
   const [sessionInitialized, setSessionInitialized] = useState<boolean>(false);
+
+  const [username, setUsername] = useState<string>("");
 
   // Cleanup timeouts on unmount
   useEffect(() => {
@@ -34,8 +48,12 @@ const ReactionTime: React.FC = () => {
     };
   }, [timeoutId]);
 
+  //initializing singleplayer
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (mode !== "singleplayer") {
+      setSessionInitialized(true);
+      return;
+    } 
 
     try {
       const storedRounds = globalThis.sessionStorage.getItem("singleplayerRounds");
@@ -52,7 +70,7 @@ const ReactionTime: React.FC = () => {
 
       setReactionRounds(reaction);
       setTypingRounds(typing);
-  globalThis.sessionStorage.setItem("reactionScores", JSON.stringify([]));
+      globalThis.sessionStorage.setItem("reactionScores", JSON.stringify([]));
       setScores([]);
       setCurrentRound(1);
       setSessionInitialized(true);
@@ -61,9 +79,10 @@ const ReactionTime: React.FC = () => {
       setTypingRounds(0);
       setSessionInitialized(true);
     }
-  }, []);
+  }, [mode]);
 
-  const startGame = () => {
+  // singleplayer round
+  const startSingleplayerRound = () => {
     setGameState("waiting");
 
     // Random delay between 2-6 seconds
@@ -76,22 +95,72 @@ const ReactionTime: React.FC = () => {
     setTimeoutId(id);
   };
 
+  // multiplayer round
+  const startMultiplayerRound = (round: number) => {
+    setGameState("waiting");
+
+    const delay = (round * 137) % 4000 + 2000;
+
+    setTimeout(() => {
+      setGameState("active");
+      setStartTime(Date.now());
+    }, delay);
+  };
+
+  // singleplayer start game
   useEffect(() => {
     if (!sessionInitialized) return;
 
-    if (reactionRounds <= 0) {
-      if (typingRounds > 0) {
-        router.push("/games/typing-speed");
-      } else {
-        router.push("/singleplayer/results");
+    if (mode === "singleplayer") {
+      if (reactionRounds <= 0) {
+        if (typingRounds > 0) {
+          router.push("/games/typing-speed");
+        } else {
+          router.push("/singleplayer/results");
+        }
+        return;
       }
-      return;
+    startSingleplayerRound();
     }
+  }, [sessionInitialized, mode]);
 
-    startGame();
-  }, [sessionInitialized, reactionRounds, typingRounds]);
+  // multiplayer start game
+  useEffect(() => {
+    if (mode !== "multiplayer" || !lastMessage) return;
 
-  const finishRound = (score: number) => {
+    const data = JSON.parse(lastMessage.data);
+
+    switch (data.type) {
+      case "GAME_STARTED":
+        setReactionRounds(Number(data.rounds));
+        startMultiplayerRound(1);
+        break;
+
+      case "NEXT_ROUND":
+        const next = Number(data.round);
+        setCurrentRound(next);
+        startMultiplayerRound(next);
+        break;
+
+      case "ROUND_COMPLETE":
+        setGameState("result");
+
+        setTimeout(() => {
+          if (currentRound >= reactionRounds) {
+            router.push("/multiplayer/scorecard");
+          } else {
+            sendMessage({
+              destination: "/app/nextRound",
+              body: { roomId, round: String(currentRound + 1) },
+            });
+          }
+        }, 1000);
+        break;
+    }
+  }, [lastMessage, mode]);
+
+
+  const finishSingleplayerRound = (score: number) => {
     setReactionTime(score);
     setGameState("result");
 
@@ -121,12 +190,56 @@ const ReactionTime: React.FC = () => {
   };
 
   const handleClick = () => {
+    if (mode === "singleplayer") {
+      handleSingleplayerClick();
+    } else {
+      handleMultiplayerClick();
+    }
+  };
+
+  const handleSingleplayerClick = () => {
     if (gameState === "waiting") {
       if (timeoutId) clearTimeout(timeoutId);
       finishRound(-1);
     } else if (gameState === "active") {
       const time = Date.now() - startTime;
-      finishRound(time);
+      finishSingleplayerRound(time);
+    }
+  };
+
+  const handleMultiplayerClick = () => {
+    if (!roomId) return;
+
+    if (gameState === "waiting") {
+      sendMessage({
+        destination: "/app/submitScore",
+        body: {
+          roomId,
+          username,
+          round: String(currentRound),
+          score: -1,
+        },
+      });
+
+      setReactionTime(-1);
+      setGameState("waiting_others");
+    }
+
+    if (gameState === "active") {
+      const reaction = Date.now() - startTime;
+
+      sendMessage({
+        destination: "/app/submitScore",
+        body: {
+          roomId,
+          username,
+          round: String(currentRound),
+          score: reaction,
+        },
+      });
+
+      setReactionTime(reaction);
+      setGameState("waiting_others");
     }
   };
 
