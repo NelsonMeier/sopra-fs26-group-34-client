@@ -174,7 +174,7 @@ if (userId && token) { //check that both r here
       router.push("/multiplayer");
     };
 
-    const handleScoreboard = () => {  //To be implemented
+    const handleScoreboard = () => {
       router.push("/scoreboard");
     };
 

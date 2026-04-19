@@ -3,11 +3,52 @@
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { useRouter } from "next/navigation";
 import { Button } from "antd"
+import { ApiService } from "@/api/apiService";
+import { useApi } from "@/hooks/useApi";
+import { useState, useEffect } from "react";
+
 
 const Scoreboard: React.FC = () => {
     const router = useRouter();
+    const apiService = useApi();
     const { value: userId } = useLocalStorage<string>("userId", "");
 
+    interface ScoreboardEntry {
+    username: string;
+    score: number | null;
+    }
+
+    interface ScoreboardResponse {
+    scoreboards: {
+        reactionTime: ScoreboardEntry[];
+        typingSpeed: ScoreboardEntry[];
+        };
+    }
+
+    const [scoreboard, setScoreboard] = useState<ScoreboardResponse | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchScoreboard = async () => {
+            try {
+                setLoading(true);
+                const data = await apiService.get<ScoreboardResponse>("/scoreboard");
+                setScoreboard(data);
+                setError(null);
+            } catch (err) {
+                setError("Failed to load scoreboard");
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchScoreboard();
+    }, [apiService]);
+
+
+    
 
     return(
         <div style={{
@@ -59,10 +100,36 @@ const Scoreboard: React.FC = () => {
 
                                 <div style={{width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '40px'}}>
                                     <div style={{minHeight: '578px', background: '#ACCEDC', borderRadius: 10, padding: '35px 24px'}} >
-                                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: '#2f4f5a', fontSize: 36, fontFamily: 'var(--font-chewy)'}}>Record Holders Coming Soon</div>
-                                        </div>
+                                        {loading && <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: '#2f4f5a', fontSize: 20, fontFamily: 'var(--font-chewy)'}}>Loading...</div>}
+                                        {error && <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: 'red', fontSize: 20, fontFamily: 'var(--font-chewy)'}}>Error: {error}</div>}
+                                        {scoreboard && scoreboard.scoreboards.reactionTime.length === 0 && <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: '#2f4f5a', fontSize: 20, fontFamily: 'var(--font-chewy)'}}>No records yet</div>}
+                                        {scoreboard && scoreboard.scoreboards.reactionTime.length > 0 && (
+                                            <div style={{ display: "flex", flexDirection: "column", rowGap: "12px" }}>
+                                                {scoreboard.scoreboards.reactionTime.map((entry, index) => (
+                                                    <div key={index} style={{display: "flex", justifyContent: "space-between", color: '#2f4f5a', fontSize: 18, fontFamily: 'var(--font-chewy)', padding: "8px 12px", background: '#ffffff', borderRadius: 5}}>
+                                                        <span>#{index + 1}</span>
+                                                        <span>{entry.username}</span>
+                                                        <span>{entry.score}ms</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                     <div style={{minHeight: '578px', background: '#ACCEDC', borderRadius: 10, padding: '35px 24px'}} >
-                                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: '#2f4f5a', fontSize: 36, fontFamily: 'var(--font-chewy)'}}>Record Holders Coming Soon</div>
+                                        {loading && <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: '#2f4f5a', fontSize: 20, fontFamily: 'var(--font-chewy)'}}>Loading...</div>}
+                                        {error && <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: 'red', fontSize: 20, fontFamily: 'var(--font-chewy)'}}>Error: {error}</div>}
+                                        {scoreboard && scoreboard.scoreboards.typingSpeed.length === 0 && <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: '#2f4f5a', fontSize: 20, fontFamily: 'var(--font-chewy)'}}>No records yet</div>}
+                                        {scoreboard && scoreboard.scoreboards.typingSpeed.length > 0 && (
+                                            <div style={{ display: "flex", flexDirection: "column", rowGap: "12px" }}>
+                                                {scoreboard.scoreboards.typingSpeed.map((entry, index) => (
+                                                    <div key={index} style={{display: "flex", justifyContent: "space-between", color: '#2f4f5a', fontSize: 18, fontFamily: 'var(--font-chewy)', padding: "8px 12px", background: '#ffffff', borderRadius: 5}}>
+                                                        <span>#{index + 1}</span>
+                                                        <span>{entry.username}</span>
+                                                        <span>{entry.score} WPM</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
