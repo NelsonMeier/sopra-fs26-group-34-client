@@ -17,6 +17,11 @@ interface Friend { //Defines what a friend object looks like
   creationDate: string;
 }
 
+const GAME_ROUTES: Record<string, string> = { //maps game names to their URL 
+  "reaction time": "reaction-time",
+  "typing test":   "typing-speed",
+};
+
 function MultiplayerRoomInner() {
   const router = useRouter();
   const apiService = useApi();
@@ -35,7 +40,7 @@ function MultiplayerRoomInner() {
   const isAdmin = !roomIdFromUrl;
   const [roomId] = useState<string>(() => roomIdFromUrl ?? uuidv4());
 
-  const { isConnected, joinedPlayers, gameStarted, selectedGame, send } =
+  const { isConnected, joinedPlayers, gameStarted, selectedGame, rounds, send } =
     useWebSocket(roomId, userId, username);
 
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -74,10 +79,14 @@ function MultiplayerRoomInner() {
 
   // redirect everyone to the game once the admin starts it
   useEffect(() => {
-    if (gameStarted && selectedGame) {
-      router.push(`/game/${selectedGame.toLowerCase().replace(" ", "-")}?roomId=${roomId}`);
-    }
-  }, [gameStarted, selectedGame]);
+  if (!gameStarted || !selectedGame) return;
+  const slug = GAME_ROUTES[selectedGame.toLowerCase()];
+  if (!slug) {
+    console.error(`No route found for game: ${selectedGame}`);
+    return;
+  }
+  router.push(`/games/${slug}?roomId=${roomId}&rounds=${rounds}&isAdmin=${isAdmin}`);
+}, [gameStarted, selectedGame]);
 
   const toggleFriend = (id: string | number, friendUsername: string) => {
     if (!isAdmin) return;

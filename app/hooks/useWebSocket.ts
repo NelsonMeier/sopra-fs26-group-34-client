@@ -8,7 +8,20 @@ export function useWebSocket(roomId: string, userId: string, username: string) {
   const [isConnected, setIsConnected] = useState(false);
   const [joinedPlayers, setJoinedPlayers] = useState<string[]>([]); //players
   const [gameStarted, setGameStarted] = useState(false); //status
-  const [selectedGame, setSelectedGame] = useState<string>(""); //games
+  const [selectedGame, setSelectedGame] = useState<string>(""); 
+  const [rounds, setRounds] = useState<number>(0);//game rounds
+
+  const [sharedQuote,      setSharedQuote     ] = useState<string | null>(null);
+  const [sharedQuoteRound, setSharedQuoteRound] = useState<number>(0);
+
+  const [submittedInRound, setSubmittedInRound] = useState<string[]>([]);
+  const [roundComplete, setRoundComplete] = useState<{
+    round:  number;
+    scores: Record<string, number>;
+  } | null>(null);
+  const [nextRoundSignal, setNextRoundSignal] = useState<number>(0);
+
+
   const [incomingInvite, setIncomingInvite] = useState<{
     roomId: string;
     inviterName: string;
@@ -35,12 +48,37 @@ export function useWebSocket(roomId: string, userId: string, username: string) {
           }
           if (data.type === "GAME_SELECTED") { //if game selected
             setSelectedGame(data.game);
+            setRounds(parseInt(data.rounds as string, 10) || 0);
           }
           if (data.type === "GAME_STARTED") { // if started 
             setGameStarted(true);
             setSelectedGame(data.game);
+            setRounds(parseInt(data.rounds as string, 10) || 0);
           }
-        });
+
+          if (data.type === "QUOTE_BROADCAST") {
+            setSharedQuote(data.quote as string);
+            setSharedQuoteRound(parseInt(data.round as string, 10) || 1);
+          }
+
+          if (data.type === "SCORE_SUBMITTED") {
+            setSubmittedInRound((prev) => [...new Set([...prev, data.username as string])]); //adds user to list of submitted players for the round
+          }
+
+          if (data.type === "ROUND_COMPLETE") {
+              setRoundComplete({
+              round:  parseInt(data.round as string, 10), //stores round 
+              scores: data.scores as Record<string, number>, //stores scores
+            });
+            setSubmittedInRound([]); //reset for next round
+          }
+
+        if (data.type === "NEXT_ROUND") {
+            setRoundComplete(null); //clear scorecard
+            setNextRoundSignal((prev) => prev + 1);
+          }
+});
+
 
         // subscribe to personal invite topic 
         client.subscribe(`/topic/invite/${username}`, (message) => {
@@ -72,12 +110,19 @@ export function useWebSocket(roomId: string, userId: string, username: string) {
   };
 
   return {
-    isConnected,
-    joinedPlayers,
-    gameStarted,
-    selectedGame,
-    send,
-    incomingInvite,
-    setIncomingInvite,
-  };
+  isConnected,
+  joinedPlayers,
+  gameStarted,
+  selectedGame,
+  rounds,              
+  sharedQuote,         
+  sharedQuoteRound,    
+  submittedInRound,    
+  roundComplete,       
+  nextRoundSignal,     
+  send,
+  incomingInvite,
+  setIncomingInvite,
+};
+
 }

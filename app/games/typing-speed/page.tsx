@@ -1,14 +1,14 @@
 "use client";
 import { useApi } from "@/hooks/useApi";
-import useLocalStorage from "@/hooks/useLocalStorage";
-import { User } from "@/types/user";
 import { useParams, useRouter } from "next/navigation";
+import { useWebSocket } from "@/hooks/useWebSocket";
+import Scorecard, { calcPointsForRound } from "@/components/Scorecard";
 
 import React, { useEffect, useState, useRef } from "react";
 import { Card, Button, Row, Col, Space, Statistic, Input } from "antd";
 import { SingleplayerRounds } from "../reaction-time/page";
 
-type GameState = "idle" | "waiting" | "active" | "result";
+type GameState = "idle" | "waiting" | "waiting_quote" | "active" | "result" | "waiting_others" | "scorecard";
 
 const clampRounds = (value: number): number => {
   if (!Number.isFinite(value)) return 0;
@@ -34,6 +34,8 @@ const TypingSpeedGame: React.FC = () => {
     const [currentRound, setCurrentRound] = useState<number>(1);
     const [scores, setScores] = useState<number[]>([]);
     const [sessionInitialized, setSessionInitialized] = useState<boolean>(false);
+
+    
 
       // Cleanup timeouts on unmount
     useEffect(() => {
