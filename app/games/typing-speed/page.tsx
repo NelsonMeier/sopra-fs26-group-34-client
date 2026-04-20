@@ -1,24 +1,51 @@
 "use client";
 import { useApi } from "@/hooks/useApi";
-import { useParams, useRouter } from "next/navigation";
-import { useWebSocket } from "@/hooks/useWebSocket";
-import Scorecard, { calcPointsForRound } from "@/components/Scorecard";
+import { useRouter, useSearchParams } from "next/navigation"; 
+import { useWebSocket } from "@/hooks/useWebSocket"; 
+import Scorecard, { calcPointsForRound } from "@/components/Scorecard"; 
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { Suspense, useEffect, useState, useRef } from "react"; 
 import { Card, Button, Row, Col, Space, Statistic, Input } from "antd";
 import { SingleplayerRounds } from "../reaction-time/page";
 
-type GameState = "idle" | "waiting" | "waiting_quote" | "active" | "result" | "waiting_others" | "scorecard";
+type GameState = "idle" | "waiting" | "waiting_quote" | "active" | "result" | "waiting_others" | "scorecard"; 
+
+type Mode = "singleplayer" | "multiplayer"; //added mode type to know whch one is present
 
 const clampRounds = (value: number): number => {
   if (!Number.isFinite(value)) return 0;
   return Math.max(0, Math.min(99, Math.trunc(value)));
 };
 
-const TypingSpeedGame: React.FC = () => {
+const TypingSpeedGameInner: React.FC = () => {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const apiService = useApi();
+
+    //read multiplayer info
+    const roomIdParam   = searchParams.get("roomId")  ?? "";
+    const roundsParam   = parseInt(searchParams.get("rounds")  ?? "0", 10);
+    const isAdminParam  = searchParams.get("isAdmin") === "true";
+    const usernameParam = searchParams.get("username") ?? "";
+
+    const mode: Mode = roomIdParam ? "multiplayer" : "singleplayer"; 
+
+    
+    const [username, setUsername] = useState(usernameParam);
+    const [userId,   setUserId  ] = useState("");
+
+    
+    useEffect(() => { //load from local storage
+        if (!username) {
+            const stored = localStorage.getItem("username")?.replaceAll('"', "") ?? "";
+            if (stored) setUsername(stored);
+        }
+        setUserId(localStorage.getItem("userId")?.replaceAll('"', "") ?? "");
+    }, []); 
+
+    //websocket 
+    const { send, roundStart, roundComplete, gameOver, sharedQuote, sharedQuoteRound } = useWebSocket(roomIdParam, userId, username);
 
     const [gameState, setGameState] = useState<GameState>("idle");
     const [quote, setQuote] = useState<string>("");
@@ -35,21 +62,21 @@ const TypingSpeedGame: React.FC = () => {
     const [scores, setScores] = useState<number[]>([]);
     const [sessionInitialized, setSessionInitialized] = useState<boolean>(false);
 
-    
+    //multiplayer scores
+    const [cumulativePoints,   setCumulativePoints  ] = useState<Record<string, number>>({});
+    const [roundScoresForCard, setRoundScoresForCard] = useState<Record<string, number>>({});
 
-      // Cleanup timeouts on unmount
+    //cleanup timeouts on unmount
     useEffect(() => {
-        return () => {
-        if (timeoutId) clearTimeout(timeoutId);
-        };
+    return () => { if (timeoutId) clearTimeout(timeoutId); };
     }, [timeoutId]);
-
 
     useEffect(() => {
         if (typeof window === "undefined") return;
+        if (mode !== "singleplayer") { setSessionInitialized(true); return; } //skip for multiplayer
 
         try {
-        const storedRounds = globalThis.sessionStorage.getItem("singleplayerRounds");
+        const storedRounds = globalThis.sessionStorage.getItem("singleplayerRounds"); //load saved rounds
         if (!storedRounds) {
             setTotalRounds(0);
             setReactionRounds(0);
@@ -57,7 +84,7 @@ const TypingSpeedGame: React.FC = () => {
             return;
         }
 
-        const parsed = JSON.parse(storedRounds) as Partial<SingleplayerRounds>;
+        const parsed = JSON.parse(storedRounds) as Partial<SingleplayerRounds>; //extract rounds
         const reaction = clampRounds(Number(parsed?.reactionTime ?? 0));
         const typing = clampRounds(Number(parsed?.typingSpeed ?? 0));
 
@@ -97,49 +124,119 @@ const TypingSpeedGame: React.FC = () => {
         setTimeoutId(id);
     };
     
-    //auto start game
+    // auto start game (singleplayer only)
     useEffect(() => {
+        if (mode !== "singleplayer") return; 
         if (!sessionInitialized) return;
 
         if (totalRounds <= 0) {
             router.push("/singleplayer/results");
-            return;
+            return; // if no rounds
         }
         startGame();
-}, [sessionInitialized, totalRounds]);
+    }, [sessionInitialized, totalRounds]); 
+
+    //start multiplayer game when admin starts first round
+    const sentFirstRound = useRef(false);
+    useEffect(() => {
+        if (mode !== "multiplayer" || !isAdminParam || sentFirstRound.current) return;
+        const id = setTimeout(() => {
+            send("/app/startRound", { roomId: roomIdParam, round: "1" });
+            sentFirstRound.current = true;
+        }, 500);
+        setTimeoutId(id);
+    }, [mode, isAdminParam]); 
+
+    //round start (no qouote yet,  waiting for quote)
+    useEffect(() => {
+        if (mode !== "multiplayer" || !roundStart) return;
+        setCurrentRound(roundStart.round);
+        setUserInput("");
+        setStartTime(0);
+        setTimeElapsed(0);
+        setGameState("waiting_quote");
+
+        if (isAdminParam) {
+            apiService
+                .get<{ content: string }>("/api/games/quote") //fetches quote
+                .then((data) => {
+                    send("/app/broadcastQuote", {roomId: roomIdParam, quote:  data.content, round:  String(roundStart.round),});
+                }) //broadquasts quote to everyone in room
+                .catch(() => { //FALLBACK
+                    send("/app/broadcastQuote", { roomId: roomIdParam, quote:  "The quick brown fox jumps over the lazy dog.", round:  String(roundStart.round),});
+                });
+        }
+    }, [roundStart, mode]); 
+
+    //everyone receives quote, start round
+    useEffect(() => {
+        if (mode !== "multiplayer" || !sharedQuote || gameState !== "waiting_quote") return;
+        setQuote(sharedQuote);
+        setUserInput("");
+        setStartTime(0);
+        setGameState("active");
+        setTimeout(() => inputRef.current?.focus(), 50);
+    }, [sharedQuote, sharedQuoteRound, mode]); 
+
+    //show scorecard
+    useEffect(() => {
+        if (mode !== "multiplayer" || !roundComplete) return;
+        const pts = calcPointsForRound(roundComplete.scores, false);
+        setCumulativePoints((prev) => {
+            const next = { ...prev };
+            for (const [player, p] of Object.entries(pts)) {
+                next[player] = (next[player] ?? 0) + p;
+            }
+            globalThis.sessionStorage.setItem("multiplayerFinalPoints", JSON.stringify(next));
+            return next;
+        });
+        setRoundScoresForCard(roundComplete.scores);
+        setGameState("scorecard");
+    }, [roundComplete, mode]); // 
+
+    
+    useEffect(() => {
+        if (mode !== "multiplayer" || !gameOver || isAdminParam) return;
+        const id = setTimeout(() => {
+            router.push(`/multiplayer/results?roomId=${roomIdParam}`);
+        }, 2000);
+        setTimeoutId(id);
+    }, [gameOver, mode, isAdminParam]); 
 
     // update timer while playing
     useEffect(() => {
         if (gameState !== "active" || !startTime) return;
 
         const interval = setInterval(() => {
-            const elapsed = Math.round ((Date.now() - startTime) / 1000);
+            const elapsed = Math.round((Date.now() - startTime) / 1000);
             setTimeElapsed(elapsed);
         }, 100);
 
         return () => clearInterval(interval);
     }, [gameState, startTime]);
 
-    //typing input
+    // typing input
     const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const newInput = e.target.value;
 
-        // Start timer on first keystroke
         if (userInput.length === 0 && newInput.length > 0 && startTime === 0) {
             setStartTime(Date.now());
         }
 
-        //only allow if it matches the letters of quote
         if (newInput.length <= quote.length && quote.startsWith(newInput)) {
             setUserInput(newInput);
-        // if completed
-        if (newInput === quote && quote.length > 0) {
-            finishRound();
-        }
+            if (newInput === quote && quote.length > 0) {
+                
+                if (mode === "multiplayer") {
+                    finishMultiplayerRound();
+                } else {
+                    finishRound();
+                }
+            }
         }
     };
 
-    //calculate WPM and finish round
+    // calculate WPM and finish singleplayer round (unchanged)
     const finishRound = () => {
         const elapsedSeconds = (Date.now() - startTime) / 1000;
         const wordCount = quote.trim().split(/\s+/).length;
@@ -154,7 +251,6 @@ const TypingSpeedGame: React.FC = () => {
             globalThis.sessionStorage.setItem("typingScores", JSON.stringify(nextScores));
         }
         
-        //prepare next round or finish game
         if (currentRound >= totalRounds) {
             const redirectTimeout = setTimeout(() => {
                 router.push("/singleplayer/results");
@@ -163,20 +259,50 @@ const TypingSpeedGame: React.FC = () => {
             return;
         }
         const nextRoundTimeout = setTimeout(() => {
-        setCurrentRound((prev) => prev + 1);
-        startGame();
+            setCurrentRound((prev) => prev + 1);
+            startGame();
         }, 1000);
         setTimeoutId(nextRoundTimeout);
     };
 
-    // render quote with character highlighting 
+    //submit WPM via websocket and wait for others
+    const finishMultiplayerRound = () => {
+        const elapsedSeconds = (Date.now() - startTime) / 1000;
+        const wordCount = quote.trim().split(/\s+/).length;
+        const wpm = Math.round((wordCount / elapsedSeconds) * 60);
+
+        setTypingSpeed(wpm);
+        setGameState("waiting_others");
+        send("/app/submitScore", {
+            roomId:  roomIdParam,
+            username,
+            round:   String(currentRound),
+            score:   wpm,
+        });
+    };
+
+    //admin scorecard button
+    const handleScorecardNext = () => {
+        const isLast = currentRound >= roundsParam;
+        if (isLast) {
+            globalThis.sessionStorage.setItem("multiplayerFinalPoints", JSON.stringify(cumulativePoints));
+            router.push(`/multiplayer/results?roomId=${roomIdParam}`);
+            return;
+        }
+        const nextRound = currentRound + 1;
+        send("/app/startRound", { roomId: roomIdParam, round: String(nextRound) });
+        setCurrentRound(nextRound);
+        setGameState("idle");
+    };
+
+    //render quote with character highlighting 
     const renderQuote = () => {
         return (
         <div style={{ fontSize: "18px", lineHeight: "1.8", wordBreak: "break-word" }}>
             {quote.split("").map((char, i) => {
-            let color = "white"; // untyped 
+            let color = "white";
             if (i < userInput.length) {
-                color = "black"; // typed 
+                color = "black";
             }
             return (
                 <span key={i} style={{ color }}>
@@ -187,6 +313,24 @@ const TypingSpeedGame: React.FC = () => {
         </div>
         );
     };
+
+    const rounds4Display = mode === "multiplayer" ? roundsParam : totalRounds; // ← NEW
+
+    //scorecard
+    if (gameState === "scorecard") {
+        return (
+            <Scorecard
+                round={currentRound}
+                totalRounds={rounds4Display}
+                scores={roundScoresForCard}
+                cumulativePoints={cumulativePoints}
+                lowerIsBetter={false}
+                scoreLabel="Typing Speed"
+                isAdmin={isAdminParam}
+                onNext={handleScorecardNext}
+            />
+        );
+    }
     
     return (
 <div
@@ -216,7 +360,7 @@ const TypingSpeedGame: React.FC = () => {
     </h1>
 
     {/* round counter */}
-    {totalRounds > 0 && (
+    {rounds4Display > 0 && ( 
     <div
         style={{
         fontFamily: "var(--font-chewy)",
@@ -224,7 +368,7 @@ const TypingSpeedGame: React.FC = () => {
         color: "black",
         }}
     >
-        Round {currentRound} of {totalRounds}
+        Round {currentRound} of {rounds4Display} 
     </div>
     )}
 
@@ -241,6 +385,13 @@ const TypingSpeedGame: React.FC = () => {
     </div>
     )}
 
+    
+    {gameState === "waiting_others" && (
+    <div style={{ fontFamily: "var(--font-chewy)", fontSize: "1.2rem", color: "black" }}>
+        {typingSpeed} wpm — waiting for other players...
+    </div>
+    )}
+
     {/* quote display card */}
     <Card
     style={{
@@ -254,9 +405,9 @@ const TypingSpeedGame: React.FC = () => {
     }}
     bordered={false}
     >
-    {gameState === "waiting" ? (
+    {gameState === "waiting" || gameState === "waiting_quote" ? (  
         <p style={{ textAlign: "center" }}>Loading quote...</p>
-    ) : gameState === "result" ? (
+    ) : gameState === "result" || gameState === "waiting_others" ? ( 
         <p style={{ textAlign: "center" }}>Great job!</p>
     ) : (
         renderQuote()
@@ -281,7 +432,7 @@ const TypingSpeedGame: React.FC = () => {
     )}
 
     {/* result display */}
-    {gameState === "result" && (
+    {(gameState === "result" || gameState === "waiting_others") && ( // ← NEW: added waiting_others
     <Card style={{ width: "100%", maxWidth: "600px", textAlign: "center", backgroundColor: "white" }} bordered={false}>
         <Row gutter={[16, 16]} justify="center">
         <Col xs={24} sm={24}>
@@ -298,4 +449,11 @@ const TypingSpeedGame: React.FC = () => {
 );
 };
 
-export default TypingSpeedGame;
+
+export default function TypingSpeedGame() {
+    return (
+        <Suspense>
+            <TypingSpeedGameInner />
+        </Suspense>
+    );
+}

@@ -18,13 +18,20 @@ export function useWebSocket(roomId: string, userId: string, username: string) {
   const [submittedInRound, setSubmittedInRound] = useState<string[]>([]);
   const [roundStart, setRoundStart] = useState<{
     startAt: number;
+    round: number;
   } | null>(null);
+
   const [roundComplete, setRoundComplete] = useState<{
     round:  number;
     scores: Record<string, number>;
+    totalScores: Record<string, number>;
   } | null>(null);
+
   const [nextRoundSignal, setNextRoundSignal] = useState<number>(0);
 
+  const [gameOver, setGameOver] = useState<{ 
+    finalScores: Record<string, number>;
+  } | null>(null);
 
   const [incomingInvite, setIncomingInvite] = useState<{
     roomId: string;
@@ -72,7 +79,8 @@ export function useWebSocket(roomId: string, userId: string, username: string) {
           if (data.type === "ROUND_COMPLETE") {
               setRoundComplete({
               round:  parseInt(data.round as string, 10), //stores round 
-              scores: data.scores as Record<string, number>, //stores scores
+              scores: data.scores as Record<string, number>,
+              totalScores: data.totalScores as Record<string, number>, //stores scores
             });
             setSubmittedInRound([]); //reset for next round
           }
@@ -80,9 +88,17 @@ export function useWebSocket(roomId: string, userId: string, username: string) {
           if (data.type === "ROUND_START") {
               setRoundStart({
                 startAt: Number(data.startAt),
+                round:   parseInt(data.round as string, 10) || 1,
               });
           }
-});
+
+          if (data.type === "GAME_OVER") { 
+            setGameOver({
+              finalScores: data.finalScores as Record<string, number>,
+            });
+          }
+        });
+
 
 
         // subscribe to personal invite topic 
@@ -125,7 +141,8 @@ export function useWebSocket(roomId: string, userId: string, username: string) {
   submittedInRound,    
   roundComplete,       
   nextRoundSignal,   
-  roundStart,  
+  roundStart,
+  gameOver,   
   send,
   incomingInvite,
   setIncomingInvite,
