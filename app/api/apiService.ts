@@ -50,9 +50,15 @@ export class ApiService {
       error.status = res.status;
       throw error;
     }
-    return res.headers.get("Content-Type")?.includes("application/json")
-      ? (res.json() as Promise<T>)
-      : Promise.resolve(res as T);
+    if (res.status === 204) {
+    return {} as T;
+  }
+
+    try {
+      return (await res.json()) as T;
+    } catch {
+      return (await res.text()) as unknown as T;
+    }  
   }
 
   /**
