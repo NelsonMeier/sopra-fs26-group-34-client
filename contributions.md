@@ -90,9 +90,9 @@ reason).
 
 | **Student**        | **Date** | **Link to Commit** | **Description**                 | **Relevance**                       |
 | ------------------ | -------- | ------------------ | ------------------------------- | ----------------------------------- |
-| **[@githubUser1]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@githubUser2]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@githubUser3]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@jonasdkf]** | 20.04.2026   | https://github.com/NelsonMeier/sopra-fs26-group-34-client/commit/bc62d06c2a49147259806d431a68b0a0b6c9ee0c | Implementation of a search feature when adding new Friends | This feature allows for the user to search Users to add as friend. This improves the user experience when it comes to sending friend requests, as the user doesnt have to know the exact username anymore. |
+| **[""]** | 20.04.2026   | https://github.com/NelsonMeier/sopra-fs26-group-34-server/commit/22452889e6ecc6f8e78a1c56e79dbe15f9e6c98d | This commit includes the backend implementation of the search feature. | The backend functions in the UserController and UserService had to be updated to return a list of users that start with the prefix (search query). |
+| **[""** | [20.04.2026]   | https://github.com/NelsonMeier/sopra-fs26-group-34-server/commit/8ab30563dfbf6da26482379fcefc34610cc3b47b | Adjusted tests to pass with new searchByUserPrefix function. | Without these tweaks in the UserControllerTest file, two tests would fail leading to the backend not deploying. |
 | **[@githubUser4]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@githubUser5]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 ---
