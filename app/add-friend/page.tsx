@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Button, Input, message } from "antd";
+import { Button, Input, List, message, Modal } from "antd";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
@@ -12,25 +12,47 @@ const AddFriend: React.FC = () => {
   const { value: userId } = useLocalStorage<string>("userId", "");
   const [friendUsername, setFriendUsername] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [searchResults, setSearchResults] = useState<User[]>([]); 
+  const [modalVisibility, setModalVisibility] = useState(false);
+  const [searching, setSearching] = useState(false);
 
-  const handleAddFriend = async () => {
-    if (!friendUsername.trim()) {
-      message.error("Please enter a friend's username");
+  const handleSearchUsers = async (value: string) => {
+    setFriendUsername(value);
+    
+    if(!value.trim()) {
+      setSearchResults([]);
       return;
     }
 
+    setSearching(true);
+    try {
+      const users = await apiService.get<User[]>(`/users/search/${value}`);
+      console.log("API Response:", users); 
+      console.log("Is Array:", Array.isArray(users)); 
+      setSearchResults(Array.isArray(users) ? users : []);
+      setModalVisibility(true);
+    } catch (error) {
+      console.error("Error searching users:", error);
+      setSearchResults([]);
+
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleAddFriend = async (user: User) => {
+
     setLoading(true);
     try {
-      //GET request to find friend by username and retrieve their ID
-      const friend = await apiService.get<User>(`/users/search/${friendUsername}`); 
-      const friendId = friend.id; 
       //POST request to send friend request
       await apiService.post(
         `/users/${userId}/friends/requests`,
-        friendId
+        user.id
       );
-      message.success("Friend request sent successfully!");
+      message.success(`Friend request sent to ${user.username}!`);
       setFriendUsername("");
+      setSearchResults([]);
+      setModalVisibility(false);
     } catch (error) {
       if (error instanceof Error) {
         message.error(`Failed to send friend request: ${error.message}`);
@@ -83,17 +105,16 @@ const AddFriend: React.FC = () => {
             Friend&apos;s Username
           </label>
           <Input
-            placeholder="Enter friend&apos;s username"
+            placeholder="Search for users by entering a username"
             value={friendUsername}
             onChange={(e) => setFriendUsername(e.target.value)}
-            onPressEnter={handleAddFriend}
             size="large"
             style={{ color: "white" }}
           />
         </div>
         <Button
           type="primary"
-          onClick={handleAddFriend}
+          onClick={() => handleSearchUsers(friendUsername)}
           loading={loading}
           style={{
             backgroundColor: "#E8956D",
@@ -106,9 +127,40 @@ const AddFriend: React.FC = () => {
             border: "none"
           }}
         >
-          Send Friend Request
+          Search Users
         </Button>
       </div>
+
+        {/* search results modal */}
+        <Modal
+        title="Search Result"
+        open={modalVisibility}
+        onCancel={() => {setModalVisibility(false); setSearchResults([]);}}
+        footer={null}
+        width={500}
+        >
+          <List
+            dataSource={searchResults}
+            renderItem={(user) => (
+              <List.Item>
+                <div style={{ flex: 1 }}>  {/* ADD THIS WRAPPER */}
+                  <p style={{ margin: 0, fontWeight: "bold" }}>
+                    {user.username}  {/* ADD THIS */}
+                  </p>
+                </div>
+                <Button
+                  type="primary"
+                  onClick={() => handleAddFriend(user)}
+                  loading={loading}
+                >
+                  Add Friend
+                </Button>
+              </List.Item>
+            )}
+          />
+
+        </Modal>
+
 
       <Link href={`/users/${userId}`}>
         <Button
