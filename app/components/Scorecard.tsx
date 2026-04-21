@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "antd";
+import { useEffect } from "react";
 
 
 const POINTS_TABLE = [3, 2, 1]; //needed for point distribution
@@ -77,7 +78,7 @@ export default function Scorecard({
     if (score === -1) return "Too early!";
     return lowerIsBetter ? `${score} ms` : `${score} wpm`; 
   };
- 
+
   const cardStyle: React.CSSProperties = {
     backgroundColor: "#B8D8E8",
     borderRadius: "15px",
@@ -99,6 +100,15 @@ export default function Scorecard({
     fontSize: "1.05rem",
     marginBottom: "0.4rem",
   });
+
+  const handleFinish = () => {
+    sessionStorage.setItem(
+      "leaderboard",
+      JSON.stringify(cumulativePoints)
+    );
+
+    onNext();
+  };
  
   return (
     <div
@@ -168,7 +178,7 @@ export default function Scorecard({
  
       {isAdmin ? (
         <Button
-          onClick={onNext}
+          onClick={handleFinish}
           style={{
             backgroundColor: "#E8956D",
             borderRadius: "15px",

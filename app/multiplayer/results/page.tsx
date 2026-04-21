@@ -8,8 +8,8 @@ import { useApi } from "@/hooks/useApi";
 
 interface ResultRow {
 	key: string;
-	round: string;
-	game: "Reaction Time" | "Typing Speed";
+	rank: string;
+	player: string;
 	score: string;
 }
 
@@ -36,61 +36,25 @@ const ResultsPage: React.FC = () => {
 	const [rows, setRows] = useState<ResultRow[]>([]);
 
 	useEffect(() => {
-		if (typeof window === "undefined") return;
+		const raw = sessionStorage.getItem("leaderboard");
+		if (!raw) return;
 
-		const reactionScores = toNumberArray(globalThis.sessionStorage.getItem("reactionScores"));
-		const typingScores = toNumberArray(globalThis.sessionStorage.getItem("typingScores"));
+		try {
+			const parsed = JSON.parse(raw) as Record<string, number>;
 
-		const reactionRows: ResultRow[] = reactionScores.map((score, index) => ({
-			key: `reaction-${index}`,
-			round: `${index + 1}.`,
-			game: "Reaction Time",
-			score: score === -1 ? "Failed" : `${score} ms`,
-		}));
+			const sorted = Object.entries(parsed).sort(([, a], [, b]) => b - a);
 
-		const typingRows: ResultRow[] = typingScores.map((score, index) => ({
-			key: `typing-${index}`,
-			round: `${reactionRows.length + index + 1}.`,
-			game: "Typing Speed",
-			score: `${score} wpm`,
-		}));
-
-		setRows([...reactionRows, ...typingRows]);
-
-		// Submit high scores
-		const submitHighScores = async () => {
-			try {
-				interface HighScoreResponse {
-					reactionHighScoreUpdated: boolean;
-					typingHighScoreUpdated: boolean;
-				}
-
-				const response = await apiService.put<HighScoreResponse>(
-					`/users/${userId}/highscores`,
-					{
-						reactionScores: reactionScores.length > 0 ? reactionScores : [],
-						typingScores: typingScores.length > 0 ? typingScores : [],
-					},
-					{ Authorization: `Bearer ${token}` }
-				);
-
-				// Display appropriate message based on high scores
-				if (response.reactionHighScoreUpdated && response.typingHighScoreUpdated) {
-					message.success("New High Score: Reaction Time & Typing Speed");
-				} else if (response.reactionHighScoreUpdated) {
-					message.success("New High Score: Reaction Time");
-				} else if (response.typingHighScoreUpdated) {
-					message.success("New High Score: Typing Speed");
-				}
-			} catch (error) {
-				console.error("Error submitting high scores:", error);
-			}
-		};
-
-		if (userId && token && (reactionScores.length > 0 || typingScores.length > 0)) {
-			submitHighScores();
+			const newRows: ResultRow[] = sorted.map(([player, pts], i) => ({
+				key: player,
+				rank: `${i + 1}.`,
+				player: player,
+				score: `${pts} pts`,
+			}))
+			setRows(newRows);
+		} catch (e) {
+			console.error("Failed to parse leaderboard:", e);
 		}
-	}, [userId, token]);
+	}, []);
 
 	return (
 		<div
@@ -144,7 +108,7 @@ const ResultsPage: React.FC = () => {
 					boxShadow: "0px 8px 10px rgba(0,0,0,0.2)",
 				}}
 			>
-				<ConfigProvider //without this the background color of the table is dark gray, this overrides that
+				<ConfigProvider
 					theme={{
 						components: {
 							Table: {
@@ -159,15 +123,15 @@ const ResultsPage: React.FC = () => {
 					<Table<ResultRow>
 						columns={[
 							{
-								title: "Round",
-								dataIndex: "round",
-								key: "round",
+								title: "Ranking",
+								dataIndex: "rank",
+								key: "rank",
 								width: "20%",
 							},
 							{
-								title: "Game",
-								dataIndex: "game",
-								key: "game",
+								title: "Player",
+								dataIndex: "player",
+								key: "player",
 								width: "40%",
 							},
 							{
@@ -179,7 +143,6 @@ const ResultsPage: React.FC = () => {
 						]}
 						dataSource={rows}
 						pagination={false}
-						scroll={{ y: 8 * 54 }}
 						locale={{ emptyText: "No session scores found." }}
 					/>
 				</ConfigProvider>

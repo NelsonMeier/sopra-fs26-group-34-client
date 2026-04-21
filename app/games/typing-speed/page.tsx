@@ -403,7 +403,7 @@ const TypingSpeedGameInner: React.FC = () => {
         alignItems: "center",
         justifyContent: "center",
     }}
-    bordered={false}
+    variant="borderless"
     >
     {gameState === "waiting" || gameState === "waiting_quote" ? (  
         <p style={{ textAlign: "center" }}>Loading quote...</p>

@@ -1,10 +1,10 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useParams } from "next/navigation";
+import React, { useEffect, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useWebSocket } from "@/hooks/useWebSocket";
+import Scorecard, {calcPointsForRound} from "@/components/Scorecard";
 
-type GameState = "idle" | "waiting" | "active" | "result" | "waiting_others";
+type GameState = "idle" | "waiting" | "active" | "result" | "waiting_others" | "scorecard";
 
 type Mode = "singleplayer" | "multiplayer"
 
@@ -18,35 +18,42 @@ const clampRounds = (value: number): number => {
   return Math.max(0, Math.min(99, Math.trunc(value)));
 };
 
-const ReactionTime: React.FC = () => {
+function ReactionTimeInner() {
   const router = useRouter();
-  const params = useParams();
+  const searchParams = useSearchParams();
 
-  const roomId = params?.roomID as string | undefined;
+  //read multiplayer info
+  const roomId = searchParams.get("roomId")  ?? "";
+  const roundsFromUrl = parseInt(searchParams.get("rounds")  ?? "0", 10);
+  const isAdmin = searchParams.get("isAdmin") === "true";
   const username =
     typeof window !== "undefined"
-      ? sessionStorage.getItem("username") ?? ""
+      ? localStorage.getItem("username")?.replaceAll('"', "") ?? ""
       : "";
   const userId =
     typeof window !== "undefined"
-      ? sessionStorage.getItem("userId") ?? ""
+      ? localStorage.getItem("userId")?.replaceAll('"', "") ?? ""
       : "";
 
-  const {send, roundComplete, roundStart, rounds} = useWebSocket(roomId ?? "", userId, username);
+  const {send, roundComplete, roundStart, gameOver} = useWebSocket(roomId ? roomId : "", userId, username);
 
   const mode: Mode = roomId ? "multiplayer" : "singleplayer";
+  const rounds = mode === "multiplayer" ? roundsFromUrl : 0;
 
   const [gameState, setGameState] = useState<GameState>("idle");
   const [reactionTime, setReactionTime] = useState<number>(0);
   const [startTime, setStartTime] = useState<number>(0);
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
-
+ 
   const [reactionRounds, setReactionRounds] = useState<number>(0);
   const [typingRounds, setTypingRounds] = useState<number>(0);
   const [currentRound, setCurrentRound] = useState<number>(1);
 
+
   const [scores, setScores] = useState<number[]>([]);
   const [sessionInitialized, setSessionInitialized] = useState<boolean>(false);
+  const [cumulativePoints, setCumulativePoints] = useState<Record<string, number>>({});
+  const [roundScoresForCard, setRoundScoresForCard] = useState<Record<string, number>>({});
 
   // Cleanup timeouts on unmount
   useEffect(() => {
@@ -117,34 +124,7 @@ const ReactionTime: React.FC = () => {
     startSingleplayerRound();
   }, [sessionInitialized, mode]);
 
-  // multiplayer start game
-  useEffect(() => {
-    if (mode !== "multiplayer") return;
-    if (!roundStart) return;
-
-    setGameState("waiting");
-
-    const delay = roundStart.startAt - Date.now();
-
-    const t = setTimeout(() => {
-      setGameState("active");
-      setStartTime(roundStart.startAt);
-    }, Math.max(0, delay));
-
-    return () => clearTimeout(t);
-  }, [roundStart, mode]);
-
-  useEffect(() => {
-    if (mode !== "multiplayer") return;
-    if (!roundComplete || !rounds) return;
-
-    const isGameFinished = roundComplete.round >= rounds;
-
-    if (isGameFinished) {
-      router.push("/multiplayer/results");
-    }
-  }, [roundComplete, rounds, mode, router]);
-
+  // singleplayer round complete
   const finishSingleplayerRound = (score: number) => {
     if (mode !== "singleplayer") return;
     setReactionTime(score);
@@ -173,6 +153,73 @@ const ReactionTime: React.FC = () => {
       startSingleplayerRound();
     }, 1000);
     setTimeoutId(nextRoundTimeout);
+  }
+
+  // multiplayer auto-start first round for admin
+  const sentFirstRound = React.useRef(false);
+    useEffect(() => {
+      if (mode !== "multiplayer" || !isAdmin || !roomId || sentFirstRound.current) return;
+      const t = setTimeout(() => {
+        send("/app/startRound", { roomId, round: String(currentRound) });
+        sentFirstRound.current = true;
+      }, 1000);
+      return () => clearTimeout(t);
+    }, [mode, isAdmin]);
+
+  // multiplayer start game
+  useEffect(() => {
+    if (mode !== "multiplayer") return;
+    if (!roundStart) return;
+
+    setCurrentRound(roundStart.round);
+    setGameState("waiting");
+    const delay = roundStart.startAt - Date.now();
+    const t = setTimeout(() => {
+      setGameState("active");
+      setStartTime(roundStart.startAt);
+    }, Math.max(0, delay));
+
+    return () => clearTimeout(t);
+  }, [roundStart, mode]);
+
+  // multiplayer round complete
+  useEffect(() => {
+    if (mode !== "multiplayer") return;
+    if (!roundComplete) return;
+
+    const pts = calcPointsForRound(roundComplete.scores, false);
+
+    setCumulativePoints((prev) => {
+        const next = { ...prev };
+        for (const [player, p] of Object.entries(pts)) {
+            next[player] = (next[player] ?? 0) + p;
+        }
+        return next;
+    });
+    setRoundScoresForCard(roundComplete.scores);
+    setGameState("scorecard");
+  }, [roundComplete, mode]);
+
+  // multiplayer game over -> auto-redirect to results for non-admins
+  useEffect(() => {
+    if (mode !== "multiplayer" || !gameOver || isAdmin) return;
+    const t = setTimeout(() => {
+      router.push("/multiplayer/results");
+    }, 4000);
+    return () => clearTimeout(t);
+  }, [gameOver, mode, isAdmin, router]);
+
+  // scorecard next
+  const handleScorecardNext = () => {
+    const isLast = currentRound >= rounds;
+    if (isLast) {
+        router.push("/multiplayer/results");
+        return;
+    }
+    const nextRound = currentRound + 1;
+    send("/app/startRound", { roomId: roomId, round: String(nextRound) });
+    setCurrentRound(nextRound);
+    setGameState("idle");
   };
 
   const handleClick = () => {
@@ -223,6 +270,23 @@ const ReactionTime: React.FC = () => {
     }
   };
 
+  //scorecard
+  if (gameState === "scorecard") {
+      return (
+          <Scorecard
+              round={currentRound}
+              totalRounds={rounds}
+              scores={roundScoresForCard}
+              cumulativePoints={cumulativePoints}
+              lowerIsBetter={true}
+              scoreLabel="Reaction Time"
+              isAdmin={isAdmin}
+              onNext={handleScorecardNext}
+          />
+      );
+  }
+
+
   const getButtonText = () => {
     if (gameState === "idle") return "Get ready...";
     if (gameState === "waiting") return "Wait...";
@@ -264,9 +328,14 @@ const ReactionTime: React.FC = () => {
         Reaction Time
       </h1>
 
-      {reactionRounds > 0 && (
+      {mode === "singleplayer" && reactionRounds > 0 && (
         <div style={{ fontFamily: "var(--font-chewy)", fontSize: "1.5rem", color: "black" }}>
           Round {currentRound} of {reactionRounds}
+        </div>
+      )}
+      {mode === "multiplayer" && rounds > 0 && (
+        <div style={{ fontFamily: "var(--font-chewy)", fontSize: "1.5rem", color: "black" }}>
+          Round {currentRound} of {rounds}
         </div>
       )}
 
@@ -292,6 +361,11 @@ const ReactionTime: React.FC = () => {
     </div>
   );
 };
+const ReactionTime: React.FC = () => (
+  <Suspense>
+    <ReactionTimeInner />
+  </Suspense>
+);
 
 export default ReactionTime;
 
