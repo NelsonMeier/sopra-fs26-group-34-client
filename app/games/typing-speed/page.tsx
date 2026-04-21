@@ -147,7 +147,7 @@ const TypingSpeedGameInner: React.FC = () => {
         setTimeoutId(id);
     }, [mode, isAdminParam]); 
 
-    //round start (no qouote yet,  waiting for quote)
+    //round start (no quote yet,  waiting for quote)
     useEffect(() => {
         if (mode !== "multiplayer" || !roundStart) return;
         setCurrentRound(roundStart.round);
