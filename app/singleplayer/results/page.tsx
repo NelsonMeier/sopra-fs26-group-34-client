@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button, ConfigProvider, Table, message } from "antd";
+import { TrophyFilled } from "@ant-design/icons";
 import { useApi } from "@/hooks/useApi";
 
 interface ResultRow {
@@ -34,6 +35,10 @@ const ResultsPage: React.FC = () => {
 	const { value: userId } = useLocalStorage<string>("userId", "");
 	const { value: token } = useLocalStorage<string>("token", "");
 	const [rows, setRows] = useState<ResultRow[]>([]);
+	const [bestReactionScore, setBestReactionScore] = useState<number | null>(null);
+	const [bestTypingScore, setBestTypingScore] = useState<number | null>(null);
+	const [reactionHighScoreUpdated, setReactionHighScoreUpdated] = useState(false);
+	const [typingHighScoreUpdated, setTypingHighScoreUpdated] = useState(false);
 
 	useEffect(() => {
 		if (typeof window === "undefined") return;
@@ -57,7 +62,16 @@ const ResultsPage: React.FC = () => {
 
 		setRows([...reactionRows, ...typingRows]);
 
-		// Submit high scores
+		// Calculate best scores for state
+		const validReactionScores = reactionScores.filter((s) => s !== -1);
+		const bestReaction =
+			validReactionScores.length > 0 ? Math.min(...validReactionScores) : null;
+		const bestTyping = typingScores.length > 0 ? Math.max(...typingScores) : null;
+
+		setBestReactionScore(bestReaction);
+		setBestTypingScore(bestTyping);
+
+
 		const submitHighScores = async () => {
 			try {
 				interface HighScoreResponse {
@@ -74,13 +88,29 @@ const ResultsPage: React.FC = () => {
 					{ Authorization: `Bearer ${token}` }
 				);
 
-				// Display appropriate message based on high scores
+				setReactionHighScoreUpdated(response.reactionHighScoreUpdated);
+				setTypingHighScoreUpdated(response.typingHighScoreUpdated);
+
 				if (response.reactionHighScoreUpdated && response.typingHighScoreUpdated) {
-					message.success("New High Score: Reaction Time & Typing Speed");
+					const reactionText = `Reaction Time (${bestReactionScore} ms)`;
+					const typingText = `Typing Speed (${bestTypingScore} WPM)`;
+					message.open({
+						type: "success",
+						icon: <TrophyFilled style={{ color: "#faad14" }} />,
+						content: `New High Score: ${reactionText} & ${typingText}`,
+					});
 				} else if (response.reactionHighScoreUpdated) {
-					message.success("New High Score: Reaction Time");
+					message.open({
+						type: "success",
+						icon: <TrophyFilled style={{ color: "#faad14" }} />,
+						content: `New High Score: Reaction Time (${bestReactionScore} ms)`,
+					});
 				} else if (response.typingHighScoreUpdated) {
-					message.success("New High Score: Typing Speed");
+					message.open({
+						type: "success",
+						icon: <TrophyFilled style={{ color: "#faad14" }} />,
+						content: `New High Score: Typing Speed (${bestTypingScore} WPM)`,
+					});
 				}
 			} catch (error) {
 				console.error("Error submitting high scores:", error);
@@ -193,6 +223,29 @@ const ResultsPage: React.FC = () => {
 								dataIndex: "score",
 								key: "score",
 								width: "40%",
+								render: (text: string, record: ResultRow) => {
+									const isReactionHigh =
+										record.game === "Reaction Time" &&
+										reactionHighScoreUpdated &&
+										text !== "Failed" &&
+										parseInt(text) === bestReactionScore;
+									const isTypingHigh =
+										record.game === "Typing Speed" &&
+										typingHighScoreUpdated &&
+										parseInt(text) === bestTypingScore;
+									const isHighScore = isReactionHigh || isTypingHigh;
+
+									return (
+										<span style={{ fontWeight: isHighScore ? "bold" : "normal" }}>
+											{isHighScore && (
+												<TrophyFilled
+													style={{ color: "#faad14", marginRight: "0.5rem" }}
+												/>
+											)}
+											{text}
+										</span>
+									);
+								},
 							},
 						]}
 						dataSource={rows}
