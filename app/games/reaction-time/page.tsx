@@ -344,6 +344,7 @@ function ReactionTimeInner() {
         style={{
           width: "calc(100% - 30rem)",
           height: "30rem",
+          
           fontSize: "2rem",
           fontWeight: "bold",
           border: "none",
@@ -356,7 +357,9 @@ function ReactionTimeInner() {
           whiteSpace: "pre-wrap",
         }}
       >
+        <span style={{fontFamily: "var(--font-chewy)",}}>
         {getButtonText()}
+        </span>
       </button>
     </div>
   );

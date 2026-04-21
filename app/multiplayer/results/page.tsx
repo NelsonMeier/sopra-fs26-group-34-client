@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button, ConfigProvider, Table, message } from "antd";
-import { useApi } from "@/hooks/useApi";
 
 interface ResultRow {
 	key: string;
@@ -30,7 +29,6 @@ const toNumberArray = (raw: string | null): number[] => {
 
 const ResultsPage: React.FC = () => {
 	const router = useRouter();
-	const apiService = useApi();
 	const { value: userId } = useLocalStorage<string>("userId", "");
 	const { value: token } = useLocalStorage<string>("token", "");
 	const [rows, setRows] = useState<ResultRow[]>([]);
@@ -84,7 +82,7 @@ const ResultsPage: React.FC = () => {
 							borderColor: "#E8956D",
 							borderRadius: "15px",
 							height: "70px",
-							fontSize: "1.8rem",
+							fontSize: 30,
 							fontWeight: "bold",
 							color: "black",
 							fontFamily: "var(--font-chewy)",
@@ -110,6 +108,10 @@ const ResultsPage: React.FC = () => {
 			>
 				<ConfigProvider
 					theme={{
+						token: {
+							fontFamily: "var(--font-chewy)",
+							fontSize: 22,
+						},
 						components: {
 							Table: {
 								headerBg: "#B8D8E8",
