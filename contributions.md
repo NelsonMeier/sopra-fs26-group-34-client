@@ -85,6 +85,8 @@ reason).
 | **@anitbaum** | 14.04.26   | https://github.com/NelsonMeier/sopra-fs26-group-34-server/commit/0b553f8ec31d1d08e18b47d4719aa7a3cc81332b | Fixed password --> implemented UserPutDTO | For correct mapping |
 | **""** | 14.04.26   | https://github.com/NelsonMeier/sopra-fs26-group-34-client/commit/0e2f7150ddf5cfb609c15e74adbeef6d61e0c89f | implemented the functionalities of the accept and decline buttons for game invititations | The user receiving a game invitation should be able to accept or decline it. |
 | **""** | 15.04.26   | https://github.com/NelsonMeier/sopra-fs26-group-34-client/commit/28f032c59b9970da8a02b269926d529bf2c71ebb | Adjusted the layout of the User Profile to the other pages. | A coherent website design is important for clarity to the user. |
+| **Lukas81S** | 14.04.26   | https://github.com/NelsonMeier/sopra-fs26-group-34-client/commit/2ed6fe2edfed793800fc1f4a10687708275a55b7 | Added functionality to select how many rounds should be played | The singleplayer room now better fits the original specification and is more unified with the multiplayer.  |
+| **""** | 14.04.26   | https://github.com/NelsonMeier/sopra-fs26-group-34-client/commit/4eefbe9f9ed7165692ec23e190a8b46bc9a74b17 | Added the singleplayer results page and updated game logic to fit singleplayer room. | The results page allows the user to see the scores they got in the singleplayer session.  |
 ---
 
 ## Contributions Week 4 - 17.04.26 to 24.04.26
@@ -100,6 +102,9 @@ reason).
 | **""** | 21.04.26  | https://github.com/NelsonMeier/sopra-fs26-group-34-client/commit/878de4b9fa819f354cd8f19d4d410e02f1f3db48| Added full multiplayer support for the typing speed game which includes synced quotes and round score submission via WebSocket. | With this players can play in multiplayer mode with their friend and compare their skills. |
 | **@anitbaum** | 19.04.26  | https://github.com/NelsonMeier/sopra-fs26-group-34-client/commit/8d77705ac841fe2b72c31086dda2ac056b27fef0#diff-28cdc226ce1c9f69f0dcc9a448fff4b82e02f379efca02145d13ca93e6740ea2 | Implemented the "Back to Profile" button. | User should be able to go back to their profile when a game is done. |
 | **""** | 21.04.26  | https://github.com/NelsonMeier/sopra-fs26-group-34-client/commit/350653947a0df73ec26c5d9fac8b4caf4b50e444#diff-28cdc226ce1c9f69f0dcc9a448fff4b82e02f379efca02145d13ca93e6740ea2 | Implemented websocket for Reaction Time to play the game in multiplayer mode. (Back button was closed here because I forgot to in the actual commit.) | User should be able to play Reaction Time in multiplayer mode. |
+| **Lukas81S** | 18.04.26  | https://github.com/NelsonMeier/sopra-fs26-group-34-server/commit/bf5852cd4a121190559cba89a009ff181814468b | Implemented backend logic for saving high scores. |  The player's high scores should be saved for the scoreboards to function.  |
+| **""** | 21.04.26   | https://github.com/NelsonMeier/sopra-fs26-group-34-server/commit/00c4337a6872573770b391cf6dec04e8a589505a | Implemented tests for friend functionalities. | Testing the friend methods ensures their functionality after changes are made. |
+| **""** | 21.04.26   | https://github.com/NelsonMeier/sopra-fs26-group-34-client/commit/75b2286037700d50a68f4edafeab88f845e70832 | Made High scores more apparent in the results page. | The results page communicates the high score more clearly to the player. |
 ---
 
 ## Contributions Week 5 - [Begin Date] to [End Date]
