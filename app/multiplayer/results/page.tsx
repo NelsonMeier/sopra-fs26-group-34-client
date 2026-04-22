@@ -12,21 +12,6 @@ interface ResultRow {
 	score: string;
 }
 
-const toNumberArray = (raw: string | null): number[] => {
-	if (!raw) return [];
-
-	try {
-		const parsed = JSON.parse(raw);
-		if (!Array.isArray(parsed)) return [];
-
-		return parsed
-			.map((value) => Number(value))
-			.filter((value) => Number.isFinite(value));
-	} catch {
-		return [];
-	}
-};
-
 const ResultsPage: React.FC = () => {
 	const router = useRouter();
 	const { value: userId } = useLocalStorage<string>("userId", "");
@@ -64,7 +49,26 @@ const ResultsPage: React.FC = () => {
 				justifyContent: "center",
 				padding: "2rem",
 			}}
-		>
+		> {/*animation for winner text */}
+			<style>
+				{`@keyframes glowPulse {
+					50% {
+						transform: scale(1.15);
+						text-shadow:
+						0 0 10px rgba(255, 255, 255, 0.9),
+						0 0 20px rgba(255, 200, 100, 0.8),
+						0 0 40px rgba(255, 180, 50, 0.7),
+						0 0 60px rgba(255, 150, 0, 0.6);
+					}
+				}
+				.winnerText {
+					color: #000000;
+					font-weight: bold;
+					filter: brightness(1.2);
+					animation: glowPulse 1s infinite ease-in-out;
+				}`}
+			</style>
+
 			<div
 				style={{
 					position: "absolute",
@@ -134,13 +138,24 @@ const ResultsPage: React.FC = () => {
 								title: "Player",
 								dataIndex: "player",
 								key: "player",
-								width: "40%",
+								width: "25%",
 							},
 							{
 								title: "Score",
 								dataIndex: "score",
 								key: "score",
-								width: "40%",
+								width: "25%",
+							},
+							{
+								key: "winner",
+								width: "30%",
+								render: (_, record) => {
+									return record.rank === "1." ?
+										<span className="winnerText">
+											Best Thinker 🤓
+										</span> : "";
+								},
+
 							},
 						]}
 						dataSource={rows}
