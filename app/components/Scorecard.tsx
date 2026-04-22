@@ -38,6 +38,7 @@ interface ScorecardProps {
   lowerIsBetter:    boolean;                  
   scoreLabel:       string;                   
   isAdmin:          boolean;
+  hasNextGame?:     boolean;
   onNext:           () => void;
 }
 
@@ -56,10 +57,11 @@ export default function Scorecard({
   lowerIsBetter,
   scoreLabel,
   isAdmin,
+  hasNextGame = false,
   onNext,
 }: ScorecardProps) { 
   
-  const isLastRound  = round >= totalRounds; //check of finished
+  const isLastRound  = round >= totalRounds && !hasNextGame; //check of finished
   
   const roundPoints  = calcPointsForRound(scores, lowerIsBetter); //calculate points
  
@@ -176,7 +178,7 @@ export default function Scorecard({
         </div>
       </div>
  
-      {isAdmin ? (
+      {isLastRound ? (
         <Button
           onClick={handleFinish}
           style={{
@@ -192,15 +194,31 @@ export default function Scorecard({
             boxShadow: "0px 8px 10px rgba(0,0,0,0.2)",
           }}
         >
-          {isLastRound ? "See Final Results" : "Next Round →"}
+          See Final Results
+        </Button>
+      ) : isAdmin ? (
+        <Button
+          onClick={handleFinish}
+          style={{
+            backgroundColor: "#E8956D",
+            borderRadius: "15px",
+            height: "55px",
+            minWidth: "200px",
+            fontSize: "1.4rem",
+            fontWeight: "bold",
+            color: "black",
+            fontFamily: "var(--font-chewy)",
+            border: "none",
+            boxShadow: "0px 8px 10px rgba(0,0,0,0.2)",
+          }}
+        >
+          Next Round →
         </Button>
       ) : (
         <div style={{ fontFamily: "var(--font-chewy)", fontSize: "1.3rem", color: "black", textAlign: "center" }}>
-          {isLastRound ? " Game complete! Loading final results..." : "Waiting for admin to start the next round..."}
+          Waiting for admin to start the next round...
         </div>
       )}
     </div>
   );
 }
-
-
