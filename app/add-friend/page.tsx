@@ -86,20 +86,21 @@ const AddFriend: React.FC = () => {
       </h1>
 
       <div style={{
-        backgroundColor: "white",
+        backgroundColor: "rgb(184, 216, 232)",
         borderRadius: "15px",
         padding: "2rem",
         boxShadow: "0px 8px 10px rgba(12, 11, 11, 0.2)",
         width: "100%",
-        maxWidth: "500px",
+        maxWidth: "700px",
         display: "flex",
         flexDirection: "column",
         gap: "1rem"}}>
         <div>
           <label style={{
             display: "block",
-            marginBottom: "0.5rem",
+            marginBottom: "1rem",
             fontWeight: "bold",
+            fontSize: "1.5rem",
             fontFamily: "var(--font-chewy)"
           }}>
             Friend&apos;s Username
@@ -109,7 +110,7 @@ const AddFriend: React.FC = () => {
             value={friendUsername}
             onChange={(e) => setFriendUsername(e.target.value)}
             size="large"
-            style={{ color: "white" }}
+            style={{ color: "black", backgroundColor: "#F0F0F0", border: "none", borderRadius: "8px" }}
           />
         </div>
         <Button
@@ -119,8 +120,8 @@ const AddFriend: React.FC = () => {
           style={{
             backgroundColor: "#E8956D",
             borderColor: "#E8956D",
-            height: "50px",
-            fontSize: "1rem",
+            height: "75px",
+            fontSize: "2rem",
             fontWeight: "bold",
             color: "black",
             fontFamily: "var(--font-chewy)",
@@ -133,6 +134,7 @@ const AddFriend: React.FC = () => {
 
         {/* search results modal */}
         <Modal
+        styles ={{title : {fontFamily: "var(--font-chewy)", fontSize: "2rem", color: "black"}}}
         title="Search Result"
         open={modalVisibility}
         onCancel={() => {setModalVisibility(false); setSearchResults([]);}}
@@ -144,12 +146,20 @@ const AddFriend: React.FC = () => {
             renderItem={(user) => (
               <List.Item>
                 <div style={{ flex: 1 }}>  {/* ADD THIS WRAPPER */}
-                  <p style={{ margin: 0, fontWeight: "bold" }}>
+                  <p style={{ margin: 0, fontFamily: "var(--font-chewy)", fontSize: "1.5rem", color: "black" }}>
                     {user.username}  {/* ADD THIS */}
                   </p>
                 </div>
                 <Button
                   type="primary"
+                  style={{
+                    backgroundColor: "#FFE135",
+                    height: "40px",
+                    fontSize: "1.2rem",
+                    color: "black",
+                    fontFamily: "var(--font-chewy)",
+                    border: "none"
+                  }}
                   onClick={() => handleAddFriend(user)}
                   loading={loading}
                 >
@@ -161,23 +171,13 @@ const AddFriend: React.FC = () => {
 
         </Modal>
 
-
-      <Link href={`/users/${userId}`}>
-        <Button
-          style={{
-            backgroundColor: "#E8956D",
-            borderColor: "#E8956D",
-            borderRadius: "20px",
-            height: "55px",
-            fontSize: "1.2rem",
-            padding: "0 30px",
-            fontWeight: "bold",
-            color: "black",
-            fontFamily: "var(--font-chewy)",
-            border: "none",
-            boxShadow: "0px 8px 10px rgba(0,0,0,0.2)"}}
-          type="primary">Back to Profile</Button>
-      </Link>
+      <div className="back-button-anchor">
+        <Link href={`/users/${userId}`}>
+          <Button
+            className="back-button"
+            type="primary">Back to Profile</Button>
+        </Link>
+      </div>
     </div>
   );
 };

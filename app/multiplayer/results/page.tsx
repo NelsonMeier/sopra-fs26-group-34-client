@@ -69,31 +69,9 @@ const ResultsPage: React.FC = () => {
 				}`}
 			</style>
 
-			<div
-				style={{
-					position: "absolute",
-					top: "2rem",
-					left: "2rem",
-					display: "flex",
-					gap: "1rem",
-				}}
-			>
+			<div className="back-button-anchor">
 				<Link href={`/users/${userId}`}>
-					<Button
-						type="primary"
-						style={{
-							backgroundColor: "#E8956D",
-							borderColor: "#E8956D",
-							borderRadius: "15px",
-							height: "70px",
-							fontSize: 30,
-							fontWeight: "bold",
-							color: "black",
-							fontFamily: "var(--font-chewy)",
-							border: "none",
-							boxShadow: "0px 8px 10px rgba(0,0,0,0.2)",
-						}}
-					>
+					<Button type="primary" className="back-button">
 						Back to Profile
 					</Button>
 				</Link>

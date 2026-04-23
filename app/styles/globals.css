@@ -62,3 +62,25 @@ a {
   min-height: 100vh;
   background-color: rgb(41, 44, 59);
 }
+
+.back-button-anchor {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  display: flex;
+  gap: 1rem;
+  z-index: 10;
+}
+
+.back-button {
+  background-color: rgb(232, 149, 109) !important;
+  border: none !important;
+  border-radius: 15px !important;
+  height: 70px !important;
+  font-size: 1.8rem !important;
+  font-weight: bold !important;
+  color: black !important;
+  font-family: var(--font-chewy) !important;
+  box-shadow: rgba(0, 0, 0, 0.2) 0px 8px 10px !important;
+  padding: 0 30px !important;
+}

@@ -133,31 +133,9 @@ const ResultsPage: React.FC = () => {
 				padding: "2rem",
 			}}
 		>
-			<div
-				style={{
-					position: "absolute",
-					top: "2rem",
-					left: "2rem",
-					display: "flex",
-					gap: "1rem",
-				}}
-			>
+			<div className="back-button-anchor">
 				<Link href={`/users/${userId}`}>
-					<Button
-						type="primary"
-						style={{
-							backgroundColor: "#E8956D",
-							borderColor: "#E8956D",
-							borderRadius: "15px",
-							height: "70px",
-							fontSize: "1.8rem",
-							fontWeight: "bold",
-							color: "black",
-							fontFamily: "var(--font-chewy)",
-							border: "none",
-							boxShadow: "0px 8px 10px rgba(0,0,0,0.2)",
-						}}
-					>
+					<Button type="primary" className="back-button">
 						Back to Profile
 					</Button>
 				</Link>
@@ -165,18 +143,7 @@ const ResultsPage: React.FC = () => {
 				<Button
 					type="primary"
 					onClick={() => router.push("/singleplayer")}
-					style={{
-						backgroundColor: "#E8956D",
-						borderColor: "#E8956D",
-						borderRadius: "15px",
-						height: "70px",
-						fontSize: "1.8rem",
-						fontWeight: "bold",
-						color: "black",
-						fontFamily: "var(--font-chewy)",
-						border: "none",
-						boxShadow: "0px 8px 10px rgba(0,0,0,0.2)",
-					}}
+					className="back-button"
 				>
 					Back to Games
 				</Button>
@@ -194,6 +161,10 @@ const ResultsPage: React.FC = () => {
 			>
 				<ConfigProvider //without this the background color of the table is dark gray, this overrides that
 					theme={{
+						token: {
+							fontFamily: "var(--font-chewy)",
+							fontSize: 22,
+						},
 						components: {
 							Table: {
 								headerBg: "#B8D8E8",

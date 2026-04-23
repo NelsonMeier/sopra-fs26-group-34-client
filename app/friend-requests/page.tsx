@@ -80,14 +80,22 @@ const FriendRequests: React.FC = () => {
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
-      justifyContent: "flex-start",
+      justifyContent: "center",
       padding: "2rem",
       gap: "2rem"}}>
+
+      <div className="back-button-anchor">
+        <Link href={`/users/${userId}`}>
+          <Button className="back-button" type="primary">
+            Back
+          </Button>
+        </Link>
+      </div>
       
       <div style={{
         width: "100%",
         display: "flex",
-        justifyContent: "space-between",
+        justifyContent: "center",
         alignItems: "center",
         maxWidth: "900px"}}>
         <h1 style={{
@@ -98,25 +106,6 @@ const FriendRequests: React.FC = () => {
           color: "black"}}>
           Friend Requests
         </h1>
-        
-        <Link href={`/users/${userId}`}>
-          <Button
-            style={{
-              backgroundColor: "#E8956D",
-              borderColor: "#E8956D",
-              borderRadius: "20px",
-              height: "55px",
-              fontSize: "1.2rem",
-              padding: "0 30px",
-              fontWeight: "bold",
-              color: "black",
-              fontFamily: "var(--font-chewy)",
-              border: "none",
-              boxShadow: "0px 8px 10px rgba(0,0,0,0.2)"}}
-            type="primary">
-            Back
-          </Button>
-        </Link>
       </div>
 
       <div style={{

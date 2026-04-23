@@ -183,9 +183,9 @@ if (userId && token) { //check that both r here
 <div style={{
   width: '100%', 
   minHeight: '100vh', 
-  background: '#77B8D2', 
+  background: '#6BAED6', 
   display: 'flex', 
-  alignItems: 'flex-start', 
+  alignItems: 'center', 
   justifyContent: 'center', 
   overflow: 'auto', 
   padding: '16px', 
@@ -203,7 +203,7 @@ style={{
   rowGap: "28px", 
   paddingTop: "28px", 
   paddingBottom: "24px", 
-  background: '#77B8D2'}}>
+  background: '#6BAED6'}}>
 
   <div 
   data-layer="Header" 
@@ -214,26 +214,12 @@ style={{
     alignItems: "center", 
     columnGap: "24px"}}>
 
-    <div 
-    data-layer="Logout" 
-    className="Logout" 
-    style={{width: "200px", 
-    height: "79px", 
-    background: "#E8A09F", 
-    borderRadius: 25, 
-    border: "1px #E8A09F solid", 
-    boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", 
-    textAlign: 'center', 
-    justifyContent: 'center', 
-    display: 'flex', 
-    flexDirection: 'column', 
-    color: 'black', 
-    fontSize: 32, 
-    fontFamily: 'var(--font-chewy)', 
-    fontWeight: '400', 
-    wordWrap: 'break-word', 
-    cursor: 'pointer'}} 
-    onClick={handleLogout}>Logout</div>
+    <Button
+    data-layer="Logout"
+    className="Logout back-button"
+    type="primary"
+    style={{ width: "200px" }}
+    onClick={handleLogout}>Logout</Button>
 
     <div 
     data-layer="User Profile" 
@@ -256,27 +242,12 @@ style={{
       justifyContent: 'flex-end'}}>
 
       {id && id === String(id) ? (
-        <div 
-        data-layer="Change Password" 
-        className="ChangePassword" 
-        style={{
-          width: "240px", 
-          height: "48px", 
-          background: "#E8A09F", 
-          borderRadius: 25, 
-          border: "1px #E8A09F solid", 
-          boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", 
-          textAlign: 'center', 
-          justifyContent: 'center', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          color: 'black', 
-          fontSize: 24, 
-          fontFamily: 'var(--font-chewy)', 
-          fontWeight: '400', 
-          wordWrap: 'break-word', 
-          cursor: 'pointer'}}
-           onClick={handleChangePassword}>Change Password</div>
+        <Button
+        data-layer="Change Password"
+        className="ChangePassword back-button"
+        type="primary"
+        style={{ width: "240px" }}
+        onClick={handleChangePassword}>Change Password</Button>
       ) : <div style={{width: '240px'}} />}
     </div>
   </div>
@@ -444,49 +415,19 @@ style={{
     data-layer="Right Buttons" 
     className="Right Buttons" 
     style={{display: "grid", rowGap: "16px", paddingTop: "0px"}}>
-      <div 
-      data-layer="add Friend" 
-      className="AddFriend" 
-      style={{
-        width: "240px", 
-        height: "61px", 
-        background: "#FBAB7A", 
-        borderRadius: 25, 
-        border: "1px #FBAB7A solid", 
-        boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", 
-        textAlign: 'center', 
-        justifyContent: 'center', 
-        display: 'flex', 
-        flexDirection: 'column', 
-        color: 'black', 
-        fontSize: 24, 
-        fontFamily: 'var(--font-chewy)', 
-        fontWeight: '400', 
-        wordWrap: 'break-word', 
-        cursor: 'pointer'}} 
-        onClick={handleAddFriend}>add Friend</div>
+      <Button
+      data-layer="add Friend"
+      className="AddFriend back-button"
+      type="primary"
+      style={{ width: "240px" }}
+      onClick={handleAddFriend}>add Friend</Button>
 
-      <div 
-      data-layer="Friend Requests" 
-      className="FriendRequests" 
-      style={{
-        width: "240px", 
-        height: "61px", 
-        background: "#FBAB7A", 
-        borderRadius: 25, 
-        border: "1px #FBAB7A solid", 
-        boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", 
-        textAlign: 'center', 
-        justifyContent: 'center', 
-        display: 'flex', 
-        flexDirection: 'column', 
-        color: 'black', 
-        fontSize: 24, 
-        fontFamily: 'var(--font-chewy)', 
-        fontWeight: '400', 
-        wordWrap: 'break-word', 
-        cursor: 'pointer'}} 
-        onClick={handleFriendRequests}>Friend Requests</div>
+      <Button
+      data-layer="Friend Requests"
+      className="FriendRequests back-button"
+      type="primary"
+      style={{ width: "240px" }}
+      onClick={handleFriendRequests}>Friend Requests</Button>
     </div>
   </div>
 
@@ -530,76 +471,30 @@ style={{
       gridTemplateColumns: "240px 240px", 
       columnGap: "30px"}}>
 
-        <div 
-        data-layer="Singleplayer" 
-        className="Singleplayer" 
-        style={{
-          width: "240px", 
-          height: "79px", 
-          background: "#FBAB7A", 
-          borderRadius: 25, 
-          border: "1px #FBAB7A solid", 
-          boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", 
-          textAlign: 'center', 
-          justifyContent: 'center', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          color: 'black', 
-          fontSize: 32, 
-          fontFamily: 'var(--font-chewy)', 
-          fontWeight: '400', 
-          wordWrap: 'break-word', 
-          cursor: 'pointer'}} 
-          onClick={handleSingleplayer}>
-            Singleplayer</div>
+        <Button
+        data-layer="Singleplayer"
+        className="Singleplayer back-button"
+        type="primary"
+        style={{ width: "240px" }}
+        onClick={handleSingleplayer}>
+            Singleplayer</Button>
         
-        <div 
-        data-layer="Multiplayer" 
-        className="Multiplayer" 
-        style={{
-          width: "240px", 
-          height: "79px", 
-          background: "#FBAB7A", 
-          borderRadius: 25, 
-          border: "1px #FBAB7A solid", 
-          boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", 
-          textAlign: 'center', 
-          justifyContent: 'center', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          color: 'black', 
-          fontSize: 32, 
-          fontFamily: 'var(--font-chewy)', 
-          fontWeight: '400', 
-          wordWrap: 'break-word', 
-          cursor: 'pointer'}} 
-          onClick={handleMultiplayer}>
-            Multiplayer</div>
+        <Button
+        data-layer="Multiplayer"
+        className="Multiplayer back-button"
+        type="primary"
+        style={{ width: "240px" }}
+        onClick={handleMultiplayer}>
+            Multiplayer</Button>
       </div>
     </div>
-    <div 
-    data-layer="Scoreboard" 
-    className="Scoreboard" 
-    style={{
-      width: "240px", 
-      height: "79px", 
-      marginTop: "25px",
-      background: "#FBAB7A", 
-      borderRadius: 25, 
-      border: "1px #FBAB7A solid", 
-      boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", 
-      textAlign: 'center', 
-      justifyContent: 'center', 
-      display: 'flex', 
-      flexDirection: 'column', 
-      color: 'black', 
-      fontSize: 32, 
-      fontFamily: 'var(--font-chewy)', 
-      fontWeight: '400', 
-      wordWrap: 'break-word', 
-      cursor: 'pointer'}} 
-      onClick={handleScoreboard}>
-        Scoreboard</div>
+    <Button
+    data-layer="Scoreboard"
+    className="Scoreboard back-button"
+    type="primary"
+    style={{ width: "240px", marginTop: "25px" }}
+    onClick={handleScoreboard}>
+        Scoreboard</Button>
   </div>
 
   <Modal
@@ -608,12 +503,17 @@ style={{
     title="Change Password"
     footer={null}
     styles={{
+      title: {
+        fontFamily: "var(--font-chewy)",
+        fontSize: "2rem",
+        color: "black"
+      },
       header: {
-        backgroundColor: "#77B8D2",
-        borderBottom: "2px solid #6BAED6"
+        backgroundColor: "white",
+        borderBottom: "2px solid white"
       },
       body: {
-        backgroundColor: "#77B8D2"
+        backgroundColor: "white"
       }
     }}
   >
@@ -630,7 +530,7 @@ style={{
       >
         <Password
           placeholder="Enter your old password"
-          style={{ borderRadius: "12px", height: "50px", backgroundColor: "white", color: "black" }}
+          style={{ borderRadius: "12px", height: "50px", backgroundColor: "rgb(184, 216, 232)", color: "black" }}
         />
       </Form.Item>
 
@@ -642,7 +542,7 @@ style={{
       >
         <Password
           placeholder="Enter your new password"
-          style={{ borderRadius: "12px", height: "50px", backgroundColor: "white", color: "black" }}
+          style={{ borderRadius: "12px", height: "50px", backgroundColor: "rgb(184, 216, 232)", color: "black" }}
         />
       </Form.Item>
 
@@ -654,41 +554,26 @@ style={{
       >
         <Password
           placeholder="Confirm your new password"
-          style={{ borderRadius: "12px", height: "50px", backgroundColor: "white", color: "black" }}
+          style={{ borderRadius: "12px", height: "50px", backgroundColor: "rgb(184, 216, 232)", color: "black" }}
         />
       </Form.Item>
 
       <Form.Item style={{ marginTop: "2rem", marginBottom: 0 }}>
         <Button
+          className="back-button"
+          type="primary"
           onClick={handleCancelPasswordChange}
           style={{
-            backgroundColor: "#FBAB7A",
-            borderRadius: "15px",
-            height: "45px",
-            fontSize: "1rem",
-            fontFamily: "var(--font-chewy)",
-            border: "none",
-            color: "black",
-            boxShadow: "0px 4px 4px rgba(0,0,0,0.25)",
             marginRight: "8px"
           }}
         >
           Cancel
         </Button>
         <Button
+          className="back-button"
           type="primary"
           htmlType="submit"
           loading={loading}
-          style={{
-            backgroundColor: "#E8A09F",
-            borderRadius: "15px",
-            height: "45px",
-            fontSize: "1rem",
-            fontFamily: "var(--font-chewy)",
-            border: "none",
-            color: "black",
-            boxShadow: "0px 4px 4px rgba(0,0,0,0.25)"
-          }}
         >
           Confirm Change
         </Button>

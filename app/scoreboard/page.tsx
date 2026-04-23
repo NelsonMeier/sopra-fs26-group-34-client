@@ -57,14 +57,16 @@ const Scoreboard: React.FC = () => {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center", 
-            backgroundColor: '#77B8D2', 
+            backgroundColor: '#6BAED6', 
             boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', 
             overflow: 'hidden', 
             outline: '3px black solid',
             outlineOffset: '-1.50px'}}>
-        <div data-layer="Scoreboard Page" className="Scoreboard Page" style={{width: "min(1100px, 100%)", display: "grid", gridTemplateRows: "auto auto auto", rowGap: "28px", paddingTop: "28px", paddingBottom: "24px", background: '#77B8D2'}}>
-              <div data-layer="Header" className="Header" style={{display: "grid", gridTemplateColumns: "220px 1fr 260px", alignItems: "center", columnGap: "24px"}}>
-                <div style={{ width: "220px" }} />
+                <div className="back-button-anchor">
+                        <Button className="back-button" type="primary" onClick={() => router.push(userId ? `/users/${userId}` : "/users")}>Back</Button>
+                </div>
+        <div data-layer="Scoreboard Page" className="Scoreboard Page" style={{width: "min(1100px, 100%)", display: "grid", gridTemplateRows: "auto auto auto", rowGap: "28px", paddingTop: "28px", paddingBottom: "24px", background: '#6BAED6'}}>
+                            <div data-layer="Header" className="Header" style={{display: "flex", alignItems: "center", justifyContent: "center"}}>
                 <div style={{
                     textAlign: 'center', 
                     justifyContent: 'center', 
@@ -75,22 +77,6 @@ const Scoreboard: React.FC = () => {
                     fontFamily: 'var(--font-chewy)', 
                     fontWeight: '400', 
                     wordWrap: 'break-word'}}>Scoreboard</div>
-                
-                <Button data-layer="Back Button" className="Back Button" style={{
-                    width: '200px', 
-                    height: '55px', 
-                    justifySelf: "end",
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'black',
-                    fontSize: 32,
-                    fontFamily: 'var(--font-chewy)',
-                    fontWeight: '400',
-                    background: '#FBAB7A', 
-                    boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', 
-                    borderRadius: 25, 
-                    border: '1px #FBAB7A solid'}} onClick={() => router.push(userId ? `/users/${userId}` : "/users")}>Back</Button> 
               </div>
                             <div data-layer="Middle" className="Middle" style={{display: "grid", marginTop: "50px", rowGap: "14px"}}>
                                 <div style={{display: "grid", gridTemplateColumns: "1fr 1fr", alignItems: "center"}}>
