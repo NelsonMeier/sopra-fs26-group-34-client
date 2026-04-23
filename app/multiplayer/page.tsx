@@ -155,9 +155,8 @@ function MultiplayerRoomInner() {
               color: "#444",
                textAlign: "center"
             }}>
-              {selectedGame 
-              ? `Selected: ${selectedGame}` 
-              : "Waiting for admin to pick a game..."}
+               
+            Waiting for admin to pick a game...
             </div>
           )}
 
