@@ -47,11 +47,14 @@ export function WebSocketContextProvider({ children }: { children: React.ReactNo
 
     const client = new Client({
       webSocketFactory: () => new SockJS(`${getApiDomain()}/ws`), // new connection to endpoint
+      reconnectDelay: 5000,
+      heartbeatIncoming: 10000,
+      heartbeatOutgoing: 10000,
       onConnect: () => {
         console.log("[InviteContext] Connected! Subscribed to /topic/invite/" + username);
         client.subscribe(`/topic/invite/${username}`, (message) => { //subscribe to personal invite topic
           console.log("[InviteContext] Message received:", message.body); 
-          const data = JSON.parse(message.body); // when meessage received, parse it
+          const data = JSON.parse(message.body); // when message received, parse it
           if (data.type === "PLAYER_INVITED") { // if invite received, set invite state to show pop up
             console.log("[InviteContext] Showing invite popup from:", data.inviterName);
             setInvite({ roomId: data.roomId, inviterName: data.inviterName });

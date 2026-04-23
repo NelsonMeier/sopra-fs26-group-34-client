@@ -37,16 +37,14 @@ export function useWebSocket(roomId: string, userId: string, username: string) {
     rounds: number;
   } | null>(null);
 
-  const [incomingInvite, setIncomingInvite] = useState<{
-    roomId:      string;
-    inviterName: string;
-  } | null>(null);
-
   useEffect(() => { // when page loads
     if (!roomId || !userId) return; // defensive check
 
     const client = new Client({ //create instance of client
       webSocketFactory: () => new SockJS(`${getApiDomain()}/ws`),
+      reconnectDelay: 5000,
+      heartbeatIncoming: 10000,
+      heartbeatOutgoing: 10000,
       onConnect: () => {
         setIsConnected(true);
         // Subscribe to the shared room topic
@@ -103,13 +101,6 @@ export function useWebSocket(roomId: string, userId: string, username: string) {
             });
           }
         });
-        // subscribe to personal invite topic 
-        client.subscribe(`/topic/invite/${username}`, (message) => {
-          const data = JSON.parse(message.body);
-          if (data.type === "PLAYER_INVITED") {
-            setIncomingInvite({ roomId: data.roomId, inviterName: data.inviterName });
-          }
-        });
       },
       onDisconnect: () => setIsConnected(false),
     });
@@ -147,7 +138,5 @@ export function useWebSocket(roomId: string, userId: string, username: string) {
     gameOver,
     nextGame,
     send,
-    incomingInvite,
-    setIncomingInvite,
   };
 }
