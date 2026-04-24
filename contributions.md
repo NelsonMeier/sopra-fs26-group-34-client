@@ -107,6 +107,7 @@ reason).
 | **""** | 21.04.26   | https://github.com/NelsonMeier/sopra-fs26-group-34-client/commit/75b2286037700d50a68f4edafeab88f845e70832 | Made High scores more apparent in the results page. | The results page communicates the high score more clearly to the player. |
 ---
 
+
 ## Contributions Week 5 - [Begin Date] to [End Date]
 
 | **Student**        | **Date** | **Link to Commit** | **Description**                 | **Relevance**                       |
