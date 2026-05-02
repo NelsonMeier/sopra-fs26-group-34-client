@@ -1,7 +1,7 @@
 // app/hooks/useRouteGuard.ts
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { useApi } from "@/hooks/useApi";
@@ -29,53 +29,42 @@ const isProtectedRoute = (pathname: string): boolean => {
 
 
 
-export const useRouteGuard = () => {
+export const useRouteGuard = (): { isAuthChecked: boolean; isAuthorized: boolean } => {
     const router = useRouter();
     const pathname = usePathname();
     const { value: token, clear: clearToken } = useLocalStorage<string>("token", "");
     const { message } = App.useApp();
     const apiService = useApi();
-    const [isSynced, setIsSynced] = useState(false);
+    const [isAuthChecked, setIsAuthChecked] = useState(false);
+    const [isAuthorized, setIsAuthorized] = useState(false);
+    const redirectedRef = useRef(false); // Track if we've already redirected for this route
 
-    // Step 1: Wait for useLocalStorage state to sync with actual localStorage
     useEffect(() => {
-        const storedToken = localStorage.getItem("token");
-        let parsedStored = "";
-        
-        if (storedToken) {
-            try {
-                parsedStored = JSON.parse(storedToken);
-            } catch (e) {
-                console.error("Failed to parse token from localStorage:", e);
-                // Treat invalid data as empty
-                parsedStored = "";
-            }
-        }
-        
-        // Only mark as synced when React state matches actual localStorage AND token exists
-        if (token === parsedStored && storedToken !== null) {
-            setIsSynced(true);
-        }
-    }, [token]);
-
-    // Step 2: Only run route checks after sync is confirmed
-    useEffect(() => {
-        if (!isSynced) {
-            return;
-        }
-
         const checkRoute = async () => {
+            // Public routes are always accessible
             if (!isProtectedRoute(pathname)) {
+                setIsAuthorized(true);
+                setIsAuthChecked(true);
+                redirectedRef.current = false; // Reset for next route check
                 return;
             }
 
-            // Check localStorage directly, not React state (which may not be synced yet)
+            // Protected route: check for token in localStorage
             const storedToken = localStorage.getItem("token");
             
             if (!storedToken) {
+                // Only execute redirect logic once per route
+                if (redirectedRef.current) {
+                    return;
+                }
+                redirectedRef.current = true;
+
+                // No token found - unauthorized
+                setIsAuthorized(false);
+                setIsAuthChecked(true);
+                
                 message.error("Unauthorized! Please log in first.");
                 
-                // same as handleLogout in profile, should be refactored into seperate util at some point
                 try {
                     const storedUserId = localStorage.getItem("userId");
                     const storedTokenForLogout = localStorage.getItem("token")?.replace(/^"|"$/g, "");
@@ -94,9 +83,16 @@ export const useRouteGuard = () => {
                     sessionStorage.clear();
                     router.push("/login");
                 }
+            } else {
+                // Token found - authorized
+                redirectedRef.current = false; // Reset ref when authorized
+                setIsAuthorized(true);
+                setIsAuthChecked(true);
             }
         };
 
         checkRoute();
-    }, [pathname, token, isSynced, message, clearToken, router, apiService]);
+    }, [pathname, token]); // Only depend on pathname - more stable
+
+    return { isAuthChecked, isAuthorized };
 };

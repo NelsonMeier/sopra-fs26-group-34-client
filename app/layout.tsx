@@ -70,8 +70,9 @@ export default function RootLayout({
         >
           <AntdRegistry>
             <AntdApp> 
-              <RouteGuardWrapper/>
+              <RouteGuardWrapper>
                 <WebSocketContextProvider>{children}</WebSocketContextProvider>
+              </RouteGuardWrapper>
             </AntdApp>
           </AntdRegistry>
         </ConfigProvider>
