@@ -24,6 +24,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Think-off",
   description: "sopra-fs26-template-client",
+  icons: {
+    icon: "/favicon.ico",
+  }
 };
 
 export default function RootLayout({
