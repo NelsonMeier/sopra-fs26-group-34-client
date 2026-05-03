@@ -20,6 +20,7 @@ const PROTECTED_ROUTES = [
     "/games/typing-speed"
 ];
 
+// Checks if incoming route is protected
 const isProtectedRoute = (pathname: string): boolean => {
     return PROTECTED_ROUTES.some(route => {
         const pattern = route.replace(/\[id\]/g, "[^/]+");
@@ -28,7 +29,7 @@ const isProtectedRoute = (pathname: string): boolean => {
 };
 
 
-
+// Check that user has a token, otherwise redirects to login
 export const useRouteGuard = (): { isAuthChecked: boolean; isAuthorized: boolean } => {
     const router = useRouter();
     const pathname = usePathname();
@@ -59,7 +60,7 @@ export const useRouteGuard = (): { isAuthChecked: boolean; isAuthorized: boolean
                 }
                 redirectedRef.current = true;
 
-                // No token found - unauthorized
+                // No token found => unauthorized
                 setIsAuthorized(false);
                 setIsAuthChecked(true);
                 
@@ -84,7 +85,7 @@ export const useRouteGuard = (): { isAuthChecked: boolean; isAuthorized: boolean
                     router.push("/login");
                 }
             } else {
-                // Token found - authorized
+                // Token found: authorized
                 redirectedRef.current = false; // Reset ref when authorized
                 setIsAuthorized(true);
                 setIsAuthChecked(true);
@@ -92,7 +93,7 @@ export const useRouteGuard = (): { isAuthChecked: boolean; isAuthorized: boolean
         };
 
         checkRoute();
-    }, [pathname, token]); // Only depend on pathname - more stable
+    }, [pathname, token]);
 
-    return { isAuthChecked, isAuthorized };
+    return { isAuthChecked, isAuthorized }; // Returns authorisation status
 };
