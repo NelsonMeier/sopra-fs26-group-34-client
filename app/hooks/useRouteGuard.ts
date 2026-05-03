@@ -38,15 +38,28 @@ export const useRouteGuard = (): { isAuthChecked: boolean; isAuthorized: boolean
     const apiService = useApi();
     const [isAuthChecked, setIsAuthChecked] = useState(false);
     const [isAuthorized, setIsAuthorized] = useState(false);
-    const redirectedRef = useRef(false); // Track if we've already redirected for this route
+
+    // Tracks most recent processed pathname to avoid duplicate checking
+    const lastProcessedPathnameRef = useRef<string | null>(null);
+
+    // Extract user ID from /users/{id} pathname
+    const getUserIdFromPathname = (path: string): string | null => {
+        const match = path.match(/^\/users\/(.+)$/);
+        return match ? match[1] : null;
+    };
 
     useEffect(() => {
+        // Skip if we've already processed this exact pathname
+        if (lastProcessedPathnameRef.current === pathname) {
+            return;
+        }
+        lastProcessedPathnameRef.current = pathname;
+
         const checkRoute = async () => {
             // Public routes are always accessible
             if (!isProtectedRoute(pathname)) {
                 setIsAuthorized(true);
                 setIsAuthChecked(true);
-                redirectedRef.current = false; // Reset for next route check
                 return;
             }
 
@@ -54,12 +67,6 @@ export const useRouteGuard = (): { isAuthChecked: boolean; isAuthorized: boolean
             const storedToken = localStorage.getItem("token");
             
             if (!storedToken) {
-                // Only execute redirect logic once per route
-                if (redirectedRef.current) {
-                    return;
-                }
-                redirectedRef.current = true;
-
                 // No token found => unauthorized
                 setIsAuthorized(false);
                 setIsAuthChecked(true);
@@ -85,8 +92,20 @@ export const useRouteGuard = (): { isAuthChecked: boolean; isAuthorized: boolean
                     router.push("/login");
                 }
             } else {
-                // Token found: authorized
-                redirectedRef.current = false; // Reset ref when authorized
+                // Check profile ownership for /users/[id] routes
+                const requestedId = getUserIdFromPathname(pathname);
+                if (requestedId) {
+                    const storedUserId = localStorage.getItem("userId");
+
+                    if (requestedId !== storedUserId) {
+                        // If the User tries to access someone else's profile,
+                        //  theyre redirected to their own profile and get a message
+                        message.error("You can only view your own profile.");
+                        router.push(`/users/${storedUserId}`);
+                        return;
+                    }
+                }
+                // Token found => authorized
                 setIsAuthorized(true);
                 setIsAuthChecked(true);
             }
