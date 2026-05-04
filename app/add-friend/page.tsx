@@ -27,9 +27,7 @@ const AddFriend: React.FC = () => {
     setSearching(true);
     try {
       const users = await apiService.get<User[]>(`/users/search/${value}`);
-      console.log("API Response:", users); 
-      console.log("Is Array:", Array.isArray(users)); 
-      setSearchResults(Array.isArray(users) ? users : []);
+      setSearchResults(Array.isArray(users) ? users.filter(user => user.id !== userId) : []);
       setModalVisibility(true);
     } catch (error) {
       console.error("Error searching users:", error);
