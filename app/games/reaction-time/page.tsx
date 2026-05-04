@@ -10,6 +10,7 @@ type Mode      = "singleplayer" | "multiplayer";
 export interface SingleplayerRounds {
   reactionTime: number;
   typingSpeed:  number;
+  timeInterval: number;
 }
 
 const GAME_ROUTES: Record<string, string> = {
@@ -46,6 +47,7 @@ function ReactionTimeInner() {
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const [reactionRounds, setReactionRounds] = useState<number>(0);
   const [typingRounds, setTypingRounds] = useState<number>(0);
+  const [timeIntervalRounds, setTimeIntervalRounds] = useState<number>(0);
   const [currentRound, setCurrentRound] = useState<number>(1);
   const [scores, setScores] = useState<number[]>([]);
   const [sessionInitialized, setSessionInitialized ] = useState<boolean>(false);
@@ -72,14 +74,17 @@ function ReactionTimeInner() {
       if (!storedRounds) {
         setReactionRounds(0);
         setTypingRounds(0);
+        setTimeIntervalRounds(0);
         setSessionInitialized(true);
         return;
       }
       const parsed = JSON.parse(storedRounds) as Partial<SingleplayerRounds>;
       const reaction = clampRounds(Number(parsed?.reactionTime ?? 0));
       const typing = clampRounds(Number(parsed?.typingSpeed ?? 0));
+      const timeInterval = clampRounds(Number(parsed?.timeInterval ?? 0));
       setReactionRounds(reaction);
       setTypingRounds(typing);
+      setTimeIntervalRounds(timeInterval);
       globalThis.sessionStorage.setItem("reactionScores", JSON.stringify([]));
       setScores([]);
       setCurrentRound(1);
@@ -87,9 +92,16 @@ function ReactionTimeInner() {
     } catch {
       setReactionRounds(0);
       setTypingRounds(0);
+      setTimeIntervalRounds(0);
       setSessionInitialized(true);
     }
   }, [mode]);
+
+  const getNextSingleplayerRoute = () => {
+    if (typingRounds > 0) return "/games/typing-speed";
+    if (timeIntervalRounds > 0) return "/games/time-interval";
+    return "/singleplayer/results";
+  };
 
   const startSingleplayerRound = () => {
     setGameState("waiting");
@@ -104,7 +116,7 @@ function ReactionTimeInner() {
   useEffect(() => {
     if (mode !== "singleplayer" || !sessionInitialized) return;
     if (reactionRounds <= 0) {
-      router.push(typingRounds > 0 ? "/games/typing-speed" : "/singleplayer/results");
+      router.push(getNextSingleplayerRoute());
       return;
     }
     startSingleplayerRound();
@@ -121,7 +133,7 @@ function ReactionTimeInner() {
     }
     if (currentRound >= reactionRounds) {
       const t = setTimeout(() => {
-        router.push(typingRounds > 0 ? "/games/typing-speed" : "/singleplayer/results");
+        router.push(getNextSingleplayerRoute());
       }, 1000);
       setTimeoutId(t);
       return;

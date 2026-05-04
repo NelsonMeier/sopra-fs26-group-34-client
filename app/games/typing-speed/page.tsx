@@ -56,6 +56,7 @@ const TypingSpeedGameInner: React.FC = () => {
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const [totalRounds, setTotalRounds] = useState<number>(0);
   const [reactionRounds, setReactionRounds] = useState<number>(0);
+  const [timeIntervalRounds, setTimeIntervalRounds] = useState<number>(0);
   const [currentRound, setCurrentRound] = useState<number>(1);
   const [scores, setScores] = useState<number[]>([]);
   const [sessionInitialized, setSessionInitialized] = useState<boolean>(false);
@@ -77,20 +78,26 @@ const TypingSpeedGameInner: React.FC = () => {
     if (mode !== "singleplayer") { setSessionInitialized(true); return; }
     try {
       const storedRounds = globalThis.sessionStorage.getItem("singleplayerRounds");
-      if (!storedRounds) {setTotalRounds(0);setReactionRounds(0);setSessionInitialized(true); return; }
+      if (!storedRounds) {setTotalRounds(0);setReactionRounds(0);setTimeIntervalRounds(0);setSessionInitialized(true); return; }
       const parsed = JSON.parse(storedRounds) as Partial<SingleplayerRounds>;
       const reaction = clampRounds(Number(parsed?.reactionTime ?? 0));
       const typing = clampRounds(Number(parsed?.typingSpeed ?? 0));
+      const timeInterval = clampRounds(Number(parsed?.timeInterval ?? 0));
       setReactionRounds(reaction);
       setTotalRounds(typing);
+      setTimeIntervalRounds(timeInterval);
       globalThis.sessionStorage.setItem("typingScores", JSON.stringify([]));
       setScores([]);
       setCurrentRound(1);
       setSessionInitialized(true);
     } catch {
-      setTotalRounds(0);setReactionRounds(0);setSessionInitialized(true);
+      setTotalRounds(0);setReactionRounds(0);setTimeIntervalRounds(0);setSessionInitialized(true);
     }
   }, []);
+
+  const getNextSingleplayerRoute = () => (
+    timeIntervalRounds > 0 ? "/games/time-interval" : "/singleplayer/results"
+  );
 
   const fetchQuote = async () => {
     try {
@@ -112,7 +119,7 @@ const TypingSpeedGameInner: React.FC = () => {
   // auto start game (singleplayer only)
   useEffect(() => {
     if (mode !== "singleplayer" || !sessionInitialized) return;
-    if (totalRounds <= 0) { router.push("/singleplayer/results"); return; }
+    if (totalRounds <= 0) { router.push(getNextSingleplayerRoute()); return; }
     startGame();
   }, [sessionInitialized, totalRounds]);
   //start multiplayer game when admin starts first round
@@ -218,7 +225,7 @@ const TypingSpeedGameInner: React.FC = () => {
       globalThis.sessionStorage.setItem("typingScores", JSON.stringify(nextScores));
     }
     if (currentRound >= totalRounds) {
-      const t = setTimeout(() => { router.push("/singleplayer/results"); }, 1000);
+      const t = setTimeout(() => { router.push(getNextSingleplayerRoute()); }, 1000);
       setTimeoutId(t);
       return;
     }
