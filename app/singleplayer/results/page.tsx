@@ -12,6 +12,7 @@ interface ResultRow {
 	round: string;
 	game: "Reaction Time" | "Typing Speed" | "Time Interval";
 	score: string;
+	rawScore: number;
 }
 
 const toNumberArray = (raw: string | null): number[] => {
@@ -35,10 +36,7 @@ const ResultsPage: React.FC = () => {
 	const { value: userId } = useLocalStorage<string>("userId", "");
 	const { value: token } = useLocalStorage<string>("token", "");
 	const [rows, setRows] = useState<ResultRow[]>([]);
-	const [bestReactionScore, setBestReactionScore] = useState<number | null>(null);
-	const [bestTypingScore, setBestTypingScore] = useState<number | null>(null);
-	const [reactionHighScoreUpdated, setReactionHighScoreUpdated] = useState(false);
-	const [typingHighScoreUpdated, setTypingHighScoreUpdated] = useState(false);
+	const [highScoreRowKeys, setHighScoreRowKeys] = useState<string[]>([]);
 
 	useEffect(() => {
 		if (typeof window === "undefined") return;
@@ -54,6 +52,7 @@ const ResultsPage: React.FC = () => {
 			round: `${index + 1}.`,
 			game: "Reaction Time",
 			score: score === -1 ? "Failed" : `${score} ms`,
+			rawScore: score,
 		}));
 
 		const typingRows: ResultRow[] = typingScores.map((score, index) => ({
@@ -61,32 +60,35 @@ const ResultsPage: React.FC = () => {
 			round: `${reactionRows.length + index + 1}.`,
 			game: "Typing Speed",
 			score: `${score} wpm`,
+			rawScore: score,
 		}));
 
 		const timeIntervalRows: ResultRow[] = timeIntervalScores.map((score, index) => ({
 			key: `time-interval-${index}`,
 			round: `${reactionRows.length + typingRows.length + index + 1}.`,
 			game: "Time Interval",
-			score: score === -1 ? "Failed" : `${score.toFixed(3)} s off`,
+			score: score === -1 ? "Failed" : `${score.toFixed(3)}s off`,
+			rawScore: score,
 		}));
 
-		setRows([...reactionRows, ...typingRows, ...timeIntervalRows]);
+		const nextRows = [...reactionRows, ...typingRows, ...timeIntervalRows];
+		setRows(nextRows);
 
-		// Calculate best scores for state
+		// Calculate best scores for high-score submission and row highlighting
 		const validReactionScores = reactionScores.filter((s) => s !== -1);
+		const validTimeIntervalScores = timeIntervalScores.filter((s) => s !== -1);
 		const bestReaction =
 			validReactionScores.length > 0 ? Math.min(...validReactionScores) : null;
 		const bestTyping = typingScores.length > 0 ? Math.max(...typingScores) : null;
-
-		setBestReactionScore(bestReaction);
-		setBestTypingScore(bestTyping);
-
+		const bestTimeInterval =
+			validTimeIntervalScores.length > 0 ? Math.min(...validTimeIntervalScores) : null;
 
 		const submitHighScores = async () => {
 			try {
 				interface HighScoreResponse {
 					reactionHighScoreUpdated: boolean;
 					typingHighScoreUpdated: boolean;
+					timeIntervalHighScoreUpdated: boolean;
 				}
 
 				const response = await apiService.put<HighScoreResponse>(
@@ -94,32 +96,55 @@ const ResultsPage: React.FC = () => {
 					{
 						reactionScores: reactionScores.length > 0 ? reactionScores : [],
 						typingScores: typingScores.length > 0 ? typingScores : [],
+						timeIntervalScores: timeIntervalScores.length > 0 ? timeIntervalScores : [],
 					},
 					{ Authorization: `Bearer ${token}` }
 				);
 
-				setReactionHighScoreUpdated(response.reactionHighScoreUpdated);
-				setTypingHighScoreUpdated(response.typingHighScoreUpdated);
+				const nextHighScoreRowKeys = nextRows
+					.filter((row) => {
+						if (row.rawScore === -1) return false;
+						if (
+							response.reactionHighScoreUpdated &&
+							row.game === "Reaction Time" &&
+							row.rawScore === bestReaction
+						) return true;
+						if (
+							response.typingHighScoreUpdated &&
+							row.game === "Typing Speed" &&
+							row.rawScore === bestTyping
+						) return true;
+						return (
+							response.timeIntervalHighScoreUpdated &&
+							row.game === "Time Interval" &&
+							row.rawScore === bestTimeInterval
+						);
+					})
+					.map((row) => row.key);
 
-				if (response.reactionHighScoreUpdated && response.typingHighScoreUpdated) {
-					const reactionText = `Reaction Time (${bestReactionScore} ms)`;
-					const typingText = `Typing Speed (${bestTypingScore} WPM)`;
+				setHighScoreRowKeys(nextHighScoreRowKeys);
+
+				if (response.reactionHighScoreUpdated && bestReaction !== null) {
 					message.open({
 						type: "success",
 						icon: <TrophyFilled style={{ color: "#faad14" }} />,
-						content: `New High Score: ${reactionText} & ${typingText}`,
+						content: `New High Score: Reaction Time (${bestReaction} ms)`,
 					});
-				} else if (response.reactionHighScoreUpdated) {
+				}
+
+				if (response.typingHighScoreUpdated && bestTyping !== null) {
 					message.open({
 						type: "success",
 						icon: <TrophyFilled style={{ color: "#faad14" }} />,
-						content: `New High Score: Reaction Time (${bestReactionScore} ms)`,
+						content: `New High Score: Typing Speed (${bestTyping} WPM)`,
 					});
-				} else if (response.typingHighScoreUpdated) {
+				}
+
+				if (response.timeIntervalHighScoreUpdated && bestTimeInterval !== null) {
 					message.open({
 						type: "success",
 						icon: <TrophyFilled style={{ color: "#faad14" }} />,
-						content: `New High Score: Typing Speed (${bestTypingScore} WPM)`,
+						content: `New High Score: Time Interval (${bestTimeInterval.toFixed(3)}s)`,
 					});
 				}
 			} catch (error) {
@@ -127,7 +152,11 @@ const ResultsPage: React.FC = () => {
 			}
 		};
 
-		if (userId && token && (reactionScores.length > 0 || typingScores.length > 0)) {
+		if (
+			userId &&
+			token &&
+			(reactionScores.length > 0 || typingScores.length > 0 || timeIntervalScores.length > 0)
+		) {
 			submitHighScores();
 		}
 	}, [userId, token]);
@@ -205,16 +234,7 @@ const ResultsPage: React.FC = () => {
 								key: "score",
 								width: "40%",
 								render: (text: string, record: ResultRow) => {
-									const isReactionHigh =
-										record.game === "Reaction Time" &&
-										reactionHighScoreUpdated &&
-										text !== "Failed" &&
-										parseInt(text) === bestReactionScore;
-									const isTypingHigh =
-										record.game === "Typing Speed" &&
-										typingHighScoreUpdated &&
-										parseInt(text) === bestTypingScore;
-									const isHighScore = isReactionHigh || isTypingHigh;
+									const isHighScore = highScoreRowKeys.includes(record.key);
 
 									return (
 										<span style={{ fontWeight: isHighScore ? "bold" : "normal" }}>
