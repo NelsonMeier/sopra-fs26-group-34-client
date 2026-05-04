@@ -63,6 +63,29 @@ const Login: React.FC = () => {
       alignItems: "center",
       justifyContent: "center",
     }}>
+      <Button
+        onClick={() => router.push("/")}
+        style={{
+          position: "absolute",
+          top: "24px",
+          left: "24px",
+          backgroundColor: "#E8956D",
+          borderRadius: "24px",
+          height: "52px",
+          fontSize: "1.2rem",
+          padding: "0 30px",
+          fontWeight: "bold",
+          color: "black",
+          fontFamily: "var(--font-chewy)",
+          border: "none",
+          boxShadow: "0px 4px 12px rgba(0,0,0,0.25)",
+          letterSpacing: "0.03em",
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
+        }}>
+        Back
+      </Button>
 
       <h1 style={{
         fontFamily: "var(--font-chewy)",
@@ -128,37 +151,6 @@ const Login: React.FC = () => {
             </Button>
           </Form.Item>
         </Form>
-      </div>
-      <div style={{ 
-        display: "flex",
-        alignItems: "center",
-        gap: "0.5rem" }}>
-
-        <span style={{ 
-          fontFamily: "var(--font-chewy)",
-          fontWeight: "600", 
-          color: "black",
-          fontSize: "1.5rem" }}>
-          No Account yet?
-        </span>
-
-
-        <Button
-          onClick={() => router.push("/register")}
-          style={{
-            backgroundColor: "#E8956D",
-            borderColor: "#E8956D",
-            borderRadius: "20px",
-            height: "55px",    
-            fontSize: "1.2rem",
-            padding: "0 30px",  
-            fontWeight: "bold",
-            color: "black",
-            fontFamily: "var(--font-chewy)",
-            border: "none",
-            boxShadow: "0px 8px 10px rgba(0,0,0,0.2)"}}>
-          Register
-        </Button>
       </div>
     </div>
   );
