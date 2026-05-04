@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Button } from "antd";
 import type { SingleplayerRounds } from "../reaction-time/page";
 import { useRouter } from "next/navigation";
@@ -78,27 +78,37 @@ const TimeIntervalGame: React.FC = () => {
     return () => clearInterval(intervalId);
   }, [gameState, startTime]);
 
-  const resetRound = () => {
+  const resetRound = useCallback(() => { //useCallback prevents the function from being reloaded every render, which would mess up the useEffect dependencies
     setGoalTime(createGoalTime());
     setElapsedTime(0);
     setStartTime(0);
     setScore(null);
     setGameState("waiting");
-  };
+  }, []);
 
-  const startRound = () => {
+  const startRound = useCallback(() => {
     setStartTime(Date.now());
     setElapsedTime(0);
     setScore(null);
     setGameState("active");
-  };
+  }, []);
 
-  const finishRound = () => {
+  useEffect(() => {
+    if (!sessionInitialized || totalRounds <= 0 || gameState !== "waiting") return;
+
+    const id = setTimeout(() => {
+      startRound();
+    }, 10000);
+
+    return () => clearTimeout(id);
+  }, [gameState, sessionInitialized, startRound, totalRounds]);
+
+  const finishRound = useCallback((forcedScore?: number) => { //forcedScore is set to -1 when the player doesn't click after 20s, if not it's undefined (by optional chaining)
     const finalElapsedTime = (Date.now() - startTime) / 1000;
-    const roundScore = Math.abs(goalTime - finalElapsedTime);
+    const roundScore = forcedScore ?? Math.abs(goalTime - finalElapsedTime);
     const nextScores = [...scores, roundScore];
 
-    setElapsedTime(finalElapsedTime);
+    setElapsedTime(forcedScore === -1 ? 20 : finalElapsedTime);
     setScore(roundScore);
     setScores(nextScores);
     setGameState("result");
@@ -118,7 +128,17 @@ const TimeIntervalGame: React.FC = () => {
     }, 2000);
 
     setTimeoutId(id);
-  };
+  }, [currentRound, goalTime, resetRound, router, scores, startTime, totalRounds]);
+
+  useEffect(() => {
+    if (gameState !== "active") return;
+
+    const id = setTimeout(() => {
+      finishRound(-1);
+    }, 20000);
+
+    return () => clearTimeout(id);
+  }, [finishRound, gameState]);
 
   const handleButtonClick = () => {
     if (gameState === "waiting") {
@@ -203,7 +223,7 @@ const TimeIntervalGame: React.FC = () => {
             transition: gameState === "active" ? "opacity 3s linear" : "none",
           }}
         >
-          {elapsedTime.toFixed(3)}s
+          {score === -1 ? "20.000s" : `${elapsedTime.toFixed(3)}s`}
         </div>
 
         {gameState === "result" ? (
@@ -220,7 +240,7 @@ const TimeIntervalGame: React.FC = () => {
               textAlign: "center",
             }}
           >
-            You were {score?.toFixed(3)}s off!
+            {score === -1 ? "you're way off!" : `You were ${score?.toFixed(3)}s off!`}
           </div>
         ) : (
           <Button

@@ -10,7 +10,7 @@ import { useApi } from "@/hooks/useApi";
 interface ResultRow {
 	key: string;
 	round: string;
-	game: "Reaction Time" | "Typing Speed";
+	game: "Reaction Time" | "Typing Speed" | "Time Interval";
 	score: string;
 }
 
@@ -45,6 +45,9 @@ const ResultsPage: React.FC = () => {
 
 		const reactionScores = toNumberArray(globalThis.sessionStorage.getItem("reactionScores"));
 		const typingScores = toNumberArray(globalThis.sessionStorage.getItem("typingScores"));
+		const timeIntervalScores = toNumberArray(
+			globalThis.sessionStorage.getItem("timeIntervalScores"),
+		);
 
 		const reactionRows: ResultRow[] = reactionScores.map((score, index) => ({
 			key: `reaction-${index}`,
@@ -60,7 +63,14 @@ const ResultsPage: React.FC = () => {
 			score: `${score} wpm`,
 		}));
 
-		setRows([...reactionRows, ...typingRows]);
+		const timeIntervalRows: ResultRow[] = timeIntervalScores.map((score, index) => ({
+			key: `time-interval-${index}`,
+			round: `${reactionRows.length + typingRows.length + index + 1}.`,
+			game: "Time Interval",
+			score: score === -1 ? "Failed" : `${score.toFixed(3)} s off`,
+		}));
+
+		setRows([...reactionRows, ...typingRows, ...timeIntervalRows]);
 
 		// Calculate best scores for state
 		const validReactionScores = reactionScores.filter((s) => s !== -1);
@@ -231,4 +241,3 @@ const ResultsPage: React.FC = () => {
 };
 
 export default ResultsPage;
-
