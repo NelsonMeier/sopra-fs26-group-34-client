@@ -57,17 +57,25 @@ const Profile: React.FC = () => {
     });
     setUser(userData);
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      alert(`Error: ${error.message}`);
+    if (error instanceof Error && 'status' in error) {
+      const appError = error as any;
+      if (appError.status === 401) {
+        message.error("You do not have permission to access this profile.");
+        router.push(`/users/${id}`);
+      } else {
+        message.error(`Error: ${error.message}`);
+      }
+    } else if (error instanceof Error) {
+      message.error(`Error: ${error.message}`);
     } else {
-      alert("An unknown error occurred while fetching user data.");
+      message.error("An unknown error occurred while fetching user data.");
     }
   }
 };
 
     fetchUser();
 
-  }, [id, token, apiService]);
+  }, [id, token, apiService, router]);
 
     useEffect(() => {
       if (!id) return;
