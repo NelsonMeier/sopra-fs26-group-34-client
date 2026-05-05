@@ -197,10 +197,10 @@ function MultiplayerRoomInner() {
                 The player who opens the multiplayer page becomes the <em>admin</em>.</p>
 
               <p><strong>2. Invite Friends</strong><br />
-                Admins can tick friends from the invite list — they will receive an invite to join the room.</p>
+                Admins can tick friends from the invite list → they will receive an invite to join the room.</p>
 
               <p><strong>3. Pick Games &amp; Rounds</strong><br />
-                The admin sets how many rounds to play for each game (Reaction Time/Typing Test/Time Estimate). Set rounds to 0 to skip a game.</p>
+                The admin sets how many rounds to play for each game (Reaction Time/Typing Test/Time Interval). Set rounds to 0 to skip a game.</p>
 
               <p><strong>4. Start the Game</strong><br />
                 Once everyone is in the Ready Players list, the admin hits <em>Start</em>. All players are sent to the same game simultaneously.</p>
@@ -402,6 +402,10 @@ function MultiplayerRoomInner() {
         <div style={{ width: "100%", display: "flex", justifyContent: "center", marginTop: "2rem" }}>
           <Button
             onClick={() => {
+              if (joinedPlayers.length === 0) {
+                alert("You need at least one friend to join to start!");
+                return;
+              }
               if (!selectedGame) {
                 alert("Please select at least one game first!");
                 return;

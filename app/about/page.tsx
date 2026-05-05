@@ -113,7 +113,7 @@ export default function AboutPage() {
           {
             step: "3",
             title: "Select a Game",
-            desc: "Choose your challenge — push your speed, sharpen your focus and test your reflexes.",
+            desc: "Choose your challenge: push your speed, sharpen your focus and test your reflexes.",
           },
           {
             step: "4",
