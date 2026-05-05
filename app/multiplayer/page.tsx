@@ -39,6 +39,7 @@ function MultiplayerRoomInner() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [friendsLoading, setFriendsLoading ] = useState(true);
   const [selectedFriends, setSelectedFriends] = useState<(string | number)[]>([]);
+  const [showHelp, setShowHelp] = useState(false);
   // once the WebSocket is connected, either create the room (admin) or join it 
   useEffect(() => {
     if (!isConnected || !userId || !username) return;
@@ -120,6 +121,96 @@ function MultiplayerRoomInner() {
           </Button>
         </Link>
       </div>
+
+      
+      <div style={{ position: "absolute", top: "2rem", right: "2rem", zIndex: 10 }}>
+        <Button
+          onClick={() => setShowHelp(true)}
+          style={{
+            backgroundColor: "#E8956D",
+            border: "none",
+            borderRadius: "15px",
+            height: "70px",
+            fontSize: "1.8rem",
+            fontWeight: "bold",
+            color: "black",
+            fontFamily: "var(--font-chewy)",
+            boxShadow: "0px 8px 10px rgba(0,0,0,0.2)",
+            padding: "0 30px",
+          }}
+        >
+          ?
+        </Button>
+      </div>
+
+      
+      {showHelp && (
+        <div
+          onClick={() => setShowHelp(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 100,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: "#B8D8E8",
+              borderRadius: "20px",
+              padding: "2.5rem",
+              maxWidth: "520px",
+              width: "90%",
+              boxShadow: "0px 12px 30px rgba(0,0,0,0.3)",
+              fontFamily: "var(--font-chewy)",
+              color: "black",
+              position: "relative",
+            }}
+          >
+            <button
+              onClick={() => setShowHelp(false)}
+              style={{
+                position: "absolute",
+                top: "1rem",
+                right: "1.2rem",
+                background: "none",
+                border: "none",
+                fontSize: "1.8rem",
+                cursor: "pointer",
+                color: "black",
+                fontFamily: "var(--font-chewy)",
+              }}
+            >
+              ×
+            </button>
+
+            <h2 style={{ fontSize: "2rem", marginBottom: "1.2rem", textAlign: "center" }}>
+              How Multiplayer Works
+            </h2>
+
+            <div style={{ fontSize: "1.1rem", lineHeight: "1.8", display: "flex", flexDirection: "column", gap: "0.8rem" }}>
+              <p><strong>1. Create or Join a Room</strong><br />
+                The player who opens the multiplayer page becomes the <em>admin</em>.</p>
+
+              <p><strong>2. Invite Friends</strong><br />
+                Admins can tick friends from the invite list → they will receive an invite to join the room.</p>
+
+              <p><strong>3. Pick Games &amp; Rounds</strong><br />
+                The admin sets how many rounds to play for each game (Reaction Time/Typing Test/Time Interval). Set rounds to 0 to skip a game.</p>
+
+              <p><strong>4. Start the Game</strong><br />
+                Once everyone is in the Ready Players list, the admin hits <em>Start</em>. All players are sent to the same game simultaneously.</p>
+
+              <p><strong>5. Scoring</strong><br />
+                Each round your score is compared against the other players. After all rounds the leaderboard shows total scores. The player with the highest score is the best thinker!</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div style={{ 
         display: "flex", 
@@ -311,6 +402,10 @@ function MultiplayerRoomInner() {
         <div style={{ width: "100%", display: "flex", justifyContent: "center", marginTop: "2rem" }}>
           <Button
             onClick={() => {
+              if (joinedPlayers.length === 0) {
+                alert("You need at least one friend to join to start!");
+                return;
+              }
               if (!selectedGame) {
                 alert("Please select at least one game first!");
                 return;

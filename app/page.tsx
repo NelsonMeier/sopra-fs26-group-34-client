@@ -13,7 +13,28 @@ export default function Home() {
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      gap: "1.5rem"}}>
+      gap: "1.5rem",
+      position: "relative"}}>
+
+      <Button
+        onClick={() => router.push("/about")}
+        style={{
+          position: "absolute",
+          top: "1.5rem",
+          right: "1.5rem",
+          backgroundColor: "#22426b",
+          borderColor: "#22426b",
+          borderRadius: "20px",
+          height: "42px",
+          fontSize: "1rem",
+          padding: "0 22px",
+          fontWeight: "bold",
+          color: "white",
+          fontFamily: "var(--font-chewy)",
+          border: "none",
+          boxShadow: "0px 4px 8px rgba(0,0,0,0.2)"}}>
+        About
+      </Button>
       
       <h1 style={{
         fontSize: "5.5rem",
