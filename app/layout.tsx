@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Chewy } from "next/font/google";
 import { App as AntdApp, ConfigProvider, theme } from "antd";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { WebSocketContextProvider } from "@/context/WebSocketContext";
+import { RouteGuardWrapper } from "./components/RouteGuardWrapper";
 import "@/styles/globals.css";
 
 const chewy = Chewy({
@@ -71,7 +72,11 @@ export default function RootLayout({
           }}
         >
           <AntdRegistry>
-            <AntdApp> <WebSocketContextProvider>{children}</WebSocketContextProvider></AntdApp>
+            <AntdApp> 
+              <RouteGuardWrapper>
+                <WebSocketContextProvider>{children}</WebSocketContextProvider>
+              </RouteGuardWrapper>
+            </AntdApp>
           </AntdRegistry>
         </ConfigProvider>
       </body>
