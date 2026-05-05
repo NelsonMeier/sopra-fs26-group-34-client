@@ -48,6 +48,8 @@ const Profile: React.FC = () => {
     const [friends, setFriends] = useState<Friend[]>([]);
     const [friendsLoading, setFriendsLoading] = useState(false);
     const [friendRequestCount, setFriendRequestCount] = useState(0);
+    const [friendToDelete, setFriendToDelete] = useState<Friend | null>(null);
+    const [isDeletingFriend, setIsDeletingFriend] = useState(false);
 
     const [modalVisibility, setModalVisibility] = useState(false);
     const [form] = Form.useForm();
@@ -226,6 +228,21 @@ if (userId && token) { //check that both r here
     console.error("Logout error:", error); //if not work
   }
 };
+
+    const handleDeleteFriend = async () => {
+      if (!friendToDelete) return;
+      setIsDeletingFriend(true);
+      try {
+        await apiService.delete(`/users/${id}/friends/${friendToDelete.id}`);
+        setFriends((prev) => prev.filter((f) => f.id !== friendToDelete.id));
+        setFriendToDelete(null);
+        message.success(`${friendToDelete.username} removed from friends`);
+      } catch {
+        message.error("Failed to remove friend. Please try again.");
+      } finally {
+        setIsDeletingFriend(false);
+      }
+    };
 
     const handleAddFriend = () => {
       router.push("/add-friend");
@@ -474,7 +491,25 @@ style={{
           overflowY: 'auto'}}>
 
           {friendsLoading ? "Loading..." : friends.length > 0 ? friends.map((friend) => (
-            <div key={friend.id}>{friend.username}</div>
+            <div
+              key={friend.id}
+              style={{ display: "flex", alignItems: "center", gap: 6, width: "100%" }}
+            >
+              <span>{friend.username}</span>
+              <span
+                onClick={() => setFriendToDelete(friend)}
+                style={{
+                  color: "red",
+                  cursor: "pointer",
+                  fontWeight: "bold",
+                  fontSize: 20,
+                  lineHeight: 1,
+                  userSelect: "none",
+                }}
+              >
+                -
+              </span>
+            </div>
           )) : "No friends yet"}
         </div>
       </div>
@@ -567,6 +602,19 @@ style={{
     onClick={handleScoreboard}>
         Scoreboard</Button>
   </div>
+
+  <Modal
+    open={!!friendToDelete}
+    title="Remove Friend"
+    onCancel={() => setFriendToDelete(null)}
+    onOk={handleDeleteFriend}
+    okText="Remove"
+    okButtonProps={{ danger: true, loading: isDeletingFriend }}
+    cancelButtonProps={{ disabled: isDeletingFriend }}
+    styles={{ header: { fontFamily: "var(--font-chewy)" } }}
+  >
+    Are you sure you want to remove <strong>{friendToDelete?.username}</strong> from your friends?
+  </Modal>
 
   <Modal
     open={modalVisibility}
