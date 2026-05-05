@@ -2,6 +2,7 @@
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
+import { ApplicationError } from "@/types/error";
 import Password from "antd/es/input/Password";
 import { useParams, useRouter } from "next/navigation";
 // For components that need React hooks and browser APIs,
@@ -57,25 +58,54 @@ const Profile: React.FC = () => {
     });
     setUser(userData);
   } catch (error: unknown) {
-    if (error instanceof Error && 'status' in error) {
-      const appError = error as any;
+    if (error instanceof Error) {
+      const appError = error as ApplicationError;
       if (appError.status === 401) {
         message.error("You do not have permission to access this profile.");
-        router.push(`/users/${id}`);
+        const ownUserId = localStorage.getItem("userId");
+        if (ownUserId && ownUserId !== String(id)) {
+          router.push(`/users/${ownUserId}`);
+        }
       } else {
         message.error(`Error: ${error.message}`);
+        try {
+          const userId = localStorage.getItem("userId");
+          const logoutToken = localStorage.getItem("token")?.replace(/^"|"$/g, "");
+          if (userId && logoutToken) {
+            await apiService.post(`/logout/${userId}`, {}, { Authorization: `Bearer ${logoutToken}` });
+          }
+        } catch {
+          console.error("Logout error during session reset");
+        } finally {
+          clearToken();
+          localStorage.removeItem("userId");
+          localStorage.removeItem("username");
+          router.push("/login");
+        }
       }
-    } else if (error instanceof Error) {
-      message.error(`Error: ${error.message}`);
     } else {
       message.error("An unknown error occurred while fetching user data.");
+      try {
+        const userId = localStorage.getItem("userId");
+        const logoutToken = localStorage.getItem("token")?.replace(/^"|"$/g, "");
+        if (userId && logoutToken) {
+          await apiService.post(`/logout/${userId}`, {}, { Authorization: `Bearer ${logoutToken}` });
+        }
+      } catch {
+        console.error("Logout error during session reset");
+      } finally {
+        clearToken();
+        localStorage.removeItem("userId");
+        localStorage.removeItem("username");
+        router.push("/login");
+      }
     }
   }
 };
 
     fetchUser();
 
-  }, [id, token, apiService, router]);
+  }, [id, token, apiService, router, clearToken]);
 
     useEffect(() => {
       if (!id) return;
