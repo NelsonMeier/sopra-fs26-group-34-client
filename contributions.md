@@ -116,7 +116,8 @@ reason).
 | **""** | 02.05.26 | https://github.com/NelsonMeier/sopra-fs26-group-34-client/commit/0156baba4fd45ea072f6332d9dfddf9d386aad96 | Added our own logo to the header. | For an aesthetic uniformity across the website. |
 | **[@githubUser2]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@githubUser3]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@githubUser4]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+| **@NelsonMeier** | 05.05.2026   | https://github.com/NelsonMeier/sopra-fs26-group-34-server/commit/86e19c3fc2c25d5c454072fe43d071c2e8815825 | This is part of the implementation relating to the task of enhancing security and usability, specifically by restricting users from navigating to certain pages that dont "belong" to them or that shouldn't be accessible to them. | This contribution makes it so that a user can only navigate to their own profile, by verifying in the backend, that the users token matches the id of the profile page they are trying to log into. |
+| **@NelsonMeier** | 05.05.2026   | https://github.com/NelsonMeier/sopra-fs26-group-34-client/commit/1c051f1a04dbd804be80744c8b2a4aba85a8e6a4 | This commit belongs to the integration of the new "Time Interval" game. This interation implements the scoreboard functionality for that game in the frontend and backend. | This commit creates a new sectiona and leaderboard on the scoreboard page, so the user can see the top ten best players in the "Time Interval" game. |
 | **[@githubUser5]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 ---
 
