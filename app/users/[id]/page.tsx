@@ -5,6 +5,7 @@ import { User } from "@/types/user";
 import { ApplicationError } from "@/types/error";
 import Password from "antd/es/input/Password";
 import { useParams, useRouter } from "next/navigation";
+import { Badge } from "antd";
 // For components that need React hooks and browser APIs,
 // SSR (server side rendering) has to be disabled.
 // Read more here: https://nextjs.org/docs/pages/building-your-application/rendering/server-side-rendering
@@ -18,6 +19,16 @@ interface Friend {  //Defines what a friend object looks like
   username: string;
   status: string;
   creationDate: string;
+}
+
+interface FriendRequest {
+  id: number;
+  sender: {
+    id: number;
+    username: string;
+    name: string;
+  };
+  status: string;
 }
 
 interface FormFieldProps {
@@ -36,6 +47,7 @@ const Profile: React.FC = () => {
 
     const [friends, setFriends] = useState<Friend[]>([]);
     const [friendsLoading, setFriendsLoading] = useState(false);
+    const [friendRequestCount, setFriendRequestCount] = useState(0);
 
     const [modalVisibility, setModalVisibility] = useState(false);
     const [form] = Form.useForm();
@@ -123,6 +135,25 @@ const Profile: React.FC = () => {
       };
       
       fetchFriends();
+    }, [id, apiService]);
+
+    // Fetch friend requests to display count on button
+    useEffect(() => {
+      if (!id || !apiService) return;
+
+      const fetchRequests = async () => {
+        try {
+          const data = await apiService.get<FriendRequest[]>(
+            `/users/${id}/friends/requests`
+          );
+
+          setFriendRequestCount(data.length);
+        } catch (error) {
+          console.error("Failed to fetch friend requests", error);
+        }
+      };
+
+      fetchRequests();
     }, [id, apiService]);
 
     const handleChangePassword = () => {
@@ -459,13 +490,15 @@ style={{
       type="primary"
       style={{ width: "240px" }}
       onClick={handleAddFriend}>add Friend</Button>
-
-      <Button
-      data-layer="Friend Requests"
-      className="FriendRequests back-button"
-      type="primary"
-      style={{ width: "240px" }}
-      onClick={handleFriendRequests}>Friend Requests</Button>
+      
+      <Badge count={friendRequestCount} showZero={false}>
+        <Button
+        data-layer="Friend Requests"
+        className="FriendRequests back-button"
+        type="primary"
+        style={{ width: "240px" }}
+        onClick={handleFriendRequests}>Friend Requests</Button>
+      </Badge>
     </div>
   </div>
 
