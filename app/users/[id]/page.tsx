@@ -5,6 +5,7 @@ import { User } from "@/types/user";
 import { ApplicationError } from "@/types/error";
 import Password from "antd/es/input/Password";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { Badge } from "antd";
 // For components that need React hooks and browser APIs,
 // SSR (server side rendering) has to be disabled.
@@ -266,342 +267,82 @@ if (userId && token) { //check that both r here
 
   
   return (
-<div style={{
-  width: '100%', 
-  minHeight: '100vh', 
-  background: '#6BAED6', 
-  display: 'flex', 
-  alignItems: 'center', 
-  justifyContent: 'center', 
-  overflow: 'auto', 
-  padding: '16px', 
-  boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', 
-  outline: '3px black solid', 
-  outlineOffset: '-1.50px'}}>
+    <div style={{
+      minHeight: "100vh",
+      backgroundColor: "#6BAED6",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "5rem 2rem 3rem",
+      boxSizing: "border-box",
+      position: "relative",
+    }}>
 
-<div 
-data-layer="User Profile" 
-className="UserProfile" 
-style={{
-  width: "min(1100px, 100%)", 
-  display: "grid", 
-  gridTemplateRows: "auto auto auto", 
-  rowGap: "28px", 
-  paddingTop: "28px", 
-  paddingBottom: "24px", 
-  background: '#6BAED6'}}>
-
-  <div 
-  data-layer="Header" 
-  className="Header" 
-  style={{
-    display: "grid", 
-    gridTemplateColumns: "220px 1fr 260px", 
-    alignItems: "center", 
-    columnGap: "24px"}}>
-
-    <Button
-    data-layer="Logout"
-    className="Logout back-button"
-    type="primary"
-    style={{ width: "200px" }}
-    onClick={handleLogout}>Logout</Button>
-
-    <div 
-    data-layer="User Profile" 
-    className="UserProfile" 
-    style={{
-      textAlign: 'center', 
-      justifyContent: 'center', 
-      display: 'flex', 
-      flexDirection: 'column', 
-      color: 'black', 
-      fontSize: 64,
-      fontFamily: 'var(--font-chewy)', 
-      fontWeight: '400', 
-      wordWrap: 'break-word'}}
-      >User Profile</div>
-
-    <div 
-    style={{
-      display: 'flex', 
-      justifyContent: 'flex-end'}}>
-
-      {id && id === String(id) ? (
-        <Button
-        data-layer="Change Password"
-        className="ChangePassword back-button"
-        type="primary"
-        style={{ width: "240px" }}
-        onClick={handleChangePassword}>Change Password</Button>
-      ) : <div style={{width: '240px'}} />}
-    </div>
-  </div>
-
-  <div 
-  data-layer="Middle" 
-  className="Middle" 
-  style={{
-    display: "grid", 
-    marginTop: "50px",
-    gridTemplateColumns: "1fr 260px", 
-    columnGap: "42px", 
-    alignItems: "start"}}>
-    
-    <div 
-    data-layer="Left Info" 
-    className="Left Info" 
-    style={{
-      display: "grid", 
-      rowGap: "16px", 
-      marginLeft: "200px"}}>
-      
-      <div 
-      data-layer="Username Row" 
-      className="Username Row" 
-      style={{
-        display: "grid", 
-        gridTemplateColumns: "190px 250px", 
-        columnGap: "12px", 
-        alignItems: "center"}}>
-        
-        <div 
-        data-layer="Username:" 
-        className="Username" 
-        style={{
-          textAlign: 'center', 
-          justifyContent: 'center', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          color: 'black', 
-          fontSize: 24, 
-          fontFamily: 'var(--font-chewy)', 
-          fontWeight: '400', 
-          wordWrap: 'break-word'}}>
-            Username:</div>
-        
-        <div 
-        data-layer="UsernameValue" 
-        className="usernameValue" 
-        style={{
-          background: "#DBDBDB", 
-          borderRadius: 10, 
-          padding: "6px 12px", 
-          minHeight: "42px", 
-          display: "flex", 
-          alignItems: "center", 
-          textAlign: 'center', 
-          justifyContent: 'center', 
-          flexDirection: 'column', 
-          color: 'black', 
-          fontSize: 24, 
-          fontFamily: 'var(--font-chewy)', 
-          fontWeight: '400', 
-          wordWrap: 'break-word'}}>
-            {user?.username || "Loading..."}</div>
-      </div>
-      
-      <div 
-      data-layer="Creation Date Row" 
-      className="Creation Date Row" 
-      style={{
-        display: "grid", 
-        gridTemplateColumns: "190px 250px", 
-        columnGap: "12px", 
-        alignItems: "center"}}>
-
-        <div 
-        data-layer="Creation Date:" 
-        className="CreationDate" 
-        style={{
-          textAlign: 'center', 
-          justifyContent: 'center', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          color: 'black', 
-          fontSize: 24, 
-          fontFamily: 'var(--font-chewy)', 
-          fontWeight: '400', 
-          wordWrap: 'break-word'}}>
-            Creation Date:</div>
-
-        <div 
-        data-layer="CreationDateValue" 
-        className="creationDateValue" 
-        style={{
-          background: "#DBDBDB", 
-          borderRadius: 10, 
-          padding: "6px 12px", 
-          minHeight: "42px", 
-          display: "flex", 
-          alignItems: "center", 
-          textAlign: 'center', 
-          justifyContent: 'center', 
-          flexDirection: 'column', 
-          color: 'black', 
-          fontSize: 24, 
-          fontFamily: 'var(--font-chewy)', 
-          fontWeight: '400', 
-          wordWrap: 'break-word'}}>
-            {user?.creationDate || "Loading..."}</div>
+      <div className="back-button-anchor">
+        <Link href="/">
+          <Button className="back-button" type="primary">Back to Menu</Button>
+        </Link>
       </div>
 
-      <div 
-      data-layer="Friends Row" 
-      className="Friends Row" 
-      style={{
-        display: "grid", 
-        gridTemplateColumns: "190px 250px", 
-        columnGap: "12px", 
-        alignItems: "center"}}>
-        
-        <div 
-        data-layer="Friends:" 
-        className="Friends" 
-        style={{
-          textAlign: 'center', 
-          justifyContent: 'center', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          color: 'black', 
-          fontSize: 24, 
-          fontFamily: 'var(--font-chewy)', 
-          fontWeight: '400', 
-          wordWrap: 'break-word'}}>
-            Friends:</div>
+      <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", marginBottom: "4rem" }}>
+        <img src="/assets/account_icon.svg" alt="Account icon" style={{ width: "clamp(30px, 8vw, 80px)", height: "auto" }} />
+        <h1 style={{
+          fontSize: "clamp(1rem, 6vw, 5rem)",
+          fontWeight: "400",
+          fontFamily: "var(--font-chewy)",
+          margin: 0,
+          color: "black",
+        }}>
+          Your profile
+        </h1>
+      </div>
 
-        <div
-         data-layer="FriendsListValue" 
-         className="friendsListValue" 
-         style={{
-          background: "#DBDBDB", 
-          borderRadius: 10, 
-          padding: "6px 12px", 
-          minHeight: "90px", 
-          maxHeight: "140px", 
-          display: "flex", 
-          justifyContent: 'flex-start', 
-          alignItems: "flex-start", 
-          flexDirection: 'column', 
-          color: 'black', 
-          fontSize: 24, 
-          fontFamily: 'var(--font-chewy)', 
-          fontWeight: '400', 
-          wordWrap: 'break-word', 
-          overflowY: 'auto'}}>
 
-          {friendsLoading ? "Loading..." : friends.length > 0 ? friends.map((friend) => (
-            <div
-              key={friend.id}
-              style={{ display: "flex", alignItems: "center", gap: 6, width: "100%" }}
-            >
-              <span>{friend.username}</span>
-              <span
-                onClick={() => setFriendToDelete(friend)}
-                style={{
-                  color: "red",
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                  fontSize: 20,
-                  lineHeight: 1,
-                  userSelect: "none",
-                }}
-              >
-                -
-              </span>
+      <div style={{ display: "flex", gap: "42px", alignItems: "flex-start", justifyContent: "center", marginBottom: "4rem" }}>
+        <div style={{ display: "grid", rowGap: "16px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "190px 250px", columnGap: "12px", alignItems: "center" }}>
+            <div style={{ textAlign: "center", color: "black", fontSize: 24, fontFamily: "var(--font-chewy)", fontWeight: "400" }}>Username:</div>
+            <div style={{ background: "#DBDBDB", borderRadius: 10, padding: "6px 12px", minHeight: "42px", display: "flex", alignItems: "center", justifyContent: "center", color: "black", fontSize: 24, fontFamily: "var(--font-chewy)", fontWeight: "400", wordWrap: "break-word" }}>
+              {user?.username || "Loading..."}
             </div>
-          )) : "No friends yet"}
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "190px 250px", columnGap: "12px", alignItems: "center" }}>
+            <div style={{ textAlign: "center", color: "black", fontSize: 24, fontFamily: "var(--font-chewy)", fontWeight: "400" }}>Creation Date:</div>
+            <div style={{ background: "#DBDBDB", borderRadius: 10, padding: "6px 12px", minHeight: "42px", display: "flex", alignItems: "center", justifyContent: "center", color: "black", fontSize: 24, fontFamily: "var(--font-chewy)", fontWeight: "400", wordWrap: "break-word" }}>
+              {user?.creationDate || "Loading..."}
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "190px 250px", columnGap: "12px", alignItems: "start" }}>
+            <div style={{ textAlign: "center", color: "black", fontSize: 24, fontFamily: "var(--font-chewy)", fontWeight: "400", paddingTop: "8px" }}>Friends:</div>
+            <div style={{ background: "#DBDBDB", borderRadius: 10, padding: "6px 12px", minHeight: "90px", maxHeight: "140px", display: "flex", flexDirection: "column", alignItems: "flex-start", color: "black", fontSize: 24, fontFamily: "var(--font-chewy)", fontWeight: "400", wordWrap: "break-word", overflowY: "auto" }}>
+              {friendsLoading ? "Loading..." : friends.length > 0 ? friends.map((friend) => (
+                <div key={friend.id} style={{ display: "flex", alignItems: "center", gap: 6, width: "100%" }}>
+                  <span>{friend.username}</span>
+                  <span onClick={() => setFriendToDelete(friend)} style={{ color: "red", cursor: "pointer", fontWeight: "bold", fontSize: 20, lineHeight: 1, userSelect: "none" }}>-</span>
+                </div>
+              )) : "No friends yet"}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: "grid", rowGap: "16px" }}>
+          <Button className="back-button" type="primary" style={{ width: "240px" }} onClick={handleAddFriend}>add Friend</Button>
+          <Badge count={friendRequestCount} showZero={false}>
+            <Button className="back-button" type="primary" style={{ width: "240px" }} onClick={handleFriendRequests}>Friend Requests</Button>
+          </Badge>
         </div>
       </div>
-    </div>
 
-    <div 
-    data-layer="Right Buttons" 
-    className="Right Buttons" 
-    style={{display: "grid", rowGap: "16px", paddingTop: "0px"}}>
-      <Button
-      data-layer="add Friend"
-      className="AddFriend back-button"
-      type="primary"
-      style={{ width: "240px" }}
-      onClick={handleAddFriend}>add Friend</Button>
-      
-      <Badge count={friendRequestCount} showZero={false}>
-        <Button
-        data-layer="Friend Requests"
-        className="FriendRequests back-button"
-        type="primary"
-        style={{ width: "240px" }}
-        onClick={handleFriendRequests}>Friend Requests</Button>
-      </Badge>
-    </div>
-  </div>
-
-  <div 
-  data-layer="Bottom" 
-  className="Bottom" 
-  style={{
-    display: "grid", 
-    gridTemplateColumns: "1fr 250px", 
-    marginTop: "30px", 
-    columnGap: "40px",
-    alignItems: "center"}}>
-
-    <div 
-    data-layer="Play Group" 
-    className="Play Group" 
-    style={{
-      display: "grid", 
-      rowGap: "20px", 
-      justifyItems: "center",
-      marginTop: "50px"}}>
-
-      <div 
-      data-layer="LetPlayLabel" 
-      className="letPlayLabel" 
-      style={{
-        textAlign: 'center', 
-        justifyContent: 'center', 
-        display: 'flex', 
-        flexDirection: 'column', 
-        color: 'black', 
-        fontSize: 32, 
-        fontFamily: 'var(--font-chewy)', 
-        fontWeight: '400', 
-        wordWrap: 'break-word'}}>
-          Let&apos;s Play:</div>
-      <div 
-      data-layer="Play Buttons" 
-      className="Play Buttons" 
-      style={{display: "grid", 
-      gridTemplateColumns: "240px 240px", 
-      columnGap: "30px"}}>
-
-        <Button
-        data-layer="Singleplayer"
-        className="Singleplayer back-button"
-        type="primary"
-        style={{ width: "240px" }}
-        onClick={handleSingleplayer}>
-            Singleplayer</Button>
-        
-        <Button
-        data-layer="Multiplayer"
-        className="Multiplayer back-button"
-        type="primary"
-        style={{ width: "240px" }}
-        onClick={handleMultiplayer}>
-            Multiplayer</Button>
+      <div style={{ display: "flex", gap: "2rem", justifyContent: "center" }}>
+        <Button className="back-button" type="primary" style={{ width: "240px" }} onClick={handleLogout}>Logout</Button>
+        <Button className="back-button" type="primary" style={{ width: "240px" }} onClick={handleChangePassword}>change Password</Button>
       </div>
-    </div>
-    <Button
-    data-layer="Scoreboard"
-    className="Scoreboard back-button"
-    type="primary"
-    style={{ width: "240px", marginTop: "25px" }}
-    onClick={handleScoreboard}>
-        Scoreboard</Button>
-  </div>
+
+
+
 
   <Modal
     open={!!friendToDelete}
@@ -699,7 +440,6 @@ style={{
       </Form.Item>
     </Form>
   </Modal>
-</div>
 </div>
   );
 };

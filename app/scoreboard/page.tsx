@@ -64,7 +64,7 @@ const Scoreboard: React.FC = () => {
             outline: '3px black solid',
             outlineOffset: '-1.50px'}}>
                 <div className="back-button-anchor">
-                        <Button className="back-button" type="primary" onClick={() => router.push(userId ? `/users/${userId}` : "/users")}>Back</Button>
+                        <Button className="back-button" type="primary" onClick={() => router.push("/")}>Back</Button>
                 </div>
         <div data-layer="Scoreboard Page" className="Scoreboard Page" style={{width: "min(1100px, 100%)", display: "grid", gridTemplateRows: "auto auto auto", rowGap: "28px", paddingTop: "28px", paddingBottom: "24px", background: '#6BAED6'}}>
                             <div data-layer="Header" className="Header" style={{display: "flex", alignItems: "center", justifyContent: "center"}}>

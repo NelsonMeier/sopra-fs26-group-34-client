@@ -70,9 +70,9 @@ const ResultsPage: React.FC = () => {
 			</style>
 
 			<div className="back-button-anchor">
-				<Link href={`/users/${userId}`}>
+				<Link href={"/"}>
 					<Button type="primary" className="back-button">
-						Back to Profile
+						Back to Menu
 					</Button>
 				</Link>
 

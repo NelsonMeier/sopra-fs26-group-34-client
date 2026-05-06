@@ -85,9 +85,9 @@ const FriendRequests: React.FC = () => {
       gap: "2rem"}}>
 
       <div className="back-button-anchor">
-        <Link href={`/users/${userId}`}>
+        <Link href={"/users/" + userId}>
           <Button className="back-button" type="primary">
-            Back
+            Back to profile
           </Button>
         </Link>
       </div>

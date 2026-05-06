@@ -115,7 +115,7 @@ function MultiplayerRoomInner() {
       </h1>
 
       <div className="back-button-anchor">
-        <Link href={`/users/${userId}`}>
+        <Link href={"/"}>
           <Button className="back-button" type="primary">
             Back
           </Button>

@@ -170,7 +170,7 @@ const AddFriend: React.FC = () => {
         </Modal>
 
       <div className="back-button-anchor">
-        <Link href={`/users/${userId}`}>
+        <Link href={"/users/" + userId}>
           <Button
             className="back-button"
             type="primary">Back to Profile</Button>
