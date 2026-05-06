@@ -57,7 +57,7 @@ const Profile: React.FC = () => {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-    const storedToken = localStorage.getItem("token"); //authetication checks
+    const storedToken = localStorage.getItem("token")?.replace(/^"|"$/g, ""); //authetication checks
     if (!storedToken) {
       router.push("/login");
     }

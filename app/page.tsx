@@ -2,13 +2,16 @@
 import { useRouter } from "next/navigation";
 import { Button, Carousel, Card } from "antd";
 import { useEffect, useState } from "react";
+import { useApi } from "@/hooks/useApi";
+import { User } from "@/types/user";
 
 export default function Home() {
   const router = useRouter();
-  const [userId, setUserId] = useState<string | null>(null);
+  // undefined = auth check in progress, null = not signed in, string = signed in
+  const [userId, setUserId] = useState<string | null | undefined>(undefined);
+  const apiService = useApi();
 
-
-  const handleSingleplayer = () => {  
+  const handleSingleplayer = () => {
       router.push("/singleplayer");
     };
 
@@ -21,7 +24,20 @@ export default function Home() {
     };
 
     useEffect(() => {
-      setUserId(localStorage.getItem("userId"));
+      const token = localStorage.getItem("token")?.replace(/^"|"$/g, "");
+      const id = localStorage.getItem("userId");
+      if (!token || !id) {
+        setUserId(null);
+        return;
+      }
+      apiService
+        .get<User>(`/users/${id}`, { Authorization: `Bearer ${token}` })
+        .then(() => setUserId(id))
+        .catch(() => {
+          localStorage.removeItem("token");
+          localStorage.removeItem("userId");
+          setUserId(null);
+        });
     }, []);
 
   return (
@@ -35,25 +51,27 @@ export default function Home() {
       padding: "1rem 2rem 3rem",
       boxSizing: "border-box"}}>
 
-      <Button
-        onClick ={()=> router.push(userId ? `/users/${userId}` : "/login")}
-        style={{
-          position: "fixed",
-          top: "1.5rem",
-          right: "1.5rem",
-          backgroundColor: "#E8956D",
-          borderColor: "#E8956D",
-          borderRadius: "30px",
-          width: "clamp(120px, 12vw, 175px)",
-          height: "clamp(40px, 5vh, 50px)",
-          fontSize: "clamp(1rem, 1.5vw, 1.4rem)",
-          fontWeight: "bold",
-          fontFamily: "var(--font-chewy)",
-          boxShadow: "0px 8px 10px rgba(0,0,0,0.2)",
-          color: "black",
-          border: "none"}}>
-        {userId ? "My Profile" : "Login / Sign Up"}
-      </Button> 
+      {userId !== undefined && (
+        <Button
+          onClick={() => router.push(userId ? `/users/${userId}` : "/login")}
+          style={{
+            position: "fixed",
+            top: "1.5rem",
+            right: "1.5rem",
+            backgroundColor: "#E8956D",
+            borderColor: "#E8956D",
+            borderRadius: "30px",
+            width: "clamp(120px, 12vw, 175px)",
+            height: "clamp(40px, 5vh, 50px)",
+            fontSize: "clamp(1rem, 1.5vw, 1.4rem)",
+            fontWeight: "bold",
+            fontFamily: "var(--font-chewy)",
+            boxShadow: "0px 8px 10px rgba(0,0,0,0.2)",
+            color: "black",
+            border: "none"}}>
+          {userId ? "My Profile" : "Login / Sign Up"}
+        </Button>
+      )}
 
         <Button
         onClick={() => router.push("/about")}
