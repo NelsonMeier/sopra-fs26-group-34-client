@@ -2,22 +2,28 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { useApi } from "@/hooks/useApi";
 import { App } from "antd";
+
+const SINGLEPLAYER_GAME_ROUTES = [
+    "/games/reaction-time",
+    "/games/typing-speed",
+    "/games/time-interval"
+];
 
 const PROTECTED_ROUTES = [
     "/users",
     "/add-friend", 
     "/friend-requests",
     "/multiplayer",
-    "/singleplayer/results",
     "/multiplayer/results",
     "/users/[id]",
     "/scoreboard",
     "/games/reaction-time",
-    "/games/typing-speed"
+    "/games/typing-speed",
+    "/games/time-interval"
 ];
 
 // Checks if incoming route is protected
@@ -25,7 +31,12 @@ const isProtectedRoute = (pathname: string): boolean => {
     return PROTECTED_ROUTES.some(route => {
         const pattern = route.replace(/\[id\]/g, "[^/]+");
         return new RegExp(`^${pattern}$`).test(pathname);
-  });
+    });
+};
+
+const isPublicSingleplayerRoute = (pathname: string, hasRoomId: boolean): boolean => {
+    if (pathname === "/singleplayer/results") return true;
+    return SINGLEPLAYER_GAME_ROUTES.includes(pathname) && !hasRoomId;
 };
 
 
@@ -33,13 +44,15 @@ const isProtectedRoute = (pathname: string): boolean => {
 export const useRouteGuard = (): { isAuthChecked: boolean; isAuthorized: boolean } => {
     const router = useRouter();
     const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const searchParamsString = searchParams.toString();
     const { value: token, clear: clearToken } = useLocalStorage<string>("token", "");
     const { message } = App.useApp();
     const apiService = useApi();
     const [isAuthChecked, setIsAuthChecked] = useState(false);
     const [isAuthorized, setIsAuthorized] = useState(false);
 
-    // Tracks most recent processed pathname to avoid duplicate checking
+    // Tracks most recent processed route/auth state to avoid duplicate checking
     const lastProcessedPathnameRef = useRef<string | null>(null);
 
     // Extract user ID from /users/{id} pathname
@@ -49,13 +62,25 @@ export const useRouteGuard = (): { isAuthChecked: boolean; isAuthorized: boolean
     };
 
     useEffect(() => {
-        // Skip if we've already processed this exact pathname
-        if (lastProcessedPathnameRef.current === pathname) {
+        const routeKey = `${pathname}?${searchParamsString}:${token ? "token" : "anonymous"}`;
+
+        // Skip if we've already processed this exact route/auth state
+        if (lastProcessedPathnameRef.current === routeKey) {
             return;
         }
-        lastProcessedPathnameRef.current = pathname;
+        lastProcessedPathnameRef.current = routeKey;
+        setIsAuthChecked(false);
+        setIsAuthorized(false);
 
         const checkRoute = async () => {
+            const hasRoomId = searchParams.has("roomId");
+
+            if (isPublicSingleplayerRoute(pathname, hasRoomId)) {
+                setIsAuthorized(true);
+                setIsAuthChecked(true);
+                return;
+            }
+
             // Public routes are always accessible
             if (!isProtectedRoute(pathname)) {
                 setIsAuthorized(true);
@@ -112,7 +137,7 @@ export const useRouteGuard = (): { isAuthChecked: boolean; isAuthorized: boolean
         };
 
         checkRoute();
-    }, [pathname, token]);
+    }, [pathname, searchParams, searchParamsString, token]);
 
     return { isAuthChecked, isAuthorized }; // Returns authorisation status
 };

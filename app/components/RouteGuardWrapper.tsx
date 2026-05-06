@@ -2,7 +2,7 @@
 "use client";
 
 import { useRouteGuard } from "@/hooks/useRouteGuard";
-import { ReactNode } from "react";
+import { ReactNode, Suspense } from "react";
 
 interface RouteGuardWrapperProps {
   children: ReactNode;
@@ -10,6 +10,14 @@ interface RouteGuardWrapperProps {
 
 // Component blocks rendering until validation
 export function RouteGuardWrapper({ children }: RouteGuardWrapperProps) {
+  return (
+    <Suspense fallback={null}>
+      <RouteGuardContent>{children}</RouteGuardContent>
+    </Suspense>
+  );
+}
+
+function RouteGuardContent({ children }: RouteGuardWrapperProps) {
   const { isAuthChecked, isAuthorized } = useRouteGuard();
 
   // While validation in progress, render nothing (prevents page flashing)
