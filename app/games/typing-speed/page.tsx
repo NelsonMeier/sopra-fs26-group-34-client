@@ -205,7 +205,7 @@ const TypingSpeedGameInner: React.FC = () => {
     if (userInput.length === 0 && newInput.length > 0 && startTime === 0) {
       setStartTime(Date.now());
     }
-    if (newInput.length <= quote.length && quote.startsWith(newInput)) {
+    if (newInput.length <= quote.length) {
       setUserInput(newInput);
       if (newInput === quote && quote.length > 0) {
         mode === "multiplayer" ? finishMultiplayerRound() : finishRound();
@@ -269,11 +269,13 @@ const TypingSpeedGameInner: React.FC = () => {
 
   const renderQuote = () => (
     <div style={{ fontSize: "18px", lineHeight: "1.8", wordBreak: "break-word" }}>
-      {quote.split("").map((char, i) => (
-        <span key={i} style={{ color: i < userInput.length ? "black" : "white" }}>
-          {char}
-        </span>
-      ))}
+      {quote.split("").map((char, i) => {
+      let color = "white";           // not yet typed
+      if (i < userInput.length) {
+        color = userInput[i] === char ? "black" : "red";  // correct vs. wrong
+      }
+      return <span key={i} style={{ color }}>{char}</span>;
+    })}
     </div>
   );
 
