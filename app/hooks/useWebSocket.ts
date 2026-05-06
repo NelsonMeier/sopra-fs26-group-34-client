@@ -50,10 +50,7 @@ export function useWebSocket(roomId: string, userId: string, username: string) {
         // Subscribe to the shared room topic
         client.subscribe(`/topic/room/${roomId}`, (message) => {
           const data = JSON.parse(message.body);
-
-          if (data.type === "PLAYER_JOINED") { // if player joined
-            setJoinedPlayers((prev) => [...new Set([...prev, data.username])]);
-          }
+         
           if (data.type === "ROOM_STATE") { // if room state update
             setJoinedPlayers(data.players ?? []);
           }
