@@ -128,7 +128,7 @@ export default function Home() {
         gap: "2rem"
       }}>
       <div style={{width: "60vw", maxWidth: "600px"}}>
-        <Carousel autoplay dots={false} style={{ borderRadius: "20px", boxShadow: "1px 6px 10px rgba(0,0,0,0.3)", border: "1.5px solid #000000" }}>
+        <Carousel autoplay autoplaySpeed={4500} dots={false} style={{ borderRadius: "20px", boxShadow: "1px 6px 10px rgba(0,0,0,0.3)", border: "1.5px solid #000000" }}>
           <div>
             <div style={{ aspectRatio: "5/3", borderRadius: "20px", position: "relative", overflow: "hidden" }}>
               <img src="/assets/Reaction_Time.jpg" alt="Reaction Time" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", position: "absolute", top: 0, left: 0 }} />
@@ -140,7 +140,9 @@ export default function Home() {
                 background: "rgba(0,0,0,0.45)",
                 color: "#fff",
                 padding: "8px 14px",
-                fontSize: "14px",
+                fontSize: "16px",
+                fontFamily: "var(--font-chewy)",
+                textAlign: "center",
                 zIndex: 1,
               }}>
                 How quick are your reflexes?
@@ -158,10 +160,12 @@ export default function Home() {
                 background: "rgba(0,0,0,0.45)",
                 color: "#fff",
                 padding: "8px 14px",
-                fontSize: "14px",
+                fontSize: "16px",
+                textAlign: "center",
+                fontFamily: "var(--font-chewy)",
                 zIndex: 1,
               }}>
-                You think you can type faster than your friends? Put it to the test and find out!
+                Can you type faster than your friends?
               </div>
             </div>
           </div>
@@ -176,10 +180,32 @@ export default function Home() {
                 background: "rgba(0,0,0,0.45)",
                 color: "#fff",
                 padding: "8px 14px",
-                fontSize: "14px",
+                fontSize: "16px",
+                textAlign: "center",
+                fontFamily: "var(--font-chewy)",
                 zIndex: 1,
               }}>
                 The clock disappears but the time keeps going... Trust your gut!
+              </div>
+            </div>
+          </div>
+          <div>
+            <div style={{ aspectRatio: "5/3", overflow: "hidden", borderRadius: "20px", position:"relative" }}>
+              <img src="/assets/Aim_Test.jpg" alt="Time interval" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+              <div style={{
+                position: "absolute",
+                bottom: "0px",
+                left: 0,
+                right: 0,
+                background: "rgba(0,0,0,0.45)",
+                color: "#fff",
+                padding: "8px 14px",
+                fontSize: "16px",
+                fontFamily: "var(--font-chewy)",
+                textAlign: "center",
+                zIndex: 1,
+              }}>
+                How fast can you click on the targets? Don't miss!
               </div>
             </div>
           </div>
