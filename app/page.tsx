@@ -143,7 +143,7 @@ export default function Home() {
                 fontSize: "14px",
                 zIndex: 1,
               }}>
-                How fast are your reflexes?
+                How quick are your reflexes?
               </div>
             </div>
           </div>
