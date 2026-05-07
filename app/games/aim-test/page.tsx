@@ -5,7 +5,7 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 import Scorecard, { calcPointsForRound } from "@/components/Scorecard";
 
 
-type GameState = "idle" | "waiting" | "active" | "result" | "waiting_others" | "scorecard";
+type GameState = "idle" | "waiting" | "ready" | "active" | "result" | "waiting_others" | "scorecard";
 type Mode      = "singleplayer" | "multiplayer";
 
 export interface SingleplayerRounds {
@@ -18,6 +18,8 @@ export interface SingleplayerRounds {
 const GAME_ROUTES: Record<string, string> = {
   "reaction time": "reaction-time",
   "typing test":   "typing-speed",
+  "time interval": "time-interval",
+  "aim test":      "aim-test",
 };
 
 const clampRounds = (value: number): number => {
@@ -109,7 +111,7 @@ const AimTestGame: React.FC = () => {
         missesRef.current = 0;
         setTimeLeft(ROUND_DURATION);
         setTargetPos(randomPos());
-        setGameState("active");
+        setGameState("ready");
     };
 
     useEffect(() => {
@@ -169,7 +171,8 @@ const AimTestGame: React.FC = () => {
 
         const handleHit = (e: React.MouseEvent<HTMLDivElement>) => {
             e.stopPropagation();  // disable miss detection for this click
-            if (gameState !== "active") return;
+            if (gameState !== "active" && gameState !== "ready") return;
+            if (gameState === "ready") setGameState("active"); //starts timer once first target is clicked
             addHit();
             setTargetPos(randomPos());
         };
@@ -213,7 +216,7 @@ const AimTestGame: React.FC = () => {
         </div>
       )}
 
-      {gameState === "active" && (
+      {(gameState === "active" || gameState === "ready") && (
         <div 
         style={{ 
           fontSize: "20px",
@@ -227,7 +230,7 @@ const AimTestGame: React.FC = () => {
 
         <div
         onClick={() => { 
-            if (gameState === "active") addMiss();
+            if (gameState === "active" || gameState === "ready") addMiss();
 
          }}
         style={{ position: "relative", 
@@ -247,7 +250,7 @@ const AimTestGame: React.FC = () => {
                 transition: "background-color 0.1s ease"
 
             }}>
-        {gameState === "active" && (
+        {(gameState === "active" || gameState === "ready") && (
             <div onClick={handleHit} style={{
             position: "absolute",
             left: targetPos.x, top: targetPos.y,
