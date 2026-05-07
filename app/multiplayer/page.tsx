@@ -19,6 +19,7 @@ interface Friend { //Defines what a friend object looks like
 const GAME_ROUTES: Record<string, string> = { //maps game names to their URL 
   "reaction time": "reaction-time",
   "typing test":   "typing-speed",
+  "time interval": "time-interval",
 };
 
 function MultiplayerRoomInner() {
