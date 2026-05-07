@@ -375,6 +375,7 @@ const TypingSpeedGameInner: React.FC = () => {
         <Input.TextArea
           value={userInput}
           onChange={handleInputChange}
+          onPaste={(e) => e.preventDefault()}
           placeholder="Start typing here..."
           autoFocus
           style={{
