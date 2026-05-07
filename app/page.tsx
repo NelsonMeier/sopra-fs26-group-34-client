@@ -128,20 +128,59 @@ export default function Home() {
         gap: "2rem"
       }}>
       <div style={{width: "60vw", maxWidth: "600px"}}>
-        <Carousel autoplay dots style={{ borderRadius: "20px", boxShadow: "1px 6px 10px rgba(0,0,0,0.3)", border: "1.5px solid #000000" }}>
+        <Carousel autoplay dots={false} style={{ borderRadius: "20px", boxShadow: "1px 6px 10px rgba(0,0,0,0.3)", border: "1.5px solid #000000" }}>
           <div>
-            <div style={{ aspectRatio: "5/3", overflow: "hidden", borderRadius: "20px" }}>
-              <img src="/assets/Reaction_Time.jpg" alt="Reaction Time" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            <div style={{ aspectRatio: "5/3", borderRadius: "20px", position: "relative", overflow: "hidden" }}>
+              <img src="/assets/Reaction_Time.jpg" alt="Reaction Time" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", position: "absolute", top: 0, left: 0 }} />
+              <div style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                background: "rgba(0,0,0,0.45)",
+                color: "#fff",
+                padding: "8px 14px",
+                fontSize: "14px",
+                zIndex: 1,
+              }}>
+                How fast are your reflexes?
+              </div>
             </div>
           </div>
           <div>
-            <div style={{ aspectRatio: "5/3", overflow: "hidden", borderRadius: "20px" }}>
+            <div style={{ aspectRatio: "5/3", overflow: "hidden", borderRadius: "20px", position: "relative" }}>
               <img src="/assets/Typing_Test.jpg" alt="Typing Speed" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+              <div style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                background: "rgba(0,0,0,0.45)",
+                color: "#fff",
+                padding: "8px 14px",
+                fontSize: "14px",
+                zIndex: 1,
+              }}>
+                You think you can type faster than your friends? Put it to the test and find out!
+              </div>
             </div>
           </div>
           <div>
-            <div style={{ aspectRatio: "5/3", overflow: "hidden", borderRadius: "20px" }}>
+            <div style={{ aspectRatio: "5/3", overflow: "hidden", borderRadius: "20px", position:"relative" }}>
               <img src="/assets/Time_Interval.jpg" alt="Time interval" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+              <div style={{
+                position: "absolute",
+                bottom: "0px",
+                left: 0,
+                right: 0,
+                background: "rgba(0,0,0,0.45)",
+                color: "#fff",
+                padding: "8px 14px",
+                fontSize: "14px",
+                zIndex: 1,
+              }}>
+                The clock disappears but the time keeps going... Trust your gut!
+              </div>
             </div>
           </div>
         </Carousel>
