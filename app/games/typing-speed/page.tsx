@@ -60,6 +60,7 @@ const TypingSpeedGameInner: React.FC = () => {
   const [currentRound, setCurrentRound] = useState<number>(1);
   const [scores, setScores] = useState<number[]>([]);
   const [sessionInitialized, setSessionInitialized] = useState<boolean>(false);
+  const [timedOut, setTimedOut] = useState<boolean>(false);
   const [cumulativePoints,   setCumulativePoints  ] = useState<Record<string, number>>(() => {
     if (typeof window === "undefined") return {};
     try {
@@ -100,6 +101,7 @@ const TypingSpeedGameInner: React.FC = () => {
   );
 
   const fetchQuote = async () => {
+    setTimedOut(false);
     try {
       const data = await apiService.get<{ content: string }>("/api/games/quote");
       setQuote(data.content);
@@ -200,6 +202,17 @@ const TypingSpeedGameInner: React.FC = () => {
     return () => clearInterval(interval);
   }, [gameState, startTime]);
 
+  // timout after one minute
+  useEffect(() => {
+    if (gameState !== "active") return;
+    const t = setTimeout(() => {
+      setTimedOut(true);
+      if(mode === "multiplayer") finishMultiplayerRound(0);
+      else finishRound(0);
+    }, 60000);
+    return () => clearTimeout(t);
+  }, [gameState]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newInput = e.target.value;
     if (userInput.length === 0 && newInput.length > 0 && startTime === 0) {
@@ -213,10 +226,10 @@ const TypingSpeedGameInner: React.FC = () => {
     }
   };
 
-  const finishRound = () => {
+  const finishRound = (timeoutWpm?: number) => {
     const elapsed   = (Date.now() - startTime) / 1000;
     const wordCount = quote.trim().split(/\s+/).length;
-    const wpm = Math.round((wordCount / elapsed) * 60);
+    const wpm = timeoutWpm ?? Math.round((wordCount / elapsed) * 60);
     setTypingSpeed(wpm);
     setGameState("result");
     const nextScores = [...scores, wpm];
@@ -233,10 +246,10 @@ const TypingSpeedGameInner: React.FC = () => {
     setTimeoutId(t);
   };
   //submit WPM via websocket and wait for others
-  const finishMultiplayerRound = () => {
+  const finishMultiplayerRound = (timeoutWpm?: number) => {
     const elapsed   = (Date.now() - startTime) / 1000;
     const wordCount  = quote.trim().split(/\s+/).length;
-    const wpm       = Math.round((wordCount / elapsed) * 60);
+    const wpm       = timeoutWpm ?? Math.round((wordCount / elapsed) * 60);
     setTypingSpeed(wpm);
     setGameState("waiting_others");
     send("/app/submitScore", {
@@ -365,7 +378,7 @@ const TypingSpeedGameInner: React.FC = () => {
         {gameState === "waiting" || gameState === "waiting_quote" ? (
           <p style={{ textAlign: "center" }}>Loading quote...</p>
         ) : gameState === "result" || gameState === "waiting_others" ? (
-          <p style={{ textAlign: "center" }}>Great job!</p>
+          <p style={{ textAlign: "center" }}>{timedOut ? "You took too long!" : "Great job!"}</p>
         ) : (
           renderQuote()
         )}
