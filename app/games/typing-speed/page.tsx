@@ -57,6 +57,8 @@ const TypingSpeedGameInner: React.FC = () => {
   const [totalRounds, setTotalRounds] = useState<number>(0);
   const [reactionRounds, setReactionRounds] = useState<number>(0);
   const [timeIntervalRounds, setTimeIntervalRounds] = useState<number>(0);
+  const [aimTestRounds, setAimTestRounds] = useState<number>(0);
+  const [clickSpeedRounds, setClickSpeedRounds] = useState<number>(0);
   const [currentRound, setCurrentRound] = useState<number>(1);
   const [scores, setScores] = useState<number[]>([]);
   const [sessionInitialized, setSessionInitialized] = useState<boolean>(false);
@@ -79,26 +81,33 @@ const TypingSpeedGameInner: React.FC = () => {
     if (mode !== "singleplayer") { setSessionInitialized(true); return; }
     try {
       const storedRounds = globalThis.sessionStorage.getItem("singleplayerRounds");
-      if (!storedRounds) {setTotalRounds(0);setReactionRounds(0);setTimeIntervalRounds(0);setSessionInitialized(true); return; }
+      if (!storedRounds) {setTotalRounds(0);setReactionRounds(0);setTimeIntervalRounds(0);setAimTestRounds(0);setClickSpeedRounds(0);setSessionInitialized(true); return; }
       const parsed = JSON.parse(storedRounds) as Partial<SingleplayerRounds>;
       const reaction = clampRounds(Number(parsed?.reactionTime ?? 0));
       const typing = clampRounds(Number(parsed?.typingSpeed ?? 0));
       const timeInterval = clampRounds(Number(parsed?.timeInterval ?? 0));
+      const aimTest = clampRounds(Number(parsed?.aimTest ?? 0));
+      const clickSpeed = clampRounds(Number(parsed?.clickSpeed ?? 0));
       setReactionRounds(reaction);
       setTotalRounds(typing);
       setTimeIntervalRounds(timeInterval);
+      setAimTestRounds(aimTest);
+      setClickSpeedRounds(clickSpeed);
       globalThis.sessionStorage.setItem("typingScores", JSON.stringify([]));
       setScores([]);
       setCurrentRound(1);
       setSessionInitialized(true);
     } catch {
-      setTotalRounds(0);setReactionRounds(0);setTimeIntervalRounds(0);setSessionInitialized(true);
+      setTotalRounds(0);setReactionRounds(0);setTimeIntervalRounds(0);setAimTestRounds(0);setClickSpeedRounds(0);setSessionInitialized(true);
     }
   }, []);
 
-  const getNextSingleplayerRoute = () => (
-    timeIntervalRounds > 0 ? "/games/time-interval" : "/singleplayer/results"
-  );
+  const getNextSingleplayerRoute = () => {
+    if (timeIntervalRounds > 0) return "/games/time-interval";
+    if (aimTestRounds > 0) return "/games/aim-test";
+    if (clickSpeedRounds > 0) return "/games/click-speed";
+    return "/singleplayer/results";
+  };
 
   const fetchQuote = async () => {
     setTimedOut(false);

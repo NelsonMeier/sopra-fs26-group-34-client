@@ -11,6 +11,8 @@ export interface SingleplayerRounds {
   reactionTime: number;
   typingSpeed:  number;
   timeInterval: number;
+  aimTest: number;
+  clickSpeed: number;
 }
 
 const GAME_ROUTES: Record<string, string> = {
@@ -48,6 +50,8 @@ function ReactionTimeInner() {
   const [reactionRounds, setReactionRounds] = useState<number>(0);
   const [typingRounds, setTypingRounds] = useState<number>(0);
   const [timeIntervalRounds, setTimeIntervalRounds] = useState<number>(0);
+  const [aimTestRounds, setAimTestRounds] = useState<number>(0);
+  const [clickSpeedRounds, setClickSpeedRounds] = useState<number>(0);
   const [currentRound, setCurrentRound] = useState<number>(1);
   const [scores, setScores] = useState<number[]>([]);
   const [sessionInitialized, setSessionInitialized ] = useState<boolean>(false);
@@ -75,6 +79,8 @@ function ReactionTimeInner() {
         setReactionRounds(0);
         setTypingRounds(0);
         setTimeIntervalRounds(0);
+        setAimTestRounds(0);
+        setClickSpeedRounds(0);
         setSessionInitialized(true);
         return;
       }
@@ -82,9 +88,13 @@ function ReactionTimeInner() {
       const reaction = clampRounds(Number(parsed?.reactionTime ?? 0));
       const typing = clampRounds(Number(parsed?.typingSpeed ?? 0));
       const timeInterval = clampRounds(Number(parsed?.timeInterval ?? 0));
+      const aimTest = clampRounds(Number(parsed?.aimTest ?? 0));
+      const clickSpeed = clampRounds(Number(parsed?.clickSpeed ?? 0));
       setReactionRounds(reaction);
       setTypingRounds(typing);
       setTimeIntervalRounds(timeInterval);
+      setAimTestRounds(aimTest);
+      setClickSpeedRounds(clickSpeed);
       globalThis.sessionStorage.setItem("reactionScores", JSON.stringify([]));
       setScores([]);
       setCurrentRound(1);
@@ -93,6 +103,8 @@ function ReactionTimeInner() {
       setReactionRounds(0);
       setTypingRounds(0);
       setTimeIntervalRounds(0);
+      setAimTestRounds(0);
+      setClickSpeedRounds(0);
       setSessionInitialized(true);
     }
   }, [mode]);
@@ -100,6 +112,8 @@ function ReactionTimeInner() {
   const getNextSingleplayerRoute = () => {
     if (typingRounds > 0) return "/games/typing-speed";
     if (timeIntervalRounds > 0) return "/games/time-interval";
+    if (aimTestRounds > 0) return "/games/aim-test";
+    if (clickSpeedRounds > 0) return "/games/click-speed";
     return "/singleplayer/results";
   };
 
