@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "antd";
 import type { SingleplayerRounds } from "../reaction-time/page";
 
 type GameState = "waiting" | "active" | "result";
@@ -11,6 +12,16 @@ const ROUND_DURATION_SECONDS = 10;
 const clampRounds = (value: number): number => {
   if (!Number.isFinite(value)) return 0;
   return Math.max(0, Math.min(99, Math.trunc(value)));
+};
+
+const getButtonColor = (clickColorStep: number): string => {
+  const progress = Math.min(clickColorStep / 120, 1);
+
+  const hue = 199 - progress * 199;        
+  const saturation = 50 + progress * 40;   
+  const lightness = 82 - progress * 22;    
+
+  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 };
 
 const ClickSpeedGame: React.FC = () => {
@@ -25,6 +36,7 @@ const ClickSpeedGame: React.FC = () => {
   const [scores, setScores] = useState<number[]>([]);
   const [timeoutId, setTimeoutId] = useState<ReturnType<typeof setTimeout> | null>(null);
   const [sessionInitialized, setSessionInitialized] = useState<boolean>(false);
+  const [clickColorStep, setClickColorStep] = useState<number>(0);
   const clickCountRef = useRef<number>(0);
 
   useEffect(() => {
@@ -78,6 +90,7 @@ const ClickSpeedGame: React.FC = () => {
     setTimeLeft(ROUND_DURATION_SECONDS);
     setStartTime(0);
     clickCountRef.current = 0;
+    setClickColorStep(0);
     setScore(null);
     setGameState("waiting");
   }, []);
@@ -122,6 +135,7 @@ const ClickSpeedGame: React.FC = () => {
     const firstClickCount = 1;
 
     clickCountRef.current = firstClickCount;
+    setClickColorStep(firstClickCount);
     setStartTime(Date.now());
     setTimeLeft(ROUND_DURATION_SECONDS);
     setScore(null);
@@ -136,6 +150,7 @@ const ClickSpeedGame: React.FC = () => {
 
     if (gameState === "active") {
       clickCountRef.current += 1;
+      setClickColorStep((prev) => prev + 1);
     }
   };
 
@@ -183,15 +198,16 @@ const ClickSpeedGame: React.FC = () => {
         </div>
       )}
 
-      <button
-        type="button"
+      <Button
+        type="primary"
         onClick={handleClick}
         style={{
           width: "min(100%, 70%)",
           height: "65vh",
-          backgroundColor: "#B8D8E8",
+          backgroundColor: getButtonColor(clickColorStep),
           border: "none",
           borderRadius: "20px",
+          borderColor: "transparent",
           boxShadow: "0px 8px 10px rgba(0,0,0,0.2)",
           color: "black",
           cursor: "pointer",
@@ -200,10 +216,11 @@ const ClickSpeedGame: React.FC = () => {
           padding: "2rem",
           textAlign: "center",
           whiteSpace: "normal",
+          transition: "background-color 0.05s linear",
         }}
       >
         {getButtonText()}
-      </button>
+      </Button>
     </div>
   );
 };
