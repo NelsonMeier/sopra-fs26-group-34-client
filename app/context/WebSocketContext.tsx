@@ -5,6 +5,7 @@ import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { getApiDomain } from "@/utils/domain";
 import GlobalInvitePopup from "@/components/GlobalInvitePopup";
+import { useRouter } from "next/navigation";
 
 interface Invite {
   roomId: string;
@@ -14,17 +15,21 @@ interface Invite {
 interface WebSocketContextType {
   invite: Invite | null; //what we share w all pages when invite 
   clearInvite: () => void;
+  stompClient: Client | null; // to send messages from pop up when accepting invite
 }
 
 const WebSocketContext = createContext<WebSocketContextType>({ //creates instance w null first
   invite: null,
   clearInvite: () => {},
+  stompClient: null,
 });
 
 export function WebSocketContextProvider({ children }: { children: React.ReactNode }) { // to wrap whole app so pop up can show up everywhere
   const [invite, setInvite] = useState<Invite | null>(null);
   const clientRef = useRef<Client | null>(null);
   const [username, setUsername] = useState<string | null>(null);
+  const router = useRouter();
+  const [stompClient, setStompClient] = useState<Client | null>(null);
 
   // reads username from localStorage
   useEffect(() => {
@@ -53,12 +58,32 @@ export function WebSocketContextProvider({ children }: { children: React.ReactNo
       onConnect: () => {
         console.log("[InviteContext] Connected! Subscribed to /topic/invite/" + username);
         client.subscribe(`/topic/invite/${username}`, (message) => { //subscribe to personal invite topic
+          
           console.log("[InviteContext] Message received:", message.body); 
+          
           const data = JSON.parse(message.body); // when message received, parse it
+          
           if (data.type === "PLAYER_INVITED") { // if invite received, set invite state to show pop up
             console.log("[InviteContext] Showing invite popup from:", data.inviterName);
             setInvite({ roomId: data.roomId, inviterName: data.inviterName });
           }
+
+          if (data.type === "INVITE_CANCELLED" && invite?.roomId === data.roomId) { // if invite cancelled, clear invite state to hide pop up
+            console.log("[InviteContext] Invite cancelled for room:", data.roomId);
+              clearInvite();
+          }
+        });
+
+        client.subscribe(`/topic/join/${username}`, (message) => { //subscribe to personal join topic for responses after accepting invite
+            const body = JSON.parse(message.body);
+            if (body.type === "JOIN_SUCCESS") {
+                clearInvite();
+                router.push(`/multiplayer?roomId=${body.roomId}`);
+            }
+            if (body.type === "JOIN_DENIED") {
+                clearInvite();
+                alert(body.reason);
+            }
         });
       },
       onDisconnect: () => console.log("[InviteContext] Disconnected"),
@@ -74,7 +99,7 @@ export function WebSocketContextProvider({ children }: { children: React.ReactNo
 
 
   return ( //so pop up can be shown anywhere in app when invite received
-    <WebSocketContext.Provider value={{ invite, clearInvite }}>
+    <WebSocketContext.Provider value={{ invite, clearInvite, stompClient: clientRef.current }}>
       {children}
       <GlobalInvitePopup />
     </WebSocketContext.Provider>

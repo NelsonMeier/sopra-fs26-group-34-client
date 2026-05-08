@@ -4,7 +4,7 @@ import { useInviteContext } from "@/context/WebSocketContext";
 import { useRouter } from "next/navigation";
 
 export default function GlobalInvitePopup() {
-  const { invite, clearInvite } = useInviteContext();
+  const { invite, clearInvite, stompClient } = useInviteContext();
   const router = useRouter();
 
   if (!invite) return null;
@@ -43,9 +43,15 @@ export default function GlobalInvitePopup() {
             onClick={() => {
               const username = localStorage.getItem("username")?.replaceAll('"', '');
 
-              clearInvite();
+              if (!username || !stompClient || !invite) return;
 
-              router.push(`/multiplayer?roomId=${invite.roomId}`);
+              stompClient?.publish({
+                destination: "/app/joinRoom",
+                body: JSON.stringify({
+                  roomId: invite.roomId,
+                  username: username,
+                }),
+              });
             }}
             style={{
                 backgroundColor: "#8BC34A",
