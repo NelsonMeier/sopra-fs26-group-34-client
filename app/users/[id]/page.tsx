@@ -119,7 +119,7 @@ const Profile: React.FC = () => {
 
     fetchUser();
 
-  }, [id, token, apiService, router, clearToken]);
+  }, [id, token, apiService, router]);
 
     useEffect(() => {
       if (!id) return;

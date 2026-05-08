@@ -10,6 +10,7 @@ interface SingleplayerRounds {
   reactionTime: number;
   typingSpeed: number;
   timeInterval: number;
+  aimTest: number;
 }
 
 const clampRounds = (value: number): number => {
@@ -26,6 +27,7 @@ const SingleplayerRoom: React.FC = () => {
     reactionTime: 0,
     typingSpeed: 0,
     timeInterval: 0,
+    aimTest: 0,
   });
 
   useEffect(() => {
@@ -40,15 +42,17 @@ const SingleplayerRoom: React.FC = () => {
         reactionTime: clampRounds(Number(parsed?.reactionTime ?? 0)),
         typingSpeed: clampRounds(Number(parsed?.typingSpeed ?? 0)),
         timeInterval: clampRounds(Number(parsed?.timeInterval ?? 0)),
+        aimTest: clampRounds(Number(parsed?.aimTest ?? 0)),
       });
     } catch {
-      setRounds({ reactionTime: 0, typingSpeed: 0, timeInterval: 0 });
+      setRounds({ reactionTime: 0, typingSpeed: 0, timeInterval: 0, aimTest: 0 });
     }
   }, []);
 
   const reactionTimeRounds = clampRounds(rounds?.reactionTime ?? 0);
   const typingSpeedRounds = clampRounds(rounds?.typingSpeed ?? 0);
   const timeIntervalRounds = clampRounds(rounds?.timeInterval ?? 0);
+  const aimTestRounds = clampRounds(rounds?.aimTest ?? 0);
 
   const updateRounds = (key: keyof SingleplayerRounds, rawValue: string): void => {
     const nextValue = rawValue === "" ? 0 : clampRounds(Number(rawValue));
@@ -64,7 +68,7 @@ const SingleplayerRoom: React.FC = () => {
   };
 
   const handleStart = (): void => {
-    if (reactionTimeRounds <= 0 && typingSpeedRounds <= 0 && timeIntervalRounds <= 0) {
+    if (reactionTimeRounds <= 0 && typingSpeedRounds <= 0 && timeIntervalRounds <= 0 && aimTestRounds <= 0) {
       message.error("Please enter rounds for at least one game.");
       return;
     }
@@ -74,6 +78,7 @@ const SingleplayerRoom: React.FC = () => {
       globalThis.sessionStorage.setItem("reactionScores", JSON.stringify([]));
       globalThis.sessionStorage.setItem("typingScores", JSON.stringify([]));
       globalThis.sessionStorage.setItem("timeIntervalScores", JSON.stringify([]));
+      globalThis.sessionStorage.setItem("aimTestScores", JSON.stringify([]));
     }
 
     if (reactionTimeRounds > 0) {
@@ -83,6 +88,11 @@ const SingleplayerRoom: React.FC = () => {
 
     if (typingSpeedRounds > 0) {
       router.push("/games/typing-speed");
+      return;
+    }
+
+    if (aimTestRounds > 0) {
+      router.push("/games/aim-test");
       return;
     }
 
@@ -195,6 +205,21 @@ const SingleplayerRoom: React.FC = () => {
               onChange={(e) => updateRounds("timeInterval", e.target.value)}
             />
             Time Interval
+          </div>
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            fontFamily: "var(--font-chewy)" }}>
+            <input
+              type="number"
+              min="0"
+              max="99"
+              value={aimTestRounds}
+              style={{ width: "40px" }}
+              onChange={(e) => updateRounds("aimTest", e.target.value)}
+            />
+            Aim Test
           </div>
         </div>
       </div>
