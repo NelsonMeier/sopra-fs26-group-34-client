@@ -36,7 +36,8 @@ interface ScorecardProps {
   scores:           Record<string, number>;   
   cumulativePoints: Record<string, number>;   
   lowerIsBetter:    boolean;                  
-  scoreLabel:       string;                   
+  scoreLabel:       string;
+  scoreUnit?:       string;                   
   isAdmin:          boolean;
   hasNextGame?:     boolean;
   onNext:           () => void;
@@ -56,6 +57,7 @@ export default function Scorecard({
   cumulativePoints,
   lowerIsBetter,
   scoreLabel,
+  scoreUnit,
   isAdmin,
   hasNextGame = false,
   onNext,
@@ -78,6 +80,8 @@ export default function Scorecard({
  
   const formatScore = (score: number) => { //formats score for display, handling "too early" case 
     if (score === -1) return "Too early!";
+    if (scoreUnit === "s" && score === 20000) return "Timed out!";
+    if (scoreUnit === "s") return `${(score / 1000).toFixed(3)} s`;
     return lowerIsBetter ? `${score} ms` : `${score} wpm`; 
   };
 
