@@ -44,7 +44,7 @@ function MultiplayerRoomInner() {
   useEffect(() => {
     if (!isConnected || !userId || !username) return;
     if (isAdmin) {
-      send("/app/createRoom", { roomId, adminId: userId });
+      send("/app/createRoom", { roomId, adminId: userId, adminUsername: username });
     } else {
       send("/app/joinRoom", { roomId, username });
     }
@@ -389,7 +389,7 @@ function MultiplayerRoomInner() {
             Ready Players:
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "2rem" }}>
-            {[...new Set([...(username ? [username] : []), ...joinedPlayers])].map((player) => (
+            {joinedPlayers.map((player) => (
               <div key={player} style={{ fontFamily: "var(--font-chewy)" }}>
                 {player}{player === username ? " (you)" : ""}
               </div>
