@@ -282,6 +282,7 @@ function TimeIntervalInner() {
     });
   };
 
+  
 // handling next on scorecard
   const handleScorecardNext = () => {
     const isLast = currentRound >= rounds;
