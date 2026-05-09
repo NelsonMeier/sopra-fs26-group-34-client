@@ -19,6 +19,7 @@ interface Friend { //Defines what a friend object looks like
 const GAME_ROUTES: Record<string, string> = { //maps game names to their URL 
   "reaction time": "reaction-time",
   "typing test":   "typing-speed",
+  "time interval": "time-interval",
 };
 
 function MultiplayerRoomInner() {
@@ -282,6 +283,18 @@ function MultiplayerRoomInner() {
                   }}
                 />
                 Typing Test
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", fontFamily: "var(--font-chewy)" }}>
+                <input
+                  type="number"
+                  min="0"
+                  defaultValue="0"
+                  style={{ width: "40px" }}
+                  onChange={(e) => {
+                    send("/app/selectGame", { roomId, game: "Time Interval", rounds: e.target.value, userId });
+                  }}
+                />
+                Time Interval
               </div>
             </div>
           )}
