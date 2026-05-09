@@ -264,6 +264,20 @@ if (userId && token) { //check that both r here
       router.push("/scoreboard");
     };
 
+    const formatRankLine = (
+      label: string,
+      score: number | null | undefined,
+      rank: number | null | undefined,
+      unit: string,
+    ) => {
+      if (score == null) {
+        return `${label} — No score yet`;
+      }
+      const rankLabel = rank != null ? `#${rank}` : "#?";
+      const formattedScore = unit === "s" ? score.toFixed(3) : score;
+      return `${label} ${rankLabel} — ${formattedScore} ${unit}`;
+    };
+
   
   return (
 <div style={{
@@ -513,6 +527,74 @@ style={{
           )) : "No friends yet"}
         </div>
       </div>
+      <div
+      data-layer="Rankings Row"
+      className="Rankings Row"
+            style={{
+        display: "grid", 
+        gridTemplateColumns: "190px 250px", 
+        columnGap: "12px", 
+        alignItems: "center"}}>
+        <div 
+        data-layer="Rankings:" 
+        className="Rankings" 
+        style={{
+          textAlign: 'center', 
+          justifyContent: 'center', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          color: 'black', 
+          fontSize: 24, 
+          fontFamily: 'var(--font-chewy)', 
+          fontWeight: '400', 
+          wordWrap: 'break-word'}}>
+            Rankings:</div>
+        <div
+         data-layer="RankingsValue"
+         className="rankingsValue"
+         style={{
+          background: "#DBDBDB", 
+          borderRadius: 10, 
+          padding: "6px 12px", 
+          minHeight: "90px", 
+          maxHeight: "140px", 
+          display: "flex", 
+          justifyContent: 'flex-start', 
+          alignItems: "flex-start", 
+          flexDirection: 'column', 
+          color: 'black', 
+          fontSize: 20, 
+          fontFamily: 'var(--font-chewy)', 
+          fontWeight: '400', 
+          wordWrap: 'break-word', 
+          overflowY: 'auto',
+          rowGap: "6px"}}>
+          <div>
+            {formatRankLine(
+              "Reaction Time",
+              user?.reaction?.score ?? null,
+              user?.reaction?.rank ?? null,
+              "ms",
+            )}
+          </div>
+          <div>
+            {formatRankLine(
+              "Typing Speed",
+              user?.typing?.score ?? null,
+              user?.typing?.rank ?? null,
+              "wpm",
+            )}
+          </div>
+          <div>
+            {formatRankLine(
+              "Time Interval",
+              user?.timeInterval?.score ?? null,
+              user?.timeInterval?.rank ?? null,
+              "s",
+            )}
+          </div>
+        </div>
+      </div>
     </div>
 
     <div 
@@ -543,7 +625,7 @@ style={{
   style={{
     display: "grid", 
     gridTemplateColumns: "1fr 250px", 
-    marginTop: "30px", 
+    marginTop: "0px", 
     columnGap: "40px",
     alignItems: "center"}}>
 
