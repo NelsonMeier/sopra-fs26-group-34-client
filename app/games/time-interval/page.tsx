@@ -122,7 +122,7 @@ function TimeIntervalInner() {
   }, [aimTestRounds, clickSpeedRounds]);
 
   useEffect(() => {
-    if (!sessionInitialized) return;
+    if (mode !== "singleplayer" || !sessionInitialized) return;
     if (totalRounds <= 0) router.push(getNextSingleplayerRoute());
   }, [getNextSingleplayerRoute, sessionInitialized, totalRounds, router]);
 
