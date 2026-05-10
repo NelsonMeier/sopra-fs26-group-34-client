@@ -2,8 +2,7 @@
 
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { useRouter } from "next/navigation";
-import { Button } from "antd"
-import { ApiService } from "@/api/apiService";
+import { Button, Switch } from "antd"
 import { useApi } from "@/hooks/useApi";
 import { useState, useEffect } from "react";
 
@@ -12,6 +11,7 @@ const Scoreboard: React.FC = () => {
     const router = useRouter();
     const apiService = useApi();
     const { value: userId } = useLocalStorage<string>("userId", "");
+    const { value: token } = useLocalStorage<string>("token", "");
 
     interface ScoreboardEntry {
     username: string;
@@ -27,6 +27,7 @@ const Scoreboard: React.FC = () => {
     }
 
     const [scoreboard, setScoreboard] = useState<ScoreboardResponse | null>(null);
+    const [friendsOnly, setFriendsOnly] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -34,7 +35,10 @@ const Scoreboard: React.FC = () => {
         const fetchScoreboard = async () => {
             try {
                 setLoading(true);
-                const data = await apiService.get<ScoreboardResponse>("/scoreboard");
+                const data = await apiService.get<ScoreboardResponse>(
+                    `/scoreboard?friendsOnly=${friendsOnly}`,
+                    { Authorization: `Bearer ${token}` },
+                );
                 setScoreboard(data);
                 setError(null);
             } catch (err) {
@@ -46,7 +50,7 @@ const Scoreboard: React.FC = () => {
         };
 
         fetchScoreboard();
-    }, [apiService]);
+    }, [apiService, friendsOnly, token]);
 
 
     
@@ -62,10 +66,20 @@ const Scoreboard: React.FC = () => {
             boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', 
             overflow: 'hidden', 
             outline: '3px black solid',
-            outlineOffset: '-1.50px'}}>
-                <div className="back-button-anchor">
-                        <Button className="back-button" type="primary" onClick={() => router.push(userId ? `/users/${userId}` : "/users")}>Back</Button>
-                </div>
+            outlineOffset: '-1.50px',
+            position: 'relative'}}>
+            <div style={{ position: "absolute", top: "2rem", left: "2rem", display: "flex", alignItems: "center", gap: "18px", color: "black", fontFamily: "var(--font-chewy)", fontSize: 22, zIndex: 10, height: "70px" }}>
+                <span>Friends only</span>
+                <Switch
+                    checked={friendsOnly}
+                    onChange={setFriendsOnly}
+                    size="default"
+                    style={{ transform: "scale(1.6)", backgroundColor: friendsOnly ? "#22c55e" : "#ef4444" }}
+                />
+            </div>
+            <div style={{ position: "absolute", top: "2rem", right: "2rem", zIndex: 10 }}>
+                <Button className="back-button" type="primary" onClick={() => router.push(userId ? `/users/${userId}` : "/users")}>Back</Button>
+            </div>
         <div data-layer="Scoreboard Page" className="Scoreboard Page" style={{width: "min(1100px, 100%)", display: "grid", gridTemplateRows: "auto auto auto", rowGap: "28px", paddingTop: "28px", paddingBottom: "24px", background: '#6BAED6'}}>
                             <div data-layer="Header" className="Header" style={{display: "flex", alignItems: "center", justifyContent: "center"}}>
                 <div style={{

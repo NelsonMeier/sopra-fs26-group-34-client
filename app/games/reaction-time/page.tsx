@@ -18,6 +18,7 @@ export interface SingleplayerRounds {
 const GAME_ROUTES: Record<string, string> = {
   "reaction time": "reaction-time",
   "typing test":   "typing-speed",
+  "time interval": "time-interval",
 };
 
 const clampRounds = (value: number): number => {

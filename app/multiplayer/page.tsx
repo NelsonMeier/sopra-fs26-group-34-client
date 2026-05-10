@@ -19,6 +19,7 @@ interface Friend { //Defines what a friend object looks like
 const GAME_ROUTES: Record<string, string> = { //maps game names to their URL 
   "reaction time": "reaction-time",
   "typing test":   "typing-speed",
+  "time interval": "time-interval",
 };
 
 function MultiplayerRoomInner() {
@@ -44,7 +45,7 @@ function MultiplayerRoomInner() {
   useEffect(() => {
     if (!isConnected || !userId || !username) return;
     if (isAdmin) {
-      send("/app/createRoom", { roomId, adminId: userId });
+      send("/app/createRoom", { roomId, adminId: userId, adminUsername: username });
     } else {
       send("/app/joinRoom", { roomId, username });
     }
@@ -283,6 +284,18 @@ function MultiplayerRoomInner() {
                 />
                 Typing Test
               </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", fontFamily: "var(--font-chewy)" }}>
+                <input
+                  type="number"
+                  min="0"
+                  defaultValue="0"
+                  style={{ width: "40px" }}
+                  onChange={(e) => {
+                    send("/app/selectGame", { roomId, game: "Time Interval", rounds: e.target.value, userId });
+                  }}
+                />
+                Time Interval
+              </div>
             </div>
           )}
         </div>
@@ -389,7 +402,7 @@ function MultiplayerRoomInner() {
             Ready Players:
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "2rem" }}>
-            {[...new Set([...(username ? [username] : []), ...joinedPlayers])].map((player) => (
+            {joinedPlayers.map((player) => (
               <div key={player} style={{ fontFamily: "var(--font-chewy)" }}>
                 {player}{player === username ? " (you)" : ""}
               </div>
