@@ -56,6 +56,8 @@ function TimeIntervalInner() {
   const [startTime, setStartTime] = useState<number>(0);
   const [score, setScore] = useState<number | null>(null);
   const [totalRounds, setTotalRounds] = useState<number>(0);
+  const [aimTestRounds, setAimTestRounds] = useState<number>(0);
+  const [clickSpeedRounds, setClickSpeedRounds] = useState<number>(0);
   const [currentRound, setCurrentRound] = useState<number>(1);
   const [scores, setScores] = useState<number[]>([]);
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
@@ -95,17 +97,34 @@ function TimeIntervalInner() {
       if (!storedRounds) { setTotalRounds(0); setSessionInitialized(true); return; }
       const parsed = JSON.parse(storedRounds) as Partial<SingleplayerRounds>;
       const timeInterval = clampRounds(Number(parsed?.timeInterval ?? 0));
+      const aimTest = clampRounds(Number(parsed?.aimTest ?? 0));
+      const clickSpeed = clampRounds(Number(parsed?.clickSpeed ?? 0));
+
       setTotalRounds(timeInterval);
+      setAimTestRounds(aimTest);
+      setClickSpeedRounds(clickSpeed);
       setCurrentRound(1);
       globalThis.sessionStorage.setItem("timeIntervalScores", JSON.stringify([]));
       setScores([]);
       setSessionInitialized(true);
     } catch {
       setTotalRounds(0);
+      setAimTestRounds(0);
+      setClickSpeedRounds(0);
       setSessionInitialized(true);
     }
   }, [mode]);
 
+  const getNextSingleplayerRoute = useCallback(() => {
+    if (aimTestRounds > 0) return "/games/aim-test";
+    if (clickSpeedRounds > 0) return "/games/click-speed";
+    return "/singleplayer/results";
+  }, [aimTestRounds, clickSpeedRounds]);
+
+  useEffect(() => {
+    if (!sessionInitialized) return;
+    if (totalRounds <= 0) router.push(getNextSingleplayerRoute());
+  }, [getNextSingleplayerRoute, sessionInitialized, totalRounds, router]);
 
   // Start each singleplayer round with a new random goal time once the session is initialized and rounds are set
   useEffect(() => {
@@ -152,6 +171,11 @@ function TimeIntervalInner() {
     setGoalTime(goalTimeFromSeed(roundStart.startAt));
     setGameState("waiting");
 
+    const id = setTimeout(() => {
+      if (currentRound >= totalRounds) {
+        router.push(getNextSingleplayerRoute());
+        return;
+        
     const delay = roundStart.startAt - Date.now();
     const t = setTimeout(() => {
       setStartTime(Date.now());
@@ -192,6 +216,17 @@ function TimeIntervalInner() {
     return () => clearTimeout(t);
   }, [nextGame, gameState, currentRound, rounds, mode, isAdmin, router]);
 
+    setTimeoutId(id);
+  }, [
+    currentRound,
+    getNextSingleplayerRoute,
+    goalTime,
+    resetRound,
+    router,
+    scores,
+    startTime,
+    totalRounds,
+  ]);
 
   // timer
   useEffect(() => {

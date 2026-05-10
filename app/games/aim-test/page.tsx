@@ -1,6 +1,7 @@
 "use client";
-import React, { useEffect, useState, Suspense } from "react";
+import React, { useCallback, useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import type { SingleplayerRounds } from "../reaction-time/page";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import Scorecard, { calcPointsForRound } from "@/components/Scorecard";
 
@@ -8,12 +9,6 @@ import Scorecard, { calcPointsForRound } from "@/components/Scorecard";
 type GameState = "idle" | "waiting" | "ready" | "active" | "result" | "waiting_others" | "scorecard";
 type Mode      = "singleplayer" | "multiplayer";
 
-export interface SingleplayerRounds {
-  reactionTime: number;
-  typingSpeed:  number;
-  timeInterval: number;
-  aimTest: number;
-}
 
 const GAME_ROUTES: Record<string, string> = {
   "reaction time": "reaction-time",
@@ -48,6 +43,7 @@ const AimTestGame: React.FC = () => {
     const [targetPos, setTargetPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
     const [score, setScore] = useState<number | null>(null);
     const [totalRounds, setTotalRounds] = useState<number>(0);
+    const [clickSpeedRounds, setClickSpeedRounds] = useState<number>(0);
     const [currentRound, setCurrentRound] = useState<number>(1);
     const [scores, setScores] = useState<number[]>([]);
     const [sessionInitialized, setSessionInitialized] = useState<boolean>(false);
@@ -82,29 +78,37 @@ const AimTestGame: React.FC = () => {
             const storedRounds = globalThis.sessionStorage.getItem("singleplayerRounds");
             if (!storedRounds) {
                 setTotalRounds(0);
+                setClickSpeedRounds(0);
                 setSessionInitialized(true);
                 return;
             }
             const parsed = JSON.parse(storedRounds) as Partial<SingleplayerRounds>;
             const aimTest = clampRounds(Number(parsed?.aimTest ?? 0));
+            const clickSpeed = clampRounds(Number(parsed?.clickSpeed ?? 0));
 
             setTotalRounds(aimTest);
+            setClickSpeedRounds(clickSpeed);
             setCurrentRound(1);
             globalThis.sessionStorage.setItem("aimScores", JSON.stringify([]));
             setScores([]);
             setSessionInitialized(true);
         } catch {
             setTotalRounds(0);
+            setClickSpeedRounds(0);
             setSessionInitialized(true);
         }
     }, []);
 
+    const getNextRoute = useCallback(() => (
+        clickSpeedRounds > 0 ? "/games/click-speed" : "/singleplayer/results"
+    ), [clickSpeedRounds]);
+
     useEffect(() => {
         if (!sessionInitialized) return;
-        if (totalRounds <= 0) router.push("/singleplayer/results");
-    }, [sessionInitialized, totalRounds, router]);
+        if (totalRounds <= 0) router.push(getNextRoute());
+    }, [sessionInitialized, totalRounds, router, getNextRoute]);
 
-    const startRound = () => {
+    const startRound = useCallback(() => {
         setHits(0);
         setMisses(0);
         hitsRef.current = 0;
@@ -112,12 +116,13 @@ const AimTestGame: React.FC = () => {
         setTimeLeft(ROUND_DURATION);
         setTargetPos(randomPos());
         setGameState("ready");
-    };
+    }, []);
 
     useEffect(() => {
         if (mode !== "singleplayer" || !sessionInitialized) return;
+        if (totalRounds <= 0) return;
         startRound();
-    }, [sessionInitialized]);
+    }, [sessionInitialized, mode, startRound, totalRounds]);
 
     useEffect(() => {
         if (gameState !== "active") return;
@@ -134,17 +139,6 @@ const AimTestGame: React.FC = () => {
         setIntervalId(id);
         return () => clearInterval(id);
     }, [gameState]);
-
-    const getNextRoute = () => {
-        try {
-            const stored = globalThis.sessionStorage.getItem("singleplayerRounds");
-            const parsed = stored ? JSON.parse(stored) : {};
-            if (clampRounds(Number(parsed?.reactionTime)) > 0) return "/games/reaction-time";
-            if (clampRounds(Number(parsed?.typingSpeed))  > 0) return "/games/typing-speed";
-            if (clampRounds(Number(parsed?.timeInterval)) > 0) return "/games/time-interval";
-        } catch { /**/ }
-        return "/singleplayer/results";
-        };
 
     const finishRound = (finalHits: number, finalMisses: number) => {
         if (intervalId) clearInterval(intervalId);

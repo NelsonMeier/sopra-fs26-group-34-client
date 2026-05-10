@@ -10,7 +10,7 @@ import { useApi } from "@/hooks/useApi";
 interface ResultRow {
 	key: string;
 	round: string;
-	game: "Reaction Time" | "Typing Speed" | "Time Interval" | "Aim Test";
+	game: "Reaction Time" | "Typing Speed" | "Time Interval" | "Aim Test" | "Click Speed";
 	score: string;
 	rawScore: number;
 }
@@ -46,7 +46,10 @@ const ResultsPage: React.FC = () => {
 		const timeIntervalScores = toNumberArray(
 			globalThis.sessionStorage.getItem("timeIntervalScores"),
 		);
-		const aimScores = toNumberArray(globalThis.sessionStorage.getItem("aimScores"));
+		const aimTestScores = toNumberArray(globalThis.sessionStorage.getItem("aimTestScores"));
+		const clickSpeedScores = toNumberArray(
+			globalThis.sessionStorage.getItem("clickSpeedScores"),
+		);
 
 		const reactionRows: ResultRow[] = reactionScores.map((score, index) => ({
 			key: `reaction-${index}`,
@@ -72,15 +75,36 @@ const ResultsPage: React.FC = () => {
 			rawScore: score,
 		}));
 
-		const aimTestRows: ResultRow[] = aimScores.map((score, index) => ({
+		const aimTestRows: ResultRow[] = aimTestScores.map((score, index) => ({
 			key: `aim-test-${index}`,
 			round: `${reactionRows.length + typingRows.length + timeIntervalRows.length + index + 1}.`,
 			game: "Aim Test",
-			score: score === -1 ? "Failed" : `${score}`,
+			score: `${score} points`,
 			rawScore: score,
 		}));
 
-		const nextRows = [...reactionRows, ...typingRows, ...timeIntervalRows, ...aimTestRows];
+		const clickSpeedRows: ResultRow[] = clickSpeedScores.map((score, index) => ({
+			key: `click-speed-${index}`,
+			round: `${
+				reactionRows.length +
+				typingRows.length +
+				timeIntervalRows.length +
+				aimTestRows.length +
+				index +
+				1
+			}.`,
+			game: "Click Speed",
+			score: `${score.toFixed(2)} clicks/s`,
+			rawScore: score,
+		}));
+
+		const nextRows = [
+			...reactionRows,
+			...typingRows,
+			...timeIntervalRows,
+			...aimTestRows,
+			...clickSpeedRows,
+		];
 		setRows(nextRows);
 
 		// Calculate best scores for high-score submission and row highlighting
