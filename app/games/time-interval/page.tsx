@@ -171,10 +171,6 @@ function TimeIntervalInner() {
     setGoalTime(goalTimeFromSeed(roundStart.startAt));
     setGameState("waiting");
 
-    const id = setTimeout(() => {
-      if (currentRound >= totalRounds) {
-        router.push(getNextSingleplayerRoute());
-        return;
         
     const delay = roundStart.startAt - Date.now();
     const t = setTimeout(() => {
@@ -216,17 +212,6 @@ function TimeIntervalInner() {
     return () => clearTimeout(t);
   }, [nextGame, gameState, currentRound, rounds, mode, isAdmin, router]);
 
-    setTimeoutId(id);
-  }, [
-    currentRound,
-    getNextSingleplayerRoute,
-    goalTime,
-    resetRound,
-    router,
-    scores,
-    startTime,
-    totalRounds,
-  ]);
 
   // timer
   useEffect(() => {
@@ -288,7 +273,7 @@ function TimeIntervalInner() {
 
       // after showing result for 2 seconds, either move to next round or show final results if it was the last round
       const id = setTimeout(() => {
-        if (currentRound >= totalRounds) { router.push("/singleplayer/results"); return; }
+        if (currentRound >= totalRounds) { router.push(getNextSingleplayerRoute()); return; }
         setCurrentRound((prev) => prev + 1);
         resetRound();
       }, 2000);

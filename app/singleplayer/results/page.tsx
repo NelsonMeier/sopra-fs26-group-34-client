@@ -115,7 +115,7 @@ const ResultsPage: React.FC = () => {
 		const bestTyping = typingScores.length > 0 ? Math.max(...typingScores) : null;
 		const bestTimeInterval =
 			validTimeIntervalScores.length > 0 ? Math.min(...validTimeIntervalScores) : null;
-		const bestAim = aimScores.length > 0 ? Math.max(...aimScores) : null;
+		const bestAim = aimTestScores.length > 0 ? Math.max(...aimTestScores) : null;
 
 		const submitHighScores = async () => {
 			try {
@@ -132,7 +132,7 @@ const ResultsPage: React.FC = () => {
 						reactionScores: reactionScores.length > 0 ? reactionScores : [],
 						typingScores: typingScores.length > 0 ? typingScores : [],
 						timeIntervalScores: timeIntervalScores.length > 0 ? timeIntervalScores : [],
-						aimTestScores: aimScores.length > 0 ? aimScores : [],
+						aimTestScores: aimTestScores.length > 0 ? aimTestScores : [],
 					},
 					{ Authorization: `Bearer ${token}` }
 				);
@@ -203,7 +203,7 @@ const ResultsPage: React.FC = () => {
 		if (
 			userId &&
 			token &&
-			(reactionScores.length > 0 || typingScores.length > 0 || timeIntervalScores.length > 0 || aimScores.length > 0)
+			(reactionScores.length > 0 || typingScores.length > 0 || timeIntervalScores.length > 0 || aimTestScores.length > 0)
 		) {
 			submitHighScores();
 		}
