@@ -90,7 +90,7 @@ const AimTestGame: React.FC = () => {
 
             setTotalRounds(aimTest);
             setCurrentRound(1);
-            globalThis.sessionStorage.setItem("aimTestScores", JSON.stringify([]));
+            globalThis.sessionStorage.setItem("aimScores", JSON.stringify([]));
             setScores([]);
             setSessionInitialized(true);
         } catch {
@@ -155,7 +155,7 @@ const AimTestGame: React.FC = () => {
         setGameState("result");
 
         if (typeof window !== "undefined") {
-            globalThis.sessionStorage.setItem("aimTestScores", JSON.stringify(nextScores));
+            globalThis.sessionStorage.setItem("aimScores", JSON.stringify(nextScores));
         }
 
         setTimeout(() => {

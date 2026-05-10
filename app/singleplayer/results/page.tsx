@@ -10,7 +10,7 @@ import { useApi } from "@/hooks/useApi";
 interface ResultRow {
 	key: string;
 	round: string;
-	game: "Reaction Time" | "Typing Speed" | "Time Interval";
+	game: "Reaction Time" | "Typing Speed" | "Time Interval" | "Aim Test";
 	score: string;
 	rawScore: number;
 }
@@ -46,6 +46,7 @@ const ResultsPage: React.FC = () => {
 		const timeIntervalScores = toNumberArray(
 			globalThis.sessionStorage.getItem("timeIntervalScores"),
 		);
+		const aimScores = toNumberArray(globalThis.sessionStorage.getItem("aimScores"));
 
 		const reactionRows: ResultRow[] = reactionScores.map((score, index) => ({
 			key: `reaction-${index}`,
@@ -71,7 +72,15 @@ const ResultsPage: React.FC = () => {
 			rawScore: score,
 		}));
 
-		const nextRows = [...reactionRows, ...typingRows, ...timeIntervalRows];
+		const aimTestRows: ResultRow[] = aimScores.map((score, index) => ({
+			key: `aim-test-${index}`,
+			round: `${reactionRows.length + typingRows.length + timeIntervalRows.length + index + 1}.`,
+			game: "Aim Test",
+			score: score === -1 ? "Failed" : `${score}`,
+			rawScore: score,
+		}));
+
+		const nextRows = [...reactionRows, ...typingRows, ...timeIntervalRows, ...aimTestRows];
 		setRows(nextRows);
 
 		// Calculate best scores for high-score submission and row highlighting
@@ -82,6 +91,7 @@ const ResultsPage: React.FC = () => {
 		const bestTyping = typingScores.length > 0 ? Math.max(...typingScores) : null;
 		const bestTimeInterval =
 			validTimeIntervalScores.length > 0 ? Math.min(...validTimeIntervalScores) : null;
+		const bestAim = aimScores.length > 0 ? Math.max(...aimScores) : null;
 
 		const submitHighScores = async () => {
 			try {
@@ -89,6 +99,7 @@ const ResultsPage: React.FC = () => {
 					reactionHighScoreUpdated: boolean;
 					typingHighScoreUpdated: boolean;
 					timeIntervalHighScoreUpdated: boolean;
+					aimTestHighScoreUpdated: boolean;
 				}
 
 				const response = await apiService.put<HighScoreResponse>(
@@ -97,6 +108,7 @@ const ResultsPage: React.FC = () => {
 						reactionScores: reactionScores.length > 0 ? reactionScores : [],
 						typingScores: typingScores.length > 0 ? typingScores : [],
 						timeIntervalScores: timeIntervalScores.length > 0 ? timeIntervalScores : [],
+						aimTestScores: aimScores.length > 0 ? aimScores : [],
 					},
 					{ Authorization: `Bearer ${token}` }
 				);
@@ -113,6 +125,11 @@ const ResultsPage: React.FC = () => {
 							response.typingHighScoreUpdated &&
 							row.game === "Typing Speed" &&
 							row.rawScore === bestTyping
+						) return true;
+						if (
+							response.aimTestHighScoreUpdated &&
+							row.game === "Aim Test" &&
+							row.rawScore === bestAim
 						) return true;
 						return (
 							response.timeIntervalHighScoreUpdated &&
@@ -147,6 +164,13 @@ const ResultsPage: React.FC = () => {
 						content: `New High Score: Time Interval (${bestTimeInterval.toFixed(3)}s)`,
 					});
 				}
+				if (response.aimTestHighScoreUpdated && bestAim !== null) {
+					message.open({
+						type: "success",
+						icon: <TrophyFilled style={{ color: "#faad14" }} />,
+						content: `New High Score: Aim Test (${bestAim})`,
+					});
+				}
 			} catch (error) {
 				console.error("Error submitting high scores:", error);
 			}
@@ -155,7 +179,7 @@ const ResultsPage: React.FC = () => {
 		if (
 			userId &&
 			token &&
-			(reactionScores.length > 0 || typingScores.length > 0 || timeIntervalScores.length > 0)
+			(reactionScores.length > 0 || typingScores.length > 0 || timeIntervalScores.length > 0 || aimScores.length > 0)
 		) {
 			submitHighScores();
 		}
