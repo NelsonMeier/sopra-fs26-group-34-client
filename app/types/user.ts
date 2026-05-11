@@ -7,4 +7,13 @@ export interface User {
   creationDate: string | null;
   reactionTimeHighScore: number | null;
   typingSpeedHighScore: number | null;
+  timeIntervalHighScore?: number | null;
+  reaction?: GameRank | null;
+  typing?: GameRank | null;
+  timeInterval?: GameRank | null;
+}
+
+export interface GameRank {
+  score: number | null;
+  rank: number | null;
 }
