@@ -20,6 +20,7 @@ const GAME_ROUTES: Record<string, string> = { //maps game names to their URL
   "reaction time": "reaction-time",
   "typing test":   "typing-speed",
   "time interval": "time-interval",
+  "aim test":      "aim-test",
 };
 
 function MultiplayerRoomInner() {
@@ -295,6 +296,18 @@ function MultiplayerRoomInner() {
                   }}
                 />
                 Time Interval
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", fontFamily: "var(--font-chewy)" }}>
+                <input
+                  type="number"
+                  min="0"
+                  defaultValue="0"
+                  style={{ width: "40px" }}
+                  onChange={(e) => {
+                    send("/app/selectGame", { roomId, game: "Aim Test", rounds: e.target.value, userId });
+                  }}
+                />
+                Aim Test
               </div>
             </div>
           )}
