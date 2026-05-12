@@ -16,6 +16,7 @@ const GAME_ROUTES: Record<string, string> = {
   "typing test":   "typing-speed",
   "time interval": "time-interval",
   "aim test":      "aim-test",
+  "click speed":   "click-speed",
 };
 
 // ensuring rounds from url

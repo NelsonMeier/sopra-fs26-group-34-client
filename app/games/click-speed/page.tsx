@@ -1,33 +1,60 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useCallback, useEffect, useRef, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "antd";
 import type { SingleplayerRounds } from "../reaction-time/page";
+import { useWebSocket } from "@/hooks/useWebSocket";
+import Scorecard, { calcPointsForRound } from "@/components/Scorecard";
 
-type GameState = "waiting" | "active" | "result";
+type GameState = "idle" | "waiting" | "active" | "result" | "waiting_others" | "scorecard";
+type Mode = "singleplayer" | "multiplayer";
 
 const ROUND_DURATION_SECONDS = 10;
+
+const GAME_ROUTES: Record<string, string> = {
+  "reaction time": "reaction-time",
+  "typing test": "typing-speed",
+  "time interval": "time-interval",
+  "aim test":      "aim-test",
+  "click speed":   "click-speed",
+};
 
 const clampRounds = (value: number): number => {
   if (!Number.isFinite(value)) return 0;
   return Math.max(0, Math.min(99, Math.trunc(value)));
 };
 
-const getButtonColor = (clickColorStep: number): string => {
+const getButtonColor = (gameState: GameState, clickColorStep: number): string => {
+  if (gameState !== "active") return "rgb(166, 199, 214)";
   const progress = Math.min(clickColorStep / 120, 1);
-
-  const hue = 199 - progress * 199;        
-  const saturation = 50 + progress * 40;   
-  const lightness = 82 - progress * 22;    
-
+  const hue = 199 - progress * 199;
+  const saturation = 50 + progress * 40;
+  const lightness = 82 - progress * 22;
   return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 };
 
-const ClickSpeedGame: React.FC = () => {
+function ClickSpeedInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const [gameState, setGameState] = useState<GameState>("waiting");
+  const roomId = searchParams.get("roomId") ?? "";
+  const roundsFromUrl = parseInt(searchParams.get("rounds") ?? "0", 10);
+  const isAdmin = searchParams.get("isAdmin") === "true";
+  const username =
+    typeof window !== "undefined" ? localStorage.getItem("username")?.replaceAll('"', "") ?? "": "";
+  const userId = typeof window !== "undefined" ? localStorage.getItem("userId")?.replaceAll('"', "") ?? "" : "";
+
+  const { send, roundComplete, roundStart, nextGame } = useWebSocket(
+    roomId || "",
+    userId,
+    username
+  );
+
+  const mode = (roomId ? "multiplayer" : "singleplayer") as Mode;
+  const rounds = mode === "multiplayer" ? roundsFromUrl : 0;
+
+  const [gameState, setGameState] = useState<GameState>("idle");
   const [timeLeft, setTimeLeft] = useState<number>(ROUND_DURATION_SECONDS);
   const [startTime, setStartTime] = useState<number>(0);
   const [score, setScore] = useState<number | null>(null);
@@ -39,15 +66,36 @@ const ClickSpeedGame: React.FC = () => {
   const [clickColorStep, setClickColorStep] = useState<number>(0);
   const clickCountRef = useRef<number>(0);
 
+  const [cumulativePoints, setCumulativePoints] = useState<Record<string, number>>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      const s = globalThis.sessionStorage.getItem("multiplayerCumulativePoints");
+      return s ? JSON.parse(s) : {};
+    } catch {
+      return {};
+    }
+  });
+  const [roundScoresForCard, setRoundScoresForCard] = useState<Record<string, number>>({});
+
+  const roundStartTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sentFirstRound = useRef(false);
+  const roundTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // cleanup
   useEffect(() => {
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
+      if (roundStartTimeoutRef.current) clearTimeout(roundStartTimeoutRef.current);
+      if (roundTimerRef.current) clearTimeout(roundTimerRef.current);
     };
   }, [timeoutId]);
 
+  // singleplayer
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
+    if (mode !== "singleplayer") {
+      setSessionInitialized(true);
+      return;
+    }
     try {
       const storedRounds = globalThis.sessionStorage.getItem("singleplayerRounds");
       if (!storedRounds) {
@@ -55,10 +103,8 @@ const ClickSpeedGame: React.FC = () => {
         setSessionInitialized(true);
         return;
       }
-
       const parsed = JSON.parse(storedRounds) as Partial<SingleplayerRounds>;
       const clickSpeed = clampRounds(Number(parsed?.clickSpeed ?? 0));
-
       setTotalRounds(clickSpeed);
       setCurrentRound(1);
       globalThis.sessionStorage.setItem("clickSpeedScores", JSON.stringify([]));
@@ -68,24 +114,89 @@ const ClickSpeedGame: React.FC = () => {
       setTotalRounds(0);
       setSessionInitialized(true);
     }
-  }, []);
+  }, [mode]);
 
+  // singleplayer, redirect 
   useEffect(() => {
-    if (!sessionInitialized) return;
+    if (mode !== "singleplayer" || !sessionInitialized) return;
     if (totalRounds <= 0) router.push("/singleplayer/results");
-  }, [router, sessionInitialized, totalRounds]);
+    else setGameState("waiting");
+  }, [router, sessionInitialized, totalRounds, mode]);
 
+  // countdown display during active round
   useEffect(() => {
     if (gameState !== "active" || !startTime) return;
-
     const intervalId = setInterval(() => {
       const elapsedSeconds = (Date.now() - startTime) / 1000;
       setTimeLeft(Math.max(0, ROUND_DURATION_SECONDS - elapsedSeconds));
     }, 10);
-
     return () => clearInterval(intervalId);
   }, [gameState, startTime]);
 
+  // multiplayer
+  useEffect(() => {
+    if (mode !== "multiplayer" || !isAdmin || !roomId || sentFirstRound.current) return;
+    const t = setTimeout(() => {
+      send("/app/startRound", { roomId, round: String(currentRound) });
+      sentFirstRound.current = true;
+    }, 1000);
+    return () => clearTimeout(t);
+  }, [mode, isAdmin]);
+
+  // multiplayer ROUND_START received
+  useEffect(() => {
+    if (mode !== "multiplayer" || !roundStart) return;
+    setCurrentRound(roundStart.round);
+    setClickColorStep(0);
+    clickCountRef.current = 0;
+    setTimeLeft(ROUND_DURATION_SECONDS);
+    setScore(null);
+    setGameState("waiting");
+
+    const delay = roundStart.startAt - Date.now();
+    const t = setTimeout(() => {
+      setGameState("active");
+      setStartTime(roundStart.startAt);
+      roundStartTimeoutRef.current = null;
+    }, Math.max(0, delay));
+    roundStartTimeoutRef.current = t;
+    return () => {
+      clearTimeout(t);
+      roundStartTimeoutRef.current = null;
+    };
+  }, [roundStart, mode]);
+
+  //multiplayer ROUND_COMPLETE 
+  useEffect(() => {
+    if (mode !== "multiplayer" || !roundComplete) return;
+    const pts = calcPointsForRound(roundComplete.scores, false); // higher CPS = better
+    setCumulativePoints((prev) => {
+      const next = { ...prev };
+      for (const [player, p] of Object.entries(pts)) {
+        next[player] = (next[player] ?? 0) + p;
+      }
+      globalThis.sessionStorage.setItem("multiplayerCumulativePoints", JSON.stringify(next));
+      return next;
+    });
+    const cpsScores = Object.fromEntries(
+      Object.entries(roundComplete.scores).map(([p, clicks]) => [p, clicks / ROUND_DURATION_SECONDS])
+    );
+    setRoundScoresForCard(cpsScores);
+    setGameState("scorecard");
+  }, [roundComplete, mode]);
+
+  // multiplayer
+  useEffect(() => {
+    if (mode !== "multiplayer" || !nextGame || isAdmin) return;
+    const slug = GAME_ROUTES[nextGame.game.toLowerCase()];
+    if (!slug) return;
+    const t = setTimeout(() => {
+      router.push(`/games/${slug}?roomId=${roomId}&rounds=${nextGame.rounds}&isAdmin=false`);
+    }, 2000);
+    return () => clearTimeout(t);
+  }, [nextGame, mode, isAdmin, router]);
+
+  //singleplayer
   const resetRound = useCallback(() => {
     setTimeLeft(ROUND_DURATION_SECONDS);
     setStartTime(0);
@@ -95,59 +206,113 @@ const ClickSpeedGame: React.FC = () => {
     setGameState("waiting");
   }, []);
 
-  const finishRound = useCallback(() => {
+  const finishSingleplayerRound = useCallback(() => {
     const roundScore = clickCountRef.current / ROUND_DURATION_SECONDS;
     const nextScores = [...scores, roundScore];
-
     setTimeLeft(0);
     setScore(roundScore);
     setScores(nextScores);
     setGameState("result");
-
     if (typeof window !== "undefined") {
       globalThis.sessionStorage.setItem("clickSpeedScores", JSON.stringify(nextScores));
     }
-
     const id = setTimeout(() => {
       if (currentRound >= totalRounds) {
         router.push("/singleplayer/results");
         return;
       }
-
       setCurrentRound((prev) => prev + 1);
       resetRound();
     }, 2000);
-
     setTimeoutId(id);
   }, [currentRound, resetRound, router, scores, totalRounds]);
 
+  // singleplayer
   useEffect(() => {
-    if (gameState !== "active") return;
-
+    if (mode !== "singleplayer" || gameState !== "active") return;
     const id = setTimeout(() => {
-      finishRound();
+      finishSingleplayerRound();
     }, ROUND_DURATION_SECONDS * 1000);
-
     return () => clearTimeout(id);
-  }, [finishRound, gameState]);
+  }, [finishSingleplayerRound, gameState, mode]);
 
-  const startRound = () => {
-    const firstClickCount = 1;
+  
+  const finishMultiplayerRound = useCallback(() => {
+    if (mode !== "multiplayer" || !roomId) return;
+    if (roundStartTimeoutRef.current) {
+      clearTimeout(roundStartTimeoutRef.current);
+      roundStartTimeoutRef.current = null;
+    }
+    if (roundTimerRef.current) {
+      clearTimeout(roundTimerRef.current);
+      roundTimerRef.current = null;
+    }
+    const rawClicks = clickCountRef.current;            
+    const displayCps = rawClicks / ROUND_DURATION_SECONDS;
+    setScore(displayCps);
+    send("/app/submitScore", {
+      roomId,
+      username,
+      round: String(currentRound),
+      score: rawClicks,                                 
+    });
+    setGameState("waiting_others");
+  }, [mode, roomId, currentRound, send, username]);
 
-    clickCountRef.current = firstClickCount;
-    setClickColorStep(firstClickCount);
-    setStartTime(Date.now());
-    setTimeLeft(ROUND_DURATION_SECONDS);
-    setScore(null);
-    setGameState("active");
-  };
+  // multiplayer
+  useEffect(() => {
+    if (mode !== "multiplayer" || gameState !== "active" || !startTime) return;
+    const elapsed = Date.now() - startTime;
+    const remaining = ROUND_DURATION_SECONDS * 1000 - elapsed;
+    const id = setTimeout(() => {
+      finishMultiplayerRound();
+    }, Math.max(0, remaining));
+    roundTimerRef.current = id;
+    return () => clearTimeout(id);
+  }, [gameState, startTime, mode, finishMultiplayerRound]);
 
-  const handleClick = () => {
-    if (gameState === "waiting") {
-      startRound();
+  // scorecard
+  const handleScorecardNext = () => {
+    const isLast = currentRound >= rounds;
+    if (isLast) {
+      if (nextGame && isAdmin) {
+        const slug = GAME_ROUTES[nextGame.game.toLowerCase()];
+        if (slug) {
+          router.push(`/games/${slug}?roomId=${roomId}&rounds=${nextGame.rounds}&isAdmin=true`);
+          return;
+        }
+      }
+      globalThis.sessionStorage.setItem("multiplayerFinalPoints", JSON.stringify(cumulativePoints));
+      globalThis.sessionStorage.removeItem("multiplayerCumulativePoints");
+      router.push(`/multiplayer/results?roomId=${roomId}`);
       return;
     }
+    if (!isAdmin) return;
+    const nextRound = currentRound + 1;
+    send("/app/startRound", { roomId, round: String(nextRound) });
+    setCurrentRound(nextRound);
+    setGameState("idle");
+  };
 
+  
+  const handleClick = () => {
+    if (mode === "singleplayer") {
+      if (gameState === "waiting" || gameState === "idle") {
+        clickCountRef.current = 1;
+        setClickColorStep(1);
+        setStartTime(Date.now());
+        setTimeLeft(ROUND_DURATION_SECONDS);
+        setScore(null);
+        setGameState("active");
+        return;
+      }
+      if (gameState === "active") {
+        clickCountRef.current += 1;
+        setClickColorStep((prev) => prev + 1);
+      }
+      return;
+    }
+  
     if (gameState === "active") {
       clickCountRef.current += 1;
       setClickColorStep((prev) => prev + 1);
@@ -155,10 +320,37 @@ const ClickSpeedGame: React.FC = () => {
   };
 
   const getButtonText = () => {
-    if (gameState === "waiting") return "start clicking as fast as you can!";
+    if (gameState === "idle") return "Get ready...";
+    if (gameState === "waiting")
+      return mode === "singleplayer" ? "Start clicking as fast as you can!" : "Get ready...";
     if (gameState === "active") return timeLeft.toFixed(2);
-    return `${score?.toFixed(2)} clicks/s`;
+    if (gameState === "waiting_others") return `${score?.toFixed(2)} CPS — waiting for others…`;
+    if (gameState === "result") return `${score?.toFixed(2)} clicks/s`;
+    return "";
   };
+
+  const isClickable =
+    gameState === "active" ||
+    (mode === "singleplayer" && (gameState === "waiting" || gameState === "idle"));
+
+  if (gameState === "scorecard") {
+    return (
+      <Scorecard
+        round={currentRound}
+        totalRounds={rounds}
+        scores={roundScoresForCard}
+        cumulativePoints={cumulativePoints}
+        lowerIsBetter={false}
+        scoreLabel="Click Speed"
+        scoreUnit="cps"
+        isAdmin={isAdmin}
+        hasNextGame={!!nextGame}
+        onNext={handleScorecardNext}
+      />
+    );
+  }
+
+  const effectiveRounds = mode === "multiplayer" ? rounds : totalRounds;
 
   return (
     <div
@@ -186,7 +378,7 @@ const ClickSpeedGame: React.FC = () => {
         Click Speed
       </h1>
 
-      {totalRounds > 0 && (
+      {effectiveRounds > 0 && (
         <div
           style={{
             fontFamily: "var(--font-chewy)",
@@ -194,7 +386,7 @@ const ClickSpeedGame: React.FC = () => {
             color: "black",
           }}
         >
-          Round {currentRound} of {totalRounds}
+          Round {currentRound} of {effectiveRounds}
         </div>
       )}
 
@@ -204,25 +396,32 @@ const ClickSpeedGame: React.FC = () => {
         style={{
           width: "min(100%, 70%)",
           height: "65vh",
-          backgroundColor: getButtonColor(clickColorStep),
+          backgroundColor: getButtonColor(gameState, clickColorStep),
           border: "none",
           borderRadius: "20px",
           borderColor: "transparent",
           boxShadow: "0px 8px 10px rgba(0,0,0,0.2)",
           color: "black",
-          cursor: "pointer",
+          cursor: isClickable ? "pointer" : "default",
           fontFamily: "var(--font-chewy)",
           fontSize: "3rem",
           padding: "2rem",
           textAlign: "center",
           whiteSpace: "normal",
           transition: "background-color 0.05s linear",
+          opacity: 1,
         }}
       >
         {getButtonText()}
       </Button>
     </div>
   );
-};
+}
+
+const ClickSpeedGame: React.FC = () => (
+  <Suspense>
+    <ClickSpeedInner />
+  </Suspense>
+);
 
 export default ClickSpeedGame;
