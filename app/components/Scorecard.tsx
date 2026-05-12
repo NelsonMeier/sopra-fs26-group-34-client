@@ -82,7 +82,8 @@ export default function Scorecard({
     if (score === -1) return "Too early!";
     if (scoreUnit === "s" && score === 20000) return "Timed out!";
     if (scoreUnit === "s") return `${(score / 1000).toFixed(3)} s`;
-    if(scoreUnit == "a") return `${score} pts`;
+    if (scoreUnit === "a") return `${score} pts`;
+    if (scoreUnit === "cps") return `${score.toFixed(2)} clicks/s`;
     return lowerIsBetter ? `${score} ms` : `${score} wpm`;
   };
 

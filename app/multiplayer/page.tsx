@@ -21,6 +21,7 @@ const GAME_ROUTES: Record<string, string> = { //maps game names to their URL
   "typing test":   "typing-speed",
   "time interval": "time-interval",
   "aim test":      "aim-test",
+  "click speed":   "click-speed",
 };
 
 function MultiplayerRoomInner() {
@@ -30,7 +31,7 @@ function MultiplayerRoomInner() {
 
   const [userId]   = useState(() => typeof window !== "undefined" ? localStorage.getItem("userId")  ?.replaceAll('"', "") ?? "" : "");
   const [username] = useState(() => typeof window !== "undefined" ? localStorage.getItem("username")?.replaceAll('"', "") ?? "" : "");
-  // roomid in URL means we're joining an existing room, no roomId means we're creating a new one 
+    // roomid in URL means we're joining an existing room, no roomId means we're creating a new one 
   const roomIdFromUrl = searchParams.get("roomId");
   const isAdmin       = !roomIdFromUrl;
   const [roomId]      = useState<string>(() => roomIdFromUrl ?? uuidv4());
@@ -42,7 +43,7 @@ function MultiplayerRoomInner() {
   const [friendsLoading, setFriendsLoading ] = useState(true);
   const [selectedFriends, setSelectedFriends] = useState<(string | number)[]>([]);
   const [showHelp, setShowHelp] = useState(false);
-  // once the WebSocket is connected, either create the room (admin) or join it 
+
   useEffect(() => {
     if (!isConnected || !userId || !username) return;
     if (isAdmin) {
@@ -52,6 +53,7 @@ function MultiplayerRoomInner() {
     }
   }, [isConnected, userId, username]);
   // fetch friend list (only needed for admin who can send invites)
+
   useEffect(() => {
     if (!userId || !isAdmin) return;
     const fetchFriends = async () => {
@@ -124,7 +126,6 @@ function MultiplayerRoomInner() {
         </Link>
       </div>
 
-      
       <div style={{ position: "absolute", top: "2rem", right: "2rem", zIndex: 10 }}>
         <Button
           onClick={() => setShowHelp(true)}
@@ -145,7 +146,6 @@ function MultiplayerRoomInner() {
         </Button>
       </div>
 
-      
       {showHelp && (
         <div
           onClick={() => setShowHelp(false)}
@@ -202,7 +202,7 @@ function MultiplayerRoomInner() {
                 Admins can tick friends from the invite list → they will receive an invite to join the room.</p>
 
               <p><strong>3. Pick Games &amp; Rounds</strong><br />
-                The admin sets how many rounds to play for each game (Reaction Time/Typing Test/Time Interval). Set rounds to 0 to skip a game.</p>
+                The admin sets how many rounds to play for each game (Reaction Time / Typing Test / Time Interval / Aim Test / Click Speed). Set rounds to 0 to skip a game.</p>
 
               <p><strong>4. Start the Game</strong><br />
                 Once everyone is in the Ready Players list, the admin hits <em>Start</em>. All players are sent to the same game simultaneously.</p>
@@ -228,7 +228,8 @@ function MultiplayerRoomInner() {
           alignItems: "center",
           padding: "2rem", 
           width: "350px", 
-          height: "400px"
+          height: "400px",
+          overflowY: "auto",
         }}>
           <div style={{
             display: "flex", 
@@ -246,17 +247,16 @@ function MultiplayerRoomInner() {
               fontFamily: "var(--font-chewy)",
               fontSize: "1.1rem", 
               color: "#444",
-               textAlign: "center"
+              textAlign: "center"
             }}>
-               
-            Waiting for admin to pick a game...
+              Waiting for admin to pick a game...
             </div>
           )}
 
           {isAdmin && (
             <div style={{
               display: "flex",
-               flexDirection: "column",
+              flexDirection: "column",
               justifyContent: "center",
               gap: "1rem", 
               marginTop: "2rem"
@@ -309,23 +309,35 @@ function MultiplayerRoomInner() {
                 />
                 Aim Test
               </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", fontFamily: "var(--font-chewy)" }}>
+                <input
+                  type="number"
+                  min="0"
+                  defaultValue="0"
+                  style={{ width: "40px" }}
+                  onChange={(e) => {
+                    send("/app/selectGame", { roomId, game: "Click Speed", rounds: e.target.value, userId });
+                  }}
+                />
+                Click Speed
+              </div>
             </div>
           )}
         </div>
 
         <div style={{
           backgroundColor: "#B8D8E8",
-           borderRadius: "15px",
+          borderRadius: "15px",
           display: "flex", 
           flexDirection: "column", 
           alignItems: "center",
           padding: "2rem",
-           width: "350px",
-            height: "400px"
+          width: "350px",
+          height: "400px"
         }}>
           <div style={{
             display: "flex",
-             justifyContent: "center",
+            justifyContent: "center",
             fontSize: "1.5rem",
             color: "#000000", 
             fontFamily: "var(--font-chewy)"
@@ -336,7 +348,7 @@ function MultiplayerRoomInner() {
           {!isAdmin ? (
             <div style={{
               marginTop: "2rem",
-               fontFamily: "var(--font-chewy)",
+              fontFamily: "var(--font-chewy)",
               fontSize: "1.1rem", 
               color: "#444", 
               textAlign: "center"
@@ -352,8 +364,8 @@ function MultiplayerRoomInner() {
               flexDirection: "column", 
               gap: "0.8rem",
               overflowY: "auto",
-               marginTop: "2rem",
-                alignItems: "center"
+              marginTop: "2rem",
+              alignItems: "center"
             }}>
               {friendsLoading ? (
                 <div style={{ fontFamily: "var(--font-chewy)", fontSize: "1.2rem", color: "#666" }}>
@@ -384,7 +396,7 @@ function MultiplayerRoomInner() {
               ) : (
                 <div style={{
                   fontFamily: "var(--font-chewy)",
-                   fontSize: "1.2rem",
+                  fontSize: "1.2rem",
                   color: "#666", 
                   marginTop: "2rem"
                 }}>
@@ -399,15 +411,15 @@ function MultiplayerRoomInner() {
           backgroundColor: "#B8D8E8",
           borderRadius: "15px",
           display: "flex",
-           flexDirection: "column",
-            alignItems: "center",
+          flexDirection: "column",
+          alignItems: "center",
           padding: "2rem",
-           width: "350px", 
-           height: "400px"
+          width: "350px", 
+          height: "400px"
         }}>
           <div style={{
             display: "flex",
-             justifyContent: "center",
+            justifyContent: "center",
             fontSize: "1.5rem",
             color: "#000000", 
             fontFamily: "var(--font-chewy)"
@@ -442,13 +454,13 @@ function MultiplayerRoomInner() {
               marginTop: "2rem", 
               backgroundColor: "#E8956D",
               borderRadius: "15px",
-               height: "55px", 
-               width: "150px",
+              height: "55px", 
+              width: "150px",
               fontSize: "1.4rem",
-               fontWeight: "bold", 
-               color: "black",
+              fontWeight: "bold", 
+              color: "black",
               fontFamily: "var(--font-chewy)",
-               border: "none",
+              border: "none",
               boxShadow: "0px 8px 10px rgba(0,0,0,0.2)"
             }}>
             Start
