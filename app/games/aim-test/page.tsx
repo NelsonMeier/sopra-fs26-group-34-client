@@ -306,7 +306,7 @@ function AimTestInner() {
                 cumulativePoints={cumulativePoints}
                 lowerIsBetter={false}
                 scoreLabel="Aim Test"
-                scoreUnit="pts"
+                scoreUnit="a"
                 isAdmin={isAdmin}
                 hasNextGame={!!nextGame}
                 onNext={handleScorecardNext}
