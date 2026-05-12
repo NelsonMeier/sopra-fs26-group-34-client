@@ -23,6 +23,7 @@ const Scoreboard: React.FC = () => {
         reactionTime: ScoreboardEntry[];
         typingSpeed: ScoreboardEntry[];
         timeInterval: ScoreboardEntry[];
+        aimTest: ScoreboardEntry[];
         };
     }
 
@@ -94,13 +95,14 @@ const Scoreboard: React.FC = () => {
                     wordWrap: 'break-word'}}>Scoreboard</div>
               </div>
                             <div data-layer="Middle" className="Middle" style={{display: "grid", marginTop: "50px", rowGap: "14px"}}>
-                                <div style={{display: "grid", gridTemplateColumns: "1fr 1fr 1fr", alignItems: "center"}}>
+                                <div style={{display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", alignItems: "center"}}>
                                     <div style={{textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 36, fontFamily: 'var(--font-chewy)', fontWeight: '400', wordWrap: 'break-word'}}>Reaction Time</div>
                                     <div style={{textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 36, fontFamily: 'var(--font-chewy)', fontWeight: '400', wordWrap: 'break-word'}}>Typing Test</div>
                                     <div style={{textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 36, fontFamily: 'var(--font-chewy)', fontWeight: '400', wordWrap: 'break-word'}}>Time Interval</div>
+                                    <div style={{textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'black', fontSize: 36, fontFamily: 'var(--font-chewy)', fontWeight: '400', wordWrap: 'break-word'}}>Aim Test</div>
                                 </div>
 
-                                <div style={{width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', columnGap: '40px'}}>
+                                <div style={{width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', columnGap: '40px'}}>
                                     <div style={{minHeight: '578px', background: '#ACCEDC', borderRadius: 10, padding: '35px 24px'}} >
                                         {loading && <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: '#2f4f5a', fontSize: 20, fontFamily: 'var(--font-chewy)'}}>Loading...</div>}
                                         {error && <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: 'red', fontSize: 20, fontFamily: 'var(--font-chewy)'}}>Error: {error}</div>}
@@ -144,6 +146,22 @@ const Scoreboard: React.FC = () => {
                                                         <span>#{index + 1}</span>
                                                         <span>{entry.username}</span>
                                                         <span>{typeof entry.score === 'number' ? entry.score.toFixed(3) : 'N/A'}s</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div style={{minHeight: '578px', background: '#ACCEDC', borderRadius: 10, padding: '35px 24px'}} >
+                                        {loading && <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: '#2f4f5a', fontSize: 20, fontFamily: 'var(--font-chewy)'}}>Loading...</div>}
+                                        {error && <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: 'red', fontSize: 20, fontFamily: 'var(--font-chewy)'}}>Error: {error}</div>}
+                                        {scoreboard && scoreboard.scoreboards.aimTest.length === 0 && <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: '#2f4f5a', fontSize: 20, fontFamily: 'var(--font-chewy)'}}>No records yet</div>}
+                                        {scoreboard && scoreboard.scoreboards.aimTest.length > 0 && (
+                                            <div style={{ display: "flex", flexDirection: "column", rowGap: "12px" }}>
+                                                {scoreboard.scoreboards.aimTest.map((entry, index) => (
+                                                    <div key={index} style={{display: "flex", justifyContent: "space-between", color: '#2f4f5a', fontSize: 18, fontFamily: 'var(--font-chewy)', padding: "8px 12px", background: '#ffffff', borderRadius: 5}}>
+                                                        <span>#{index + 1}</span>
+                                                        <span>{entry.username}</span>
+                                                        <span>{entry.score} pts</span>
                                                     </div>
                                                 ))}
                                             </div>
