@@ -116,6 +116,7 @@ const ResultsPage: React.FC = () => {
 		const bestTimeInterval =
 			validTimeIntervalScores.length > 0 ? Math.min(...validTimeIntervalScores) : null;
 		const bestAim = aimTestScores.length > 0 ? Math.max(...aimTestScores) : null;
+		const bestClickSpeed = clickSpeedScores.length > 0 ? Math.max(...clickSpeedScores) : null;
 
 		const submitHighScores = async () => {
 			try {
@@ -124,6 +125,7 @@ const ResultsPage: React.FC = () => {
 					typingHighScoreUpdated: boolean;
 					timeIntervalHighScoreUpdated: boolean;
 					aimTestHighScoreUpdated: boolean;
+					clickSpeedHighScoreUpdated: boolean;
 				}
 
 				const response = await apiService.put<HighScoreResponse>(
@@ -133,6 +135,7 @@ const ResultsPage: React.FC = () => {
 						typingScores: typingScores.length > 0 ? typingScores : [],
 						timeIntervalScores: timeIntervalScores.length > 0 ? timeIntervalScores : [],
 						aimTestScores: aimTestScores.length > 0 ? aimTestScores : [],
+						clickSpeedScores: clickSpeedScores.length > 0 ? clickSpeedScores : [],
 					},
 					{ Authorization: `Bearer ${token}` }
 				);
@@ -154,6 +157,11 @@ const ResultsPage: React.FC = () => {
 							response.aimTestHighScoreUpdated &&
 							row.game === "Aim Test" &&
 							row.rawScore === bestAim
+						) return true;
+						if (
+							response.clickSpeedHighScoreUpdated &&
+							row.game === "Click Speed" &&
+							row.rawScore === bestClickSpeed
 						) return true;
 						return (
 							response.timeIntervalHighScoreUpdated &&
@@ -195,6 +203,13 @@ const ResultsPage: React.FC = () => {
 						content: `New High Score: Aim Test (${bestAim})`,
 					});
 				}
+				if (response.clickSpeedHighScoreUpdated && bestClickSpeed !== null) {
+					message.open({
+						type: "success",
+						icon: <TrophyFilled style={{ color: "#faad14" }} />,
+						content: `New High Score: Click Speed (${bestClickSpeed})`,
+					});
+				}
 			} catch (error) {
 				console.error("Error submitting high scores:", error);
 			}
@@ -203,7 +218,7 @@ const ResultsPage: React.FC = () => {
 		if (
 			userId &&
 			token &&
-			(reactionScores.length > 0 || typingScores.length > 0 || timeIntervalScores.length > 0 || aimTestScores.length > 0)
+			(reactionScores.length > 0 || typingScores.length > 0 || timeIntervalScores.length > 0 || aimTestScores.length > 0 || clickSpeedScores.length > 0)
 		) {
 			submitHighScores();
 		}
