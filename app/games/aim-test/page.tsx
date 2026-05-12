@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useEffect, useState, Suspense } from "react";
+import React, { useCallback, useEffect, useState, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { SingleplayerRounds } from "../reaction-time/page";
 import { useWebSocket } from "@/hooks/useWebSocket";
@@ -32,12 +32,22 @@ const randomPos = () => ({
     y: TARGET_SIZE/2 + Math.random() * (AREA_HEIGHT - TARGET_SIZE),
 })
 
-const AimTestGame: React.FC = () => {
+function AimTestInner() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const roomId = searchParams.get("roomId") ?? "";
     const mode   = (roomId ? "multiplayer" : "singleplayer") as Mode;
+    
+    const roundsFromUrl = parseInt(searchParams.get("rounds") ?? "0", 10);
+    const isAdmin = searchParams.get("isAdmin") === "true";
+  
+    const username = typeof window !== "undefined" ? localStorage.getItem("username")?.replaceAll('"', "") ?? "" : "";
+    const userId = typeof window !== "undefined" ? localStorage.getItem("userId")?.replaceAll('"', "") ?? "" : "";
 
+    const { send, roundStart, roundComplete, nextGame } = useWebSocket(roomId || "", userId, username);
+    const rounds = mode === "multiplayer" ? roundsFromUrl : 0;
+    
+    const processedRoundRef = useRef<number>(0);
     
     const [gameState, setGameState] = useState<GameState>("idle");
     const [targetPos, setTargetPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -63,6 +73,19 @@ const AimTestGame: React.FC = () => {
      };
     const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
     const [timeLeft, setTimeLeft] = useState<number>(ROUND_DURATION);
+
+    const [cumulativePoints, setCumulativePoints] =
+        useState<Record<string, number>>(() => {
+            if (typeof window === "undefined") return {};
+            try {
+                const s = globalThis.sessionStorage.getItem("multiplayerCumulativePoints");
+                return s ? JSON.parse(s) : {};
+            } catch {
+                return {};
+            }
+        });
+
+    const [roundScoresForCard, setRoundScoresForCard] = useState<Record<string, number>>({});
 
     useEffect(() => {
         return () => {
@@ -104,9 +127,10 @@ const AimTestGame: React.FC = () => {
     ), [clickSpeedRounds]);
 
     useEffect(() => {
+        if (mode !== "singleplayer") return;
         if (!sessionInitialized) return;
         if (totalRounds <= 0) router.push(getNextRoute());
-    }, [sessionInitialized, totalRounds, router, getNextRoute]);
+    }, [sessionInitialized, totalRounds, router, getNextRoute, mode]);
 
     const startRound = useCallback(() => {
         setHits(0);
@@ -124,13 +148,51 @@ const AimTestGame: React.FC = () => {
         startRound();
     }, [sessionInitialized, mode, startRound, totalRounds]);
 
+    // multiplayer first round triggered by admin
+    const sentFirstRound = useRef(false);
+
+    useEffect(() => {
+        if (mode !== "multiplayer" || !isAdmin || !roomId || sentFirstRound.current) return;
+
+        const t = setTimeout(() => {
+            send("/app/startRound", {roomId, round: String(currentRound),});
+            sentFirstRound.current = true;
+        }, 1000);
+
+        return () => clearTimeout(t);
+    }, [mode, isAdmin, roomId, currentRound, send]);
+
+    // multiplayer round start
+    useEffect(() => {
+        if (mode !== "multiplayer" || !roundStart) return;
+        setCurrentRound(roundStart.round);
+        setHits(0);
+        setMisses(0);
+        hitsRef.current = 0;
+        missesRef.current = 0;
+        setScore(null);
+        setTimeLeft(ROUND_DURATION);
+        setTargetPos(randomPos());
+        setGameState("ready");
+    }, [roundStart, mode]);
+
     useEffect(() => {
         if (gameState !== "active") return;
         const id = setInterval(() => {
             setTimeLeft(prev => {
                 if (prev <= 100) {
                     clearInterval(id);
-                    finishRound(hitsRef.current, missesRef.current);
+                    if (mode === "multiplayer") {
+                        finishMultiplayerRound(
+                        hitsRef.current,
+                        missesRef.current
+                        );
+                    } else {
+                        finishSingleplayerRound(
+                        hitsRef.current,
+                        missesRef.current
+                        );
+                    }
                     return 0;
                 }
                 return prev - 100;
@@ -140,7 +202,7 @@ const AimTestGame: React.FC = () => {
         return () => clearInterval(id);
     }, [gameState]);
 
-    const finishRound = (finalHits: number, finalMisses: number) => {
+    const finishSingleplayerRound = (finalHits: number, finalMisses: number) => {
         if (intervalId) clearInterval(intervalId);
         const roundScore = Math.max(0, finalHits - finalMisses);
         setScore(roundScore);
@@ -163,13 +225,97 @@ const AimTestGame: React.FC = () => {
 
     };
 
-        const handleHit = (e: React.MouseEvent<HTMLDivElement>) => {
-            e.stopPropagation();  // disable miss detection for this click
-            if (gameState !== "active" && gameState !== "ready") return;
-            if (gameState === "ready") setGameState("active"); //starts timer once first target is clicked
-            addHit();
-            setTargetPos(randomPos());
-        };
+    // finish multiplayer round 
+    const finishMultiplayerRound = (finalHits: number, finalMisses: number) => {
+        if (intervalId) clearInterval(intervalId);
+        const roundScore = Math.max(0, finalHits - finalMisses);
+        setScore(roundScore);
+        setGameState("waiting_others");
+        send("/app/submitScore", {roomId, username, round: String(currentRound), score: roundScore,});
+    };
+
+    useEffect(() => {
+        if (mode !== "multiplayer" || !roundComplete) return;
+
+        if (processedRoundRef.current === roundComplete.round) return;
+        processedRoundRef.current = roundComplete.round;
+
+        const pts = calcPointsForRound(roundComplete.scores, false);
+        
+        setCumulativePoints((prev) => {
+            const next = { ...prev };
+            for (const [player, p] of Object.entries(pts)) {
+                next[player] = (next[player] ?? 0) + p;
+            }
+            globalThis.sessionStorage.setItem("multiplayerCumulativePoints", JSON.stringify(next));
+            return next;
+        });
+        setRoundScoresForCard(roundComplete.scores);
+        setGameState("scorecard");
+    }, [roundComplete, mode]);
+
+    // multiplayer handling next game
+    useEffect(() => {
+        if (mode !== "multiplayer" || !nextGame || isAdmin) return;
+        if (gameState !== "scorecard" || currentRound < rounds) return;
+        const slug = GAME_ROUTES[nextGame.game.toLowerCase()];
+        if (!slug) return;
+        const t = setTimeout(() => {
+            router.push(`/games/${slug}?roomId=${roomId}&rounds=${nextGame.rounds}&isAdmin=false`);
+        }, 2000);
+        return () => clearTimeout(t);
+    }, [nextGame, gameState, currentRound, rounds, mode, isAdmin, router, roomId,]);
+
+    const handleScorecardNext = () => {
+        const isLast = currentRound >= rounds;
+        if (isLast) {
+            if (nextGame && isAdmin) {
+                const slug = GAME_ROUTES[nextGame.game.toLowerCase()];
+                if (slug) {
+                    router.push(`/games/${slug}?roomId=${roomId}&rounds=${nextGame.rounds}&isAdmin=true`);
+                    return;
+                }
+            }
+            globalThis.sessionStorage.setItem("multiplayerFinalPoints", JSON.stringify(cumulativePoints));
+            globalThis.sessionStorage.removeItem("multiplayerCumulativePoints");
+            router.push(`/multiplayer/results?roomId=${roomId}`);
+            return;
+        }
+        if (!isAdmin) return;
+        const nextRound = currentRound + 1;
+        send("/app/startRound", {roomId, round: String(nextRound),});
+        setCurrentRound(nextRound);
+        setGameState("idle");
+    };
+
+    const handleHit = (e: React.MouseEvent<HTMLDivElement>) => {
+        e.stopPropagation();  // disable miss detection for this click
+        if (gameState !== "active" && gameState !== "ready") return;
+        if (gameState === "ready") setGameState("active"); //starts timer once first target is clicked
+        addHit();
+        setTargetPos(randomPos());
+    };
+
+    // display scorecard
+    if (gameState === "scorecard") {
+        return (
+            <Scorecard
+                round={currentRound}
+                totalRounds={rounds}
+                scores={roundScoresForCard}
+                cumulativePoints={cumulativePoints}
+                lowerIsBetter={false}
+                scoreLabel="Aim Test"
+                scoreUnit="pts"
+                isAdmin={isAdmin}
+                hasNextGame={!!nextGame}
+                onNext={handleScorecardNext}
+            />
+        );
+    }
+
+    // display rounds
+    const displayRounds = mode === "singleplayer" ? totalRounds : rounds;
     
 
     return (
@@ -198,7 +344,7 @@ const AimTestGame: React.FC = () => {
         Aim Test
       </h1>
 
-      { totalRounds > 0 && (
+      { displayRounds > 0 && (
         <div 
         style={{ 
           fontFamily: "var(--font-chewy)", 
@@ -206,7 +352,7 @@ const AimTestGame: React.FC = () => {
           color: "black" 
           }}
           >
-          Round {currentRound} of {totalRounds}
+          Round {currentRound} of {displayRounds}
         </div>
       )}
 
@@ -219,6 +365,18 @@ const AimTestGame: React.FC = () => {
            }}
            >
           Time: {timeLeft / 1000}s
+        </div>
+      )}
+
+       {gameState === "waiting_others" && (
+        <div
+          style={{
+            fontFamily: "var(--font-chewy)",
+            fontSize: "1.5rem",
+            color: "black",
+          }}
+        >
+          Waiting for other players...
         </div>
       )}
 
@@ -276,4 +434,10 @@ const AimTestGame: React.FC = () => {
 
 };
 
-export default AimTestGame;
+export default function AimTestGame() {
+  return (
+    <Suspense>
+      <AimTestInner />
+    </Suspense>
+  );
+}

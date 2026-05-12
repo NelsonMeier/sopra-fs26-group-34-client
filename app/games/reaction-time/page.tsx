@@ -19,6 +19,7 @@ const GAME_ROUTES: Record<string, string> = {
   "reaction time": "reaction-time",
   "typing test":   "typing-speed",
   "time interval": "time-interval",
+  "aim test":      "aim-test",
 };
 
 const clampRounds = (value: number): number => {
