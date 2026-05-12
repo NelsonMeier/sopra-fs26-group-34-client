@@ -117,6 +117,8 @@ const TypingSpeedGameInner: React.FC = () => {
       const data = await apiService.get<{ content: string }>("/api/games/quote");
       setQuote(data.content);
       setUserInput("");
+      setStartTime(0);
+      setTimeElapsed(0);
       setGameState("active");
       setTimeout(() => inputRef.current?.focus(), 0);
     } catch {
