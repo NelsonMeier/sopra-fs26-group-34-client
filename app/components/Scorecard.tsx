@@ -40,6 +40,7 @@ interface ScorecardProps {
   scoreUnit?:       string;                   
   isAdmin:          boolean;
   hasNextGame?:     boolean;
+  disconnectedPlayers?: string[];
   onNext:           () => void;
 }
 
@@ -60,6 +61,7 @@ export default function Scorecard({
   scoreUnit,
   isAdmin,
   hasNextGame = false,
+  disconnectedPlayers = [],
   onNext,
 }: ScorecardProps) { 
   
@@ -160,12 +162,16 @@ export default function Scorecard({
             Round {round} — {scoreLabel}
           </div>
           {sortedByRound.map(([player, score], i) => (
-            <div key={player} style={rowStyle(i === 0)}>
+            <div key={player} style={rowStyle(i === 0 && !disconnectedPlayers.includes(player))}>
               <span>{rank(i)}&nbsp;{player}</span>
-              <span style={{ display: "flex", gap: "0.8rem" }}>
-                <span>{formatScore(score)}</span>
-                <span style={{ color: "#2255aa", fontWeight: "bold" }}>+{roundPoints[player] ?? 0} pts</span>
-              </span>
+              {disconnectedPlayers.includes(player) ? (
+                <span style={{ color: "#999", fontStyle: "italic" }}>left the game</span>
+              ) : (
+                <span style={{ display: "flex", gap: "0.8rem" }}>
+                  <span>{formatScore(score)}</span>
+                  <span style={{ color: "#2255aa", fontWeight: "bold" }}>+{roundPoints[player] ?? 0} pts</span>
+                </span>
+              )}
             </div>
           ))}
         </div>
@@ -176,9 +182,13 @@ export default function Scorecard({
             {isLastRound ? "Final Standings" : "Leaderboard"}
           </div>
           {sortedByCumulative.map(([player, pts], i) => (
-            <div key={player} style={rowStyle(i === 0)}>
+            <div key={player} style={rowStyle(i === 0 && !disconnectedPlayers.includes(player))}>
               <span>{rank(i)}&nbsp;{player}</span>
-              <span style={{ color: "#2255aa", fontWeight: "bold" }}>{pts} pts</span>
+              {disconnectedPlayers.includes(player) ? (
+                <span style={{ color: "#999", fontStyle: "italic" }}>left the game</span>
+              ) : (
+                <span style={{ color: "#2255aa", fontWeight: "bold" }}>{pts} pts</span>
+              )}
             </div>
           ))}
         </div>

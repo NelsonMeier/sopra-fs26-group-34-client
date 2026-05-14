@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState, Suspense } from "react";
-import { Button } from "antd";
+import { Button, Modal } from "antd";
 import type { SingleplayerRounds } from "../reaction-time/page";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useWebSocket } from "@/hooks/useWebSocket";
@@ -32,6 +32,7 @@ const goalTimeFromSeed = (startAt: number): number =>
 //main game
 function TimeIntervalInner() {
   const router = useRouter();
+
   const searchParams = useSearchParams();
 
  // url params and localStorage retrieval
@@ -42,6 +43,28 @@ function TimeIntervalInner() {
   // retrieve username and userId
   const username = typeof window !== "undefined" ? localStorage.getItem("username")?.replaceAll('"', "") ?? "" : "";
   const userId = typeof window !== "undefined" ? localStorage.getItem("userId")?.replaceAll('"', "") ?? "" : "";
+
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+
+  // intercept back button
+  useEffect(() => {
+    window.history.pushState(null, "", window.location.href);
+    const handlePopState = () => {
+      window.history.pushState(null, "", window.location.href);
+      setShowLeaveModal(true);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [userId]);
+
+  const handleLeaveConfirm = () => {
+    if (mode === "multiplayer" && !gameCompletedRef.current) {
+      globalThis.sessionStorage.removeItem("multiplayerCumulativePoints");
+      send("/app/playerLeft", { roomId: roomId, username, round: String(currentRoundRef.current) });
+    }
+    gameCompletedRef.current = true;
+    router.push(`/users/${userId}`);
+  };
 
   // websocket hooks for multiplayer
   const { send, roundStart, roundComplete, nextGame } = useWebSocket(roomId || "", userId, username);
@@ -75,6 +98,8 @@ function TimeIntervalInner() {
     } catch { return {}; }});
 
   const [roundScoresForCard, setRoundScoresForCard] = useState<Record<string, number>>({});
+  const [disconnectedPlayers, setDisconnectedPlayers] = useState<string[]>([]);
+  const gameCompletedRef = useRef(false);
 
   // managing timeouts and current round in multiplayer
   const currentRoundRef = useRef(currentRound);
@@ -153,6 +178,16 @@ function TimeIntervalInner() {
 
   // starting round multiplayer
   const sentFirstRound = useRef(false);
+
+  // playerLeft on unmount
+  useEffect(() => {
+    return () => {
+      if (mode !== "multiplayer") return;
+      if (gameCompletedRef.current) return;
+      globalThis.sessionStorage.removeItem("multiplayerCumulativePoints");
+      send("/app/playerLeft", { roomId, username, round: String(currentRoundRef.current) });
+    };
+  }, []);
   useEffect(() => {
     if (mode !== "multiplayer" || !isAdmin || !roomId || sentFirstRound.current) return;
     const t = setTimeout(() => {
@@ -188,6 +223,7 @@ function TimeIntervalInner() {
 // round completion w scoring
   useEffect(() => {
     if (mode !== "multiplayer" || !roundComplete) return;
+    if (gameState !== "waiting_others") return;
     const pts = calcPointsForRound(roundComplete.scores, true);
     setCumulativePoints((prev) => {
       const next = { ...prev };
@@ -198,6 +234,7 @@ function TimeIntervalInner() {
       return next;
     });
     setRoundScoresForCard(roundComplete.scores);
+    setDisconnectedPlayers(roundComplete.disconnected ?? []);
     setGameState("scorecard");
   }, [roundComplete, mode]);
 
@@ -209,6 +246,7 @@ function TimeIntervalInner() {
     const slug = GAME_ROUTES[nextGame.game.toLowerCase()];
     if (!slug) return;
     const t = setTimeout(() => {
+      gameCompletedRef.current = true;
       router.push(`/games/${slug}?roomId=${roomId}&rounds=${nextGame.rounds}&isAdmin=false`);
     }, 2000);
     return () => clearTimeout(t);
@@ -312,12 +350,15 @@ function TimeIntervalInner() {
       if (nextGame && isAdmin) {
         const slug = GAME_ROUTES[nextGame.game.toLowerCase()];
         if (slug) {
+          gameCompletedRef.current = true;
           router.push(`/games/${slug}?roomId=${roomId}&rounds=${nextGame.rounds}&isAdmin=true`);
           return;
         }
       }
       globalThis.sessionStorage.setItem("multiplayerFinalPoints", JSON.stringify(cumulativePoints));
+      globalThis.sessionStorage.setItem("disconnectedPlayers", JSON.stringify([...disconnectedPlayers]));
       globalThis.sessionStorage.removeItem("multiplayerCumulativePoints");
+      gameCompletedRef.current = true;
       router.push(`/multiplayer/results?roomId=${roomId}`);
       return;
     }
@@ -359,6 +400,7 @@ function TimeIntervalInner() {
         scoreUnit="s"
         isAdmin={isAdmin}
         hasNextGame={!!nextGame}
+        disconnectedPlayers={disconnectedPlayers}
         onNext={handleScorecardNext}
       />
     );
@@ -499,6 +541,34 @@ function TimeIntervalInner() {
           </Button>
         )}
       </div>
+
+      <Modal
+        open={showLeaveModal}
+        onCancel={() => setShowLeaveModal(false)}
+        footer={null}
+        centered
+      >
+        <div style={{ fontFamily: "var(--font-chewy)", textAlign: "center", padding: "1rem" }}>
+          <h2 style={{ fontSize: "1.8rem", marginBottom: "1rem" }}>Leave Game?</h2>
+          <p style={{ fontSize: "1.1rem", marginBottom: "2rem" }}>
+            Are you sure you want to leave? This will end your game session.
+          </p>
+          <div style={{ display: "flex", justifyContent: "center", gap: "1rem" }}>
+            <Button
+              onClick={() => setShowLeaveModal(false)}
+              style={{ fontFamily: "var(--font-chewy)", fontSize: "1rem", height: "45px", width: "120px" }}
+            >
+              Stay
+            </Button>
+            <Button
+              onClick={handleLeaveConfirm}
+              style={{ backgroundColor: "#e55", border: "none", color: "white", fontFamily: "var(--font-chewy)", fontSize: "1rem", height: "45px", width: "120px" }}
+            >
+              Leave
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

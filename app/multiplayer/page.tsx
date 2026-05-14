@@ -44,6 +44,13 @@ function MultiplayerRoomInner() {
   const [selectedFriends, setSelectedFriends] = useState<(string | number)[]>([]);
   const [showHelp, setShowHelp] = useState(false);
 
+  //clear stale session data from any previous multiplayer session
+  useEffect(() => {
+    globalThis.sessionStorage.removeItem("multiplayerCumulativePoints");
+    globalThis.sessionStorage.removeItem("disconnectedPlayers");
+    globalThis.sessionStorage.removeItem("multiplayerFinalPoints");
+  }, []);
+
   useEffect(() => {
     if (!isConnected || !userId || !username) return;
     if (isAdmin) {

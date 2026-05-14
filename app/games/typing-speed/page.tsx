@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import Scorecard, { calcPointsForRound } from "@/components/Scorecard";
 import React, { Suspense, useEffect, useState, useRef } from "react";
-import { Card, Row, Col, Statistic, Input } from "antd";
+import { Card, Row, Col, Statistic, Input, Modal, Button } from "antd";
 import { SingleplayerRounds } from "../reaction-time/page";
 
 type GameState = "idle" | "waiting" | "waiting_quote" | "active" | "result" | "waiting_others" | "scorecard";
@@ -25,6 +25,7 @@ const clampRounds = (value: number): number => {
 
 const TypingSpeedGameInner: React.FC = () => {
   const router = useRouter();
+
   const searchParams = useSearchParams();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const apiService = useApi();
@@ -38,6 +39,28 @@ const TypingSpeedGameInner: React.FC = () => {
 
   const [username, setUsername] = useState(usernameParam);
   const [userId,   setUserId  ] = useState("");
+
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+
+  // intercept back button
+  useEffect(() => {
+    window.history.pushState(null, "", window.location.href);
+    const handlePopState = () => {
+      window.history.pushState(null, "", window.location.href);
+      setShowLeaveModal(true);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [userId]);
+
+  const handleLeaveConfirm = () => {
+    if (mode === "multiplayer" && !gameCompletedRef.current) {
+      globalThis.sessionStorage.removeItem("multiplayerCumulativePoints");
+      send("/app/playerLeft", { roomId: roomIdParam, username, round: String(currentRound) });
+    }
+    gameCompletedRef.current = true;
+    router.push(`/users/${userId}`);
+  };
 
   useEffect(() => { //load from local storage
     if (!username) {
@@ -74,6 +97,8 @@ const TypingSpeedGameInner: React.FC = () => {
     } catch { return {}; }
   });
   const [roundScoresForCard, setRoundScoresForCard] = useState<Record<string, number>>({});
+  const [disconnectedPlayers, setDisconnectedPlayers] = useState<string[]>([]);
+  const gameCompletedRef = useRef(false);
   //cleanup timeouts on unmount
   useEffect(() => {
     return () => { if (timeoutId) clearTimeout(timeoutId); };
@@ -140,6 +165,16 @@ const TypingSpeedGameInner: React.FC = () => {
   }, [sessionInitialized, totalRounds]);
   //start multiplayer game when admin starts first round
   const sentFirstRound = useRef(false);
+
+  // playerLeft on unmount
+  useEffect(() => {
+    return () => {
+      if (mode !== "multiplayer") return;
+      if (gameCompletedRef.current) return;
+      globalThis.sessionStorage.removeItem("multiplayerCumulativePoints");
+      send("/app/playerLeft", { roomId: roomIdParam, username, round: String(currentRound) });
+    };
+  }, []);
   useEffect(() => {
     if (mode !== "multiplayer" || !isAdminParam || sentFirstRound.current) return;
     const id = setTimeout(() => {
@@ -183,6 +218,7 @@ const TypingSpeedGameInner: React.FC = () => {
   //show scorecard
   useEffect(() => {
     if (mode !== "multiplayer" || !roundComplete) return;
+    if (gameState !== "waiting_others") return;
     const pts = calcPointsForRound(roundComplete.scores, false);
     setCumulativePoints((prev) => {
       const next = { ...prev };
@@ -193,6 +229,7 @@ const TypingSpeedGameInner: React.FC = () => {
       return next;
     });
     setRoundScoresForCard(roundComplete.scores);
+    setDisconnectedPlayers(roundComplete.disconnected ?? []);
     setGameState("scorecard");
   }, [roundComplete, mode]);
 
@@ -203,6 +240,7 @@ const TypingSpeedGameInner: React.FC = () => {
     const slug = GAME_ROUTES[nextGame.game.toLowerCase()];
     if (!slug) return;
     const id = setTimeout(() => {
+      gameCompletedRef.current = true;
       router.push(`/games/${slug}?roomId=${roomIdParam}&rounds=${nextGame.rounds}&isAdmin=false`);
     }, 2000);
     setTimeoutId(id);
@@ -278,12 +316,15 @@ const TypingSpeedGameInner: React.FC = () => {
       if (nextGame && isAdminParam) {
         const slug = GAME_ROUTES[nextGame.game.toLowerCase()];
         if (slug) {
+          gameCompletedRef.current = true;
           router.push(`/games/${slug}?roomId=${roomIdParam}&rounds=${nextGame.rounds}&isAdmin=true`);
           return;
         }
       }
       globalThis.sessionStorage.setItem("multiplayerFinalPoints", JSON.stringify(cumulativePoints));
+      globalThis.sessionStorage.setItem("disconnectedPlayers", JSON.stringify([...disconnectedPlayers]));
       globalThis.sessionStorage.removeItem("multiplayerCumulativePoints");
+      gameCompletedRef.current = true;
       router.push(`/multiplayer/results?roomId=${roomIdParam}`);
       return;
     }
@@ -319,6 +360,7 @@ const TypingSpeedGameInner: React.FC = () => {
         scoreLabel="Typing Speed"
         isAdmin={isAdminParam}
         hasNextGame={!!nextGame}
+        disconnectedPlayers={disconnectedPlayers}
         onNext={handleScorecardNext}
       />
     );
@@ -427,6 +469,34 @@ const TypingSpeedGameInner: React.FC = () => {
           </Row>
         </Card>
       )}
+
+      <Modal
+        open={showLeaveModal}
+        onCancel={() => setShowLeaveModal(false)}
+        footer={null}
+        centered
+      >
+        <div style={{ fontFamily: "var(--font-chewy)", textAlign: "center", padding: "1rem" }}>
+          <h2 style={{ fontSize: "1.8rem", marginBottom: "1rem" }}>Leave Game?</h2>
+          <p style={{ fontSize: "1.1rem", marginBottom: "2rem" }}>
+            Are you sure you want to leave? This will end your game session.
+          </p>
+          <div style={{ display: "flex", justifyContent: "center", gap: "1rem" }}>
+            <Button
+              onClick={() => setShowLeaveModal(false)}
+              style={{ fontFamily: "var(--font-chewy)", fontSize: "1rem", height: "45px", width: "120px" }}
+            >
+              Stay
+            </Button>
+            <Button
+              onClick={handleLeaveConfirm}
+              style={{ backgroundColor: "#e55", border: "none", color: "white", fontFamily: "var(--font-chewy)", fontSize: "1rem", height: "45px", width: "120px" }}
+            >
+              Leave
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
