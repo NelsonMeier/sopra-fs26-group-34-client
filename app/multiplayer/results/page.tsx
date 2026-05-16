@@ -25,7 +25,13 @@ const ResultsPage: React.FC = () => {
     try {
       const parsed = JSON.parse(raw) as Record<string, number>;
       const disconnected: string[] = JSON.parse(sessionStorage.getItem("disconnectedPlayers") ?? "[]");
-      const sorted = Object.entries(parsed).sort(([, a], [, b]) => b - a);
+      const sorted = Object.entries(parsed).sort(([playerA, a], [playerB, b]) => {
+        const aDisconnected = disconnected.includes(playerA);
+        const bDisconnected = disconnected.includes(playerB);
+        if (aDisconnected && !bDisconnected) return 1;
+        if (!aDisconnected && bDisconnected) return -1;
+        return b - a;
+      });
       const newRows: ResultRow[] = sorted.map(([player, pts], i) => ({
         key: player,
         rank: `${i + 1}.`,

@@ -287,7 +287,7 @@ function AimTestInner() {
         if (processedRoundRef.current === roundComplete.round) return;
         processedRoundRef.current = roundComplete.round;
 
-        const pts = calcPointsForRound(roundComplete.scores, false);
+        const pts = calcPointsForRound(roundComplete.scores, false, roundComplete.disconnected ?? []);
         
         setCumulativePoints((prev) => {
             const next = { ...prev };

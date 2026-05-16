@@ -233,7 +233,7 @@ function TimeIntervalInner() {
   useEffect(() => {
     if (mode !== "multiplayer" || !roundComplete) return;
     if (gameState !== "waiting_others") return;
-    const pts = calcPointsForRound(roundComplete.scores, true);
+    const pts = calcPointsForRound(roundComplete.scores, true, roundComplete.disconnected ?? []);
     setCumulativePoints((prev) => {
       const next = { ...prev };
       for (const [player, p] of Object.entries(pts)) {

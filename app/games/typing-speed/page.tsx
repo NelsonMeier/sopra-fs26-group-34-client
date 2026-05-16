@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import Scorecard, { calcPointsForRound } from "@/components/Scorecard";
 import React, { Suspense, useEffect, useState, useRef } from "react";
-import { Card, Row, Col, Statistic, Input, Modal, message, Button } from "antd";
+import { Card, Row, Col, Statistic, Input, Modal, message, Button} from "antd";
 import { SingleplayerRounds } from "../reaction-time/page";
 
 type GameState = "idle" | "waiting" | "waiting_quote" | "active" | "result" | "waiting_others" | "scorecard";
@@ -228,7 +228,7 @@ const TypingSpeedGameInner: React.FC = () => {
   useEffect(() => {
     if (mode !== "multiplayer" || !roundComplete) return;
     if (gameState !== "waiting_others") return;
-    const pts = calcPointsForRound(roundComplete.scores, false);
+    const pts = calcPointsForRound(roundComplete.scores, false, roundComplete.disconnected ?? []);
     setCumulativePoints((prev) => {
       const next = { ...prev };
       for (const [player, p] of Object.entries(pts)) {

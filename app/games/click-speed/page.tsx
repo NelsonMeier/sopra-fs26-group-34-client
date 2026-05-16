@@ -213,7 +213,7 @@ function ClickSpeedInner() {
   useEffect(() => {
     if (mode !== "multiplayer" || !roundComplete) return;
     if (gameState !== "waiting_others") return;
-    const pts = calcPointsForRound(roundComplete.scores, false); // higher CPS = better
+    const pts = calcPointsForRound(roundComplete.scores, false, roundComplete.disconnected ?? []); // higher CPS = better
     setCumulativePoints((prev) => {
       const next = { ...prev };
       for (const [player, p] of Object.entries(pts)) {
