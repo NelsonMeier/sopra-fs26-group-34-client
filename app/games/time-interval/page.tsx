@@ -79,6 +79,7 @@ function TimeIntervalInner() {
 // session ended (admin left)
   useEffect(() => {
     if (!sessionEnded) return;
+    if (isAdmin) return;
     globalThis.sessionStorage.removeItem("multiplayerCumulativePoints");
     globalThis.sessionStorage.removeItem("disconnectedPlayers");
     setTimeout(() => router.push(`/users/${userId}`), 3000);
@@ -399,19 +400,38 @@ function TimeIntervalInner() {
  //displaying scorecard
   if (gameState === "scorecard") {
     return (
-      <Scorecard
-        round={currentRound}
-        totalRounds={rounds}
-        scores={roundScoresForCard}
-        cumulativePoints={cumulativePoints}
-        lowerIsBetter={true}
-        scoreLabel="Time Interval"
-        scoreUnit="s"
-        isAdmin={isAdmin}
-        hasNextGame={!!nextGame}
-        disconnectedPlayers={disconnectedPlayers}
-        onNext={handleScorecardNext}
-      />
+      <>
+        <Scorecard
+          round={currentRound}
+          totalRounds={rounds}
+          scores={roundScoresForCard}
+          cumulativePoints={cumulativePoints}
+          lowerIsBetter={true}
+          scoreLabel="Time Interval"
+          scoreUnit="s"
+          isAdmin={isAdmin}
+          hasNextGame={!!nextGame}
+          disconnectedPlayers={disconnectedPlayers}
+          onNext={handleScorecardNext}
+        />
+        <Modal
+          open={showLeaveModal}
+          onCancel={() => setShowLeaveModal(false)}
+          footer={null}
+          centered
+        >
+          <div style={{ fontFamily: "var(--font-chewy)", textAlign: "center", padding: "1rem" }}>
+            <h2 style={{ fontSize: "1.8rem", marginBottom: "1rem" }}>Leave Game?</h2>
+            <p style={{ fontSize: "1.1rem", marginBottom: "2rem" }}>
+              {isAdmin ? "You are the admin — leaving will end the session for all players." : "Are you sure you want to leave? This will end your game session."}
+            </p>
+            <div style={{ display: "flex", justifyContent: "center", gap: "1rem" }}>
+              <Button onClick={() => setShowLeaveModal(false)} style={{ fontFamily: "var(--font-chewy)", fontSize: "1rem", height: "45px", width: "120px" }}>Stay</Button>
+              <Button onClick={handleLeaveConfirm} style={{ backgroundColor: "#e55", border: "none", color: "white", fontFamily: "var(--font-chewy)", fontSize: "1rem", height: "45px", width: "120px" }}>Leave</Button>
+            </div>
+          </div>
+        </Modal>
+      </>
     );
   }
 
