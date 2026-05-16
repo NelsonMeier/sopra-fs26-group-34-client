@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import Scorecard, { calcPointsForRound } from "@/components/Scorecard";
 import React, { Suspense, useEffect, useState, useRef } from "react";
-import { Card, Row, Col, Statistic, Input, Modal, Button } from "antd";
+import { Card, Row, Col, Statistic, Input, Modal, message, Button } from "antd";
 import { SingleplayerRounds } from "../reaction-time/page";
 
 type GameState = "idle" | "waiting" | "waiting_quote" | "active" | "result" | "waiting_others" | "scorecard";
@@ -47,6 +47,7 @@ const TypingSpeedGameInner: React.FC = () => {
     window.history.pushState(null, "", window.location.href);
     const handlePopState = () => {
       window.history.pushState(null, "", window.location.href);
+      if (mode !== "multiplayer") return;
       setShowLeaveModal(true);
     };
     window.addEventListener("popstate", handlePopState);
@@ -70,8 +71,16 @@ const TypingSpeedGameInner: React.FC = () => {
     setUserId(localStorage.getItem("userId")?.replaceAll('"', "") ?? "");
   }, []);
 
-  const { send, roundStart, roundComplete, gameOver, nextGame, sharedQuote, sharedQuoteRound } =
+  const { send, roundStart, roundComplete, gameOver, sessionEnded, nextGame, sharedQuote, sharedQuoteRound } =
     useWebSocket(roomIdParam, userId, username);
+
+// session ended (admin left)
+  useEffect(() => {
+    if (!sessionEnded) return;
+    globalThis.sessionStorage.removeItem("multiplayerCumulativePoints");
+    globalThis.sessionStorage.removeItem("disconnectedPlayers");
+    setTimeout(() => router.push(`/users/${userId}`), 3000);
+  }, [sessionEnded]);
 
   const [gameState, setGameState] = useState<GameState>("idle");
   const [quote, setQuote] = useState<string>("");
@@ -479,7 +488,7 @@ const TypingSpeedGameInner: React.FC = () => {
         <div style={{ fontFamily: "var(--font-chewy)", textAlign: "center", padding: "1rem" }}>
           <h2 style={{ fontSize: "1.8rem", marginBottom: "1rem" }}>Leave Game?</h2>
           <p style={{ fontSize: "1.1rem", marginBottom: "2rem" }}>
-            Are you sure you want to leave? This will end your game session.
+            {isAdminParam ? "You are the admin — leaving will end the session for all players." : "Are you sure you want to leave? This will end your game session."}
           </p>
           <div style={{ display: "flex", justifyContent: "center", gap: "1rem" }}>
             <Button
@@ -497,7 +506,39 @@ const TypingSpeedGameInner: React.FC = () => {
           </div>
         </div>
       </Modal>
-    </div>
+  
+      {sessionEnded && (
+        <div style={{
+          position: "fixed",
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: "rgba(0,0,0,0.75)",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 9999,
+        }}>
+          <div style={{
+            backgroundColor: "#B8D8E8",
+            borderRadius: "20px",
+            padding: "3rem",
+            textAlign: "center",
+            maxWidth: "420px",
+            boxShadow: "0px 8px 20px rgba(0,0,0,0.4)",
+          }}>
+            <h2 style={{ fontFamily: "var(--font-chewy)", fontSize: "2rem", marginBottom: "1rem" }}>
+              Oh no!
+            </h2>
+            <p style={{ fontFamily: "var(--font-chewy)", fontSize: "1.2rem", marginBottom: "0.5rem" }}>
+              Seems like the admin has left the game.
+            </p>
+            <p style={{ fontFamily: "var(--font-chewy)", fontSize: "1rem", color: "#555" }}>
+              Redirecting you to your profile...
+            </p>
+          </div>
+        </div>
+      )}
+  </div>
   );
 };
 
