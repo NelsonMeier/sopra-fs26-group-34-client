@@ -26,6 +26,7 @@ const Scoreboard: React.FC = () => {
         typingSpeed: ScoreboardEntry[];
         timeInterval: ScoreboardEntry[];
         aimTest: ScoreboardEntry[];
+        clickSpeed: ScoreboardEntry[];
         };
     }
 
@@ -64,6 +65,13 @@ const Scoreboard: React.FC = () => {
             formatScore: (score: number | null) =>
                 score === null || score === undefined ? "N/A" : `${score} pts`,
         },
+        {
+            key: "clickSpeed",
+            title: "Click Speed",
+            entries: scoreboard?.scoreboards.clickSpeed ?? [],
+            formatScore: (score: number | null) =>
+                score === null || score === undefined ? "N/A" : `${score} clicks/s`
+        }
     ];
 
     useEffect(() => {
