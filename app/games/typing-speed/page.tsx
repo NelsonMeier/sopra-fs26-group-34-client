@@ -374,7 +374,7 @@ const TypingSpeedGameInner: React.FC = () => {
           disconnectedPlayers={disconnectedPlayers}
           onNext={handleScorecardNext}
         />
-      {sessionEnded && (
+      {sessionEnded && !isAdminParam && (
         <div style={{
           position: "fixed",
           top: 0, left: 0, right: 0, bottom: 0,
@@ -558,7 +558,7 @@ const TypingSpeedGameInner: React.FC = () => {
         </div>
       </Modal>
   
-      {sessionEnded && (
+      {sessionEnded && !isAdminParam && (
         <div style={{
           position: "fixed",
           top: 0, left: 0, right: 0, bottom: 0,
