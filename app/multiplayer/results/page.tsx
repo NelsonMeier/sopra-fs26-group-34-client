@@ -27,17 +27,30 @@ const ResultsPage: React.FC = () => {
 
 			const sorted = Object.entries(parsed).sort(([, a], [, b]) => b - a);
 
-			const newRows: ResultRow[] = sorted.map(([player, pts], i) => ({
-				key: player,
-				rank: `${i + 1}.`,
-				player: player,
-				score: `${pts} pts`,
-			}))
+			let currentRank = 1;
+			let previousScore: number | null = null;
+
+			const newRows: ResultRow[] = sorted.map(([player, pts], i) => {
+				if (previousScore !== null && pts !== previousScore) {
+					currentRank++;
+				}
+				previousScore = pts;
+				return {
+					key: player,
+					rank: `${currentRank}.`,
+					player: player,
+					score: `${pts} pts`,
+				};
+			});
 			setRows(newRows);
 		} catch (e) {
 			console.error("Failed to parse leaderboard:", e);
 		}
 	}, []);
+
+	const firstPlaceCount = rows.filter(row => row.rank === "1.").length;
+	const winnerTitle =
+		firstPlaceCount > 1 ? "Best Thinkers 🤓" : "Best Thinker 🤓";
 
 	return (
 		<div
@@ -130,7 +143,7 @@ const ResultsPage: React.FC = () => {
 								render: (_, record) => {
 									return record.rank === "1." ?
 										<span className="winnerText">
-											Best Thinker 🤓
+											{winnerTitle}
 										</span> : "";
 								},
 
