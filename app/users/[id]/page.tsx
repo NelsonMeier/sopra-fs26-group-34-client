@@ -593,6 +593,22 @@ style={{
               "s",
             )}
           </div>
+          <div>
+            {formatRankLine(
+              "Aim Test",
+              user?.aimTest?.score ?? null,
+              user?.aimTest?.rank ?? null,
+              "hits",
+            )}
+          </div>
+          <div>
+            {formatRankLine(
+              "Time Interval",
+              user?.clickSpeed?.score ?? null,
+              user?.clickSpeed?.rank ?? null,
+              "c/s",
+            )}
+          </div>
         </div>
       </div>
     </div>
