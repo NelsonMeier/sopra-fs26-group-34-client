@@ -12,6 +12,7 @@ interface SingleplayerRounds {
   timeInterval: number;
   aimTest: number;
   clickSpeed: number;
+  quickMath: number;
 }
 
 const clampRounds = (value: number): number => {
@@ -30,6 +31,7 @@ const SingleplayerRoom: React.FC = () => {
     timeInterval: 0,
     aimTest: 0,
     clickSpeed: 0,
+    quickMath: 0,
   });
 
   useEffect(() => {
@@ -46,9 +48,10 @@ const SingleplayerRoom: React.FC = () => {
         timeInterval: clampRounds(Number(parsed?.timeInterval ?? 0)),
         aimTest: clampRounds(Number(parsed?.aimTest ?? 0)),
         clickSpeed: clampRounds(Number(parsed?.clickSpeed ?? 0)),
+        quickMath: clampRounds(Number(parsed?.quickMath ?? 0)),
       });
     } catch {
-      setRounds({ reactionTime: 0, typingSpeed: 0, timeInterval: 0, aimTest: 0, clickSpeed: 0 });
+      setRounds({ reactionTime: 0, typingSpeed: 0, timeInterval: 0, aimTest: 0, clickSpeed: 0, quickMath: 0 });
     }
   }, []);
 
@@ -57,6 +60,7 @@ const SingleplayerRoom: React.FC = () => {
   const timeIntervalRounds = clampRounds(rounds?.timeInterval ?? 0);
   const aimTestRounds = clampRounds(rounds?.aimTest ?? 0);
   const clickSpeedRounds = clampRounds(rounds?.clickSpeed ?? 0);
+  const quickMathRounds = clampRounds(rounds?.quickMath ?? 0);
 
   const updateRounds = (key: keyof SingleplayerRounds, rawValue: string): void => {
     const nextValue = rawValue === "" ? 0 : clampRounds(Number(rawValue));
@@ -77,7 +81,8 @@ const SingleplayerRoom: React.FC = () => {
       typingSpeedRounds <= 0 &&
       timeIntervalRounds <= 0 &&
       aimTestRounds <= 0 &&
-      clickSpeedRounds <= 0
+      clickSpeedRounds <= 0 &&
+      quickMathRounds <= 0
     ) {
       message.error("Please enter rounds for at least one game.");
       return;
@@ -90,6 +95,7 @@ const SingleplayerRoom: React.FC = () => {
       globalThis.sessionStorage.setItem("timeIntervalScores", JSON.stringify([]));
       globalThis.sessionStorage.setItem("aimTestScores", JSON.stringify([]));
       globalThis.sessionStorage.setItem("clickSpeedScores", JSON.stringify([]));
+      globalThis.sessionStorage.setItem("quickMathScores", JSON.stringify([]));
     }
 
     if (reactionTimeRounds > 0) {
@@ -112,7 +118,12 @@ const SingleplayerRoom: React.FC = () => {
       return;
     }
 
-    router.push("/games/click-speed");
+    if (clickSpeedRounds > 0) {
+      router.push("/games/click-speed");
+      return;
+    }
+
+    router.push("/games/quick-math");
   };
 
   return (
@@ -251,6 +262,21 @@ const SingleplayerRoom: React.FC = () => {
               onChange={(e) => updateRounds("clickSpeed", e.target.value)}
             />
             Click Speed
+          </div>
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            fontFamily: "var(--font-chewy)" }}>
+            <input
+              type="number"
+              min="0"
+              max="99"
+              value={quickMathRounds}
+              style={{ width: "40px" }}
+              onChange={(e) => updateRounds("quickMath", e.target.value)}
+            />
+            Quick Math
           </div>
         </div>
       </div>

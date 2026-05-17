@@ -10,7 +10,7 @@ import { useApi } from "@/hooks/useApi";
 interface ResultRow {
 	key: string;
 	round: string;
-	game: "Reaction Time" | "Typing Speed" | "Time Interval" | "Aim Test" | "Click Speed";
+	game: "Reaction Time" | "Typing Speed" | "Time Interval" | "Aim Test" | "Click Speed" | "Quick Math";
 	score: string;
 	rawScore: number;
 }
@@ -49,6 +49,9 @@ const ResultsPage: React.FC = () => {
 		const aimTestScores = toNumberArray(globalThis.sessionStorage.getItem("aimTestScores"));
 		const clickSpeedScores = toNumberArray(
 			globalThis.sessionStorage.getItem("clickSpeedScores"),
+		);
+		const quickMathScores = toNumberArray(
+			globalThis.sessionStorage.getItem("quickMathScores"),
 		);
 
 		const reactionRows: ResultRow[] = reactionScores.map((score, index) => ({
@@ -98,12 +101,29 @@ const ResultsPage: React.FC = () => {
 			rawScore: score,
 		}));
 
+		const quickMathRows: ResultRow[] = quickMathScores.map((score, index) => ({
+			key: `quick-math-${index}`,
+			round: `${
+				reactionRows.length +
+				typingRows.length +
+				timeIntervalRows.length +
+				aimTestRows.length +
+				clickSpeedRows.length +
+				index +
+				1
+			}.`,
+			game: "Quick Math",
+			score: `${score} pts`,
+			rawScore: score,
+		}));
+
 		const nextRows = [
 			...reactionRows,
 			...typingRows,
 			...timeIntervalRows,
 			...aimTestRows,
 			...clickSpeedRows,
+			...quickMathRows,
 		];
 		setRows(nextRows);
 
