@@ -4,6 +4,7 @@ import { Button } from "antd";
 import { useEffect } from "react";
 
 
+
 const POINTS_TABLE = [3, 2, 1]; //needed for point distribution
 
 export function calcPointsForRound( //function that takes scores and whether lower is better
