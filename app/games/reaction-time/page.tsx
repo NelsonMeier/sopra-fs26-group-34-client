@@ -14,6 +14,7 @@ export interface SingleplayerRounds {
   timeInterval: number;
   aimTest: number;
   clickSpeed: number;
+  quickMath: number;
 }
 
 const GAME_ROUTES: Record<string, string> = {
