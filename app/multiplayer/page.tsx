@@ -45,6 +45,12 @@ function MultiplayerRoomInner() {
   const [showHelp, setShowHelp] = useState(false);
 
   const [showStartError, setShowStartError] = useState<string | null>(null);
+  //clear stale session data from any previous multiplayer session
+  useEffect(() => {
+    globalThis.sessionStorage.removeItem("multiplayerCumulativePoints");
+    globalThis.sessionStorage.removeItem("disconnectedPlayers");
+    globalThis.sessionStorage.removeItem("multiplayerFinalPoints");
+  }, []);
 
   useEffect(() => {
     if (!isConnected || !userId || !username) return;

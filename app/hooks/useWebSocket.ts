@@ -24,6 +24,7 @@ export function useWebSocket(roomId: string, userId: string, username: string) {
     round:  number;
     scores: Record<string, number>;
     totalScores: Record<string, number>;
+    disconnected: string[];
   } | null>(null);
 
   const [nextRoundSignal, setNextRoundSignal] = useState<number>(0);
@@ -31,6 +32,8 @@ export function useWebSocket(roomId: string, userId: string, username: string) {
   const [gameOver, setGameOver] = useState<{
     finalScores: Record<string, number>;
   } | null>(null);
+
+  const [sessionEnded, setSessionEnded] = useState(false);
 
   const [nextGame, setNextGame] = useState<{
     game:   string;
@@ -80,9 +83,10 @@ export function useWebSocket(roomId: string, userId: string, username: string) {
           }
           if (data.type === "ROUND_COMPLETE") {
             setRoundComplete({
-              round:       parseInt(data.round as string, 10),
-              scores:      data.scores      as Record<string, number>,
-              totalScores: data.totalScores as Record<string, number>,
+              round:        parseInt(data.round as string, 10),
+              scores:       data.scores       as Record<string, number>,
+              totalScores:  data.totalScores  as Record<string, number>,
+              disconnected: (data.disconnected as string[]) ?? [],
             });
             setSubmittedInRound([]); //reset for next round
           }
@@ -96,6 +100,9 @@ export function useWebSocket(roomId: string, userId: string, username: string) {
             setGameOver({
               finalScores: data.finalScores as Record<string, number>,
             });
+          }
+          if (data.type === "SESSION_ENDED") {
+            setSessionEnded(true);
           }
         });
       },
@@ -133,6 +140,7 @@ export function useWebSocket(roomId: string, userId: string, username: string) {
     nextRoundSignal,
     roundStart,
     gameOver,
+    sessionEnded,
     nextGame,
     send,
   };

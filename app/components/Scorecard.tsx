@@ -4,15 +4,18 @@ import { Button } from "antd";
 import { useEffect } from "react";
 
 
+
 const POINTS_TABLE = [3, 2, 1]; //needed for point distribution
 
 export function calcPointsForRound( //function that takes scores and whether lower is better
   scores: Record<string, number>,
-  lowerIsBetter: boolean
+  lowerIsBetter: boolean,
+  disconnectedPlayers: string[] = []
 ): Record<string, number> {
 
-  
-  const sorted = Object.entries(scores).sort(([, a], [, b]) => { // sorts players based on scores
+  const sorted = Object.entries(scores)
+    .filter(([player]) => !disconnectedPlayers.includes(player))
+    .sort(([, a], [, b]) => { // sorts players based on scores
     if (lowerIsBetter) {
       if (a === -1) return 1;   
       if (b === -1) return -1;
@@ -23,6 +26,10 @@ export function calcPointsForRound( //function that takes scores and whether low
 
   // assign points 
   const points: Record<string, number> = {};
+  // disconnected players get 0 points
+  Object.keys(scores).forEach(player => {
+    if (disconnectedPlayers.includes(player)) points[player] = 0;
+  });
   sorted.forEach(([player], i) => { //loops through sorted players and assigns points based on position
     points[player] = POINTS_TABLE[i] ?? 0;
   });
@@ -31,16 +38,17 @@ export function calcPointsForRound( //function that takes scores and whether low
 }
 
 interface ScorecardProps {
-  round:            number;
-  totalRounds:      number;
-  scores:           Record<string, number>;   
-  cumulativePoints: Record<string, number>;   
-  lowerIsBetter:    boolean;                  
-  scoreLabel:       string;
-  scoreUnit?:       string;                   
-  isAdmin:          boolean;
-  hasNextGame?:     boolean;
-  onNext:           () => void;
+  round:                number;
+  totalRounds:          number;
+  scores:               Record<string, number>;   
+  cumulativePoints:     Record<string, number>;   
+  lowerIsBetter:        boolean;                  
+  scoreLabel:           string;
+  scoreUnit?:           string;                   
+  isAdmin:              boolean;
+  hasNextGame?:         boolean;
+  disconnectedPlayers?: string[];
+  onNext:               () => void;
 }
 
 function getRanks(entries: [string, number][]): Record<string, string> {
@@ -70,12 +78,13 @@ export default function Scorecard({
   scoreUnit,
   isAdmin,
   hasNextGame = false,
+  disconnectedPlayers = [],
   onNext,
 }: ScorecardProps) { 
   
   const isLastRound  = round >= totalRounds && !hasNextGame; //check of finished
   
-  const roundPoints  = calcPointsForRound(scores, lowerIsBetter); //calculate points
+  const roundPoints  = calcPointsForRound(scores, lowerIsBetter, disconnectedPlayers); //calculate points
  
   const sortedByRound = Object.entries(scores).sort(([, a], [, b]) => {
     if (lowerIsBetter) {
@@ -90,6 +99,13 @@ export default function Scorecard({
 
   const roundRanks = getRanks(sortedByRound);
   const cumulativeRanks = getRanks(sortedByCumulative);
+  const sortedByCumulative = Object.entries(cumulativePoints).sort(([playerA, a], [playerB, b]) => {
+    const aDisconnected = disconnectedPlayers.includes(playerA);
+    const bDisconnected = disconnectedPlayers.includes(playerB);
+    if (aDisconnected && !bDisconnected) return 1;
+    if (!aDisconnected && bDisconnected) return -1;
+    return b - a;
+  }); //sorts total points
  
   const formatScore = (score: number) => { //formats score for display, handling "too early" case 
     if (score === -1) return "Too early!";
@@ -173,12 +189,16 @@ export default function Scorecard({
             Round {round} — {scoreLabel}
           </div>
           {sortedByRound.map(([player, score], i) => (
-            <div key={player} style={rowStyle(i === 0)}>
+            <div key={player} style={rowStyle(i === 0 && !disconnectedPlayers.includes(player))}>
               <span>{roundRanks[player]}&nbsp;{player}</span>
-              <span style={{ display: "flex", gap: "0.8rem" }}>
-                <span>{formatScore(score)}</span>
-                <span style={{ color: "#2255aa", fontWeight: "bold" }}>+{roundPoints[player] ?? 0} pts</span>
-              </span>
+              {disconnectedPlayers.includes(player) ? (
+                <span style={{ color: "#999", fontStyle: "italic" }}>left the game</span>
+              ) : (
+                <span style={{ display: "flex", gap: "0.8rem" }}>
+                  <span>{formatScore(score)}</span>
+                  <span style={{ color: "#2255aa", fontWeight: "bold" }}>+{roundPoints[player] ?? 0} pts</span>
+                </span>
+              )}
             </div>
           ))}
         </div>
@@ -189,9 +209,13 @@ export default function Scorecard({
             {isLastRound ? "Final Standings" : "Leaderboard"}
           </div>
           {sortedByCumulative.map(([player, pts], i) => (
-            <div key={player} style={rowStyle(i === 0)}>
+            <div key={player} style={rowStyle(i === 0 && !disconnectedPlayers.includes(player))}>
               <span>{cumulativeRanks[player]}&nbsp;{player}</span>
-              <span style={{ color: "#2255aa", fontWeight: "bold" }}>{pts} pts</span>
+              {disconnectedPlayers.includes(player) ? (
+                <span style={{ color: "#999", fontStyle: "italic" }}>left the game</span>
+              ) : (
+                <span style={{ color: "#2255aa", fontWeight: "bold" }}>{pts} pts</span>
+              )}
             </div>
           ))}
         </div>

@@ -6,21 +6,44 @@ import Link from "next/link";
 import { Button, ConfigProvider, Table, message } from "antd";
 
 interface ResultRow {
-	key: string;
-	rank: string;
-	player: string;
-	score: string;
+  key: string;
+  rank: string;
+  player: string;
+  score: string;
+  disconnected: boolean;
 }
 
 const ResultsPage: React.FC = () => {
-	const router = useRouter();
-	const { value: userId } = useLocalStorage<string>("userId", "");
-	const { value: token } = useLocalStorage<string>("token", "");
-	const [rows, setRows] = useState<ResultRow[]>([]);
+  const router = useRouter();
+  const { value: userId } = useLocalStorage<string>("userId", "");
+  const { value: token } = useLocalStorage<string>("token", "");
+  const [rows, setRows] = useState<ResultRow[]>([]);
 
-	useEffect(() => {
-		const raw = sessionStorage.getItem("leaderboard");
-		if (!raw) return;
+  useEffect(() => {
+    const raw = sessionStorage.getItem("leaderboard");
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw) as Record<string, number>;
+      const disconnected: string[] = JSON.parse(sessionStorage.getItem("disconnectedPlayers") ?? "[]");
+      const sorted = Object.entries(parsed).sort(([playerA, a], [playerB, b]) => {
+        const aDisconnected = disconnected.includes(playerA);
+        const bDisconnected = disconnected.includes(playerB);
+        if (aDisconnected && !bDisconnected) return 1;
+        if (!aDisconnected && bDisconnected) return -1;
+        return b - a;
+      });
+      const newRows: ResultRow[] = sorted.map(([player, pts], i) => ({
+        key: player,
+        rank: `${i + 1}.`,
+        player: player,
+        score: `${pts} pts`,
+        disconnected: disconnected.includes(player),
+      }));
+      setRows(newRows);
+    } catch (e) {
+      console.error("Failed to parse leaderboard:", e);
+    }
+  }, []);
 
 		try {
 			const parsed = JSON.parse(raw) as Record<string, number>;
@@ -136,15 +159,20 @@ const ResultsPage: React.FC = () => {
 								dataIndex: "score",
 								key: "score",
 								width: "25%",
+                render: (score: string, record: ResultRow) =>
+                  record.disconnected ? (
+                    <span style={{ color: "#999", fontStyle: "italic" }}>left the game</span>
+                  ) : (
+                    score
+                  ),
 							},
 							{
 								key: "winner",
 								width: "30%",
 								render: (_, record) => {
-									return record.rank === "1." ?
-										<span className="winnerText">
-											{winnerTitle}
-										</span> : "";
+									return record.rank === "1." && !record.disconnected ? (
+										<span className="winnerText"> {winnerTitle} </span>
+                  ) : ("");
 								},
 
 							},
@@ -157,7 +185,9 @@ const ResultsPage: React.FC = () => {
 			</div>
 		</div>
 	);
+ 
+              
+   
 };
 
 export default ResultsPage;
-
