@@ -136,7 +136,8 @@ const ResultsPage: React.FC = () => {
 		const bestTyping = validTypingScores.length > 0 ? Math.max(...validTypingScores) : null;
 		const bestTimeInterval = validTimeIntervalScores.length > 0 ? Math.min(...validTimeIntervalScores) : null;
 		const bestAim = aimTestScores.length > 0 ? Math.max(...aimTestScores) : null;
-		const bestClickSpeed = validClickSpeedScores.length > 0 ? Math.max(...validClickSpeedScores) : null;
+		const bestClickSpeed = clickSpeedScores.length > 0 ? Math.max(...clickSpeedScores) : null;
+		const bestQuickMath = quickMathScores.length > 0 ? Math.max(...quickMathScores) : null;
 
 		const submitHighScores = async () => {
 			try {
@@ -146,6 +147,7 @@ const ResultsPage: React.FC = () => {
 					timeIntervalHighScoreUpdated: boolean;
 					aimTestHighScoreUpdated: boolean;
 					clickSpeedHighScoreUpdated: boolean;
+					quickMathHighScoreUpdated: boolean;
 				}
 
 				const response = await apiService.put<HighScoreResponse>(
@@ -155,7 +157,8 @@ const ResultsPage: React.FC = () => {
 						typingScores: validTypingScores,
 						timeIntervalScores: validTimeIntervalScores,
 						aimTestScores: aimTestScores.length > 0 ? aimTestScores : [],
-						clickSpeedScores: validClickSpeedScores,
+						clickSpeedScores: clickSpeedScores.length > 0 ? clickSpeedScores : [],
+						quickMathScores: quickMathScores.length > 0 ? quickMathScores : [],
 					},
 					{ Authorization: `Bearer ${token}` }
 				);
@@ -182,6 +185,11 @@ const ResultsPage: React.FC = () => {
 							response.clickSpeedHighScoreUpdated &&
 							row.game === "Click Speed" &&
 							row.rawScore === bestClickSpeed
+						) return true;
+						if (
+							response.quickMathHighScoreUpdated &&
+							row.game === "Quick Math" &&
+							row.rawScore === bestQuickMath
 						) return true;
 						return (
 							response.timeIntervalHighScoreUpdated &&
@@ -230,6 +238,13 @@ const ResultsPage: React.FC = () => {
 						content: `New High Score: Click Speed (${bestClickSpeed})`,
 					});
 				}
+				if (response.quickMathHighScoreUpdated && bestQuickMath !== null) {
+					message.open({
+						type: "success",
+						icon: <TrophyFilled style={{ color: "#faad14" }} />,
+						content: `New High Score: Quick Math (${bestQuickMath})`,
+					});
+				}
 			} catch (error) {
 				console.error("Error submitting high scores:", error);
 			}
@@ -238,7 +253,7 @@ const ResultsPage: React.FC = () => {
 		if (
 			userId &&
 			token &&
-			(validReactionScores.length > 0 || validTypingScores.length > 0 || validTimeIntervalScores.length > 0 || aimTestScores.length > 0 || validClickSpeedScores.length > 0)
+			(reactionScores.length > 0 || typingScores.length > 0 || timeIntervalScores.length > 0 || aimTestScores.length > 0 || clickSpeedScores.length > 0 || quickMathScores.length > 0)
 		) {
 			submitHighScores();
 		}
