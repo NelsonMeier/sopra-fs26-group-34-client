@@ -14,46 +14,28 @@ interface ResultRow {
 }
 
 const ResultsPage: React.FC = () => {
-  const router = useRouter();
-  const { value: userId } = useLocalStorage<string>("userId", "");
-  const { value: token } = useLocalStorage<string>("token", "");
-  const [rows, setRows] = useState<ResultRow[]>([]);
+	const router = useRouter();
+	const { value: userId } = useLocalStorage<string>("userId", "");
+	const { value: token } = useLocalStorage<string>("token", "");
+	const [rows, setRows] = useState<ResultRow[]>([]);
 
-  useEffect(() => {
-    const raw = sessionStorage.getItem("leaderboard");
-    if (!raw) return;
-    try {
-      const parsed = JSON.parse(raw) as Record<string, number>;
-      const disconnected: string[] = JSON.parse(sessionStorage.getItem("disconnectedPlayers") ?? "[]");
-      const sorted = Object.entries(parsed).sort(([playerA, a], [playerB, b]) => {
-        const aDisconnected = disconnected.includes(playerA);
-        const bDisconnected = disconnected.includes(playerB);
-        if (aDisconnected && !bDisconnected) return 1;
-        if (!aDisconnected && bDisconnected) return -1;
-        return b - a;
-      });
-      const newRows: ResultRow[] = sorted.map(([player, pts], i) => ({
-        key: player,
-        rank: `${i + 1}.`,
-        player: player,
-        score: `${pts} pts`,
-        disconnected: disconnected.includes(player),
-      }));
-      setRows(newRows);
-    } catch (e) {
-      console.error("Failed to parse leaderboard:", e);
-    }
-  }, []);
-
+	useEffect(() => {
+		const raw = sessionStorage.getItem("leaderboard");
+		if (!raw) return;
 		try {
-			const parsed = JSON.parse(raw) as Record<string, number>;
+		const parsed = JSON.parse(raw) as Record<string, number>;
+		const disconnected: string[] = JSON.parse(sessionStorage.getItem("disconnectedPlayers") ?? "[]");
+		const sorted = Object.entries(parsed).sort(([playerA, a], [playerB, b]) => {
+			const aDisconnected = disconnected.includes(playerA);
+			const bDisconnected = disconnected.includes(playerB);
+			if (aDisconnected && !bDisconnected) return 1;
+			if (!aDisconnected && bDisconnected) return -1;
+			return b - a;
+		});
 
-			const sorted = Object.entries(parsed).sort(([, a], [, b]) => b - a);
-
-			let currentRank = 1;
-			let previousScore: number | null = null;
-
-			const newRows: ResultRow[] = sorted.map(([player, pts], i) => {
+		let currentRank = 1;
+		let previousScore: number | null = null;
+		const newRows: ResultRow[] = sorted.map(([player, pts], i) => {
 				if (previousScore !== null && pts !== previousScore) {
 					currentRank++;
 				}
@@ -63,12 +45,13 @@ const ResultsPage: React.FC = () => {
 					rank: `${currentRank}.`,
 					player: player,
 					score: `${pts} pts`,
+					disconnected: disconnected.includes(player),
 				};
 			});
 			setRows(newRows);
-		} catch (e) {
+			} catch (e) {
 			console.error("Failed to parse leaderboard:", e);
-		}
+			}
 	}, []);
 
 	const firstPlaceCount = rows.filter(row => row.rank === "1.").length;

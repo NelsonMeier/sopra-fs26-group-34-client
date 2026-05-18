@@ -95,10 +95,6 @@ export default function Scorecard({
     return b - a;
   }); //sort result
  
-  const sortedByCumulative = Object.entries(cumulativePoints).sort(([, a], [, b]) => b - a); //sorts total points
-
-  const roundRanks = getRanks(sortedByRound);
-  const cumulativeRanks = getRanks(sortedByCumulative);
   const sortedByCumulative = Object.entries(cumulativePoints).sort(([playerA, a], [playerB, b]) => {
     const aDisconnected = disconnectedPlayers.includes(playerA);
     const bDisconnected = disconnectedPlayers.includes(playerB);
@@ -106,6 +102,9 @@ export default function Scorecard({
     if (!aDisconnected && bDisconnected) return -1;
     return b - a;
   }); //sorts total points
+
+  const roundRanks = getRanks(sortedByRound);
+  const cumulativeRanks = getRanks(sortedByCumulative);
  
   const formatScore = (score: number) => { //formats score for display, handling "too early" case 
     if (score === -1) return "Too early!";
