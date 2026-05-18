@@ -51,11 +51,21 @@ interface ScorecardProps {
   onNext:               () => void;
 }
 
-function rank(i: number): string { //function for rank, converting idex
-  if (i === 0) return "1.";
-  if (i === 1) return "2.";
-  if (i === 2) return "3.";
-  return `${i + 1}.`;
+function getRanks(entries: [string, number][]): Record<string, string> {
+  const ranks: Record<string, string> = {};
+
+  let currentRank = 1;
+  let previousScore: number | null = null;
+
+  entries.forEach(([player, score]) => {
+    if (previousScore !== null && score !== previousScore) {
+      currentRank++;
+    }
+    ranks[player] = `${currentRank}.`;
+    previousScore = score;
+  });
+
+  return ranks;
 }
 
 export default function Scorecard({
@@ -92,6 +102,9 @@ export default function Scorecard({
     if (!aDisconnected && bDisconnected) return -1;
     return b - a;
   }); //sorts total points
+
+  const roundRanks = getRanks(sortedByRound);
+  const cumulativeRanks = getRanks(sortedByCumulative);
  
   const formatScore = (score: number) => { //formats score for display, handling "too early" case 
     if (score === -1) return "Too early!";
@@ -176,7 +189,7 @@ export default function Scorecard({
           </div>
           {sortedByRound.map(([player, score], i) => (
             <div key={player} style={rowStyle(i === 0 && !disconnectedPlayers.includes(player))}>
-              <span>{rank(i)}&nbsp;{player}</span>
+              <span>{roundRanks[player]}&nbsp;{player}</span>
               {disconnectedPlayers.includes(player) ? (
                 <span style={{ color: "#999", fontStyle: "italic" }}>left the game</span>
               ) : (
@@ -196,7 +209,7 @@ export default function Scorecard({
           </div>
           {sortedByCumulative.map(([player, pts], i) => (
             <div key={player} style={rowStyle(i === 0 && !disconnectedPlayers.includes(player))}>
-              <span>{rank(i)}&nbsp;{player}</span>
+              <span>{cumulativeRanks[player]}&nbsp;{player}</span>
               {disconnectedPlayers.includes(player) ? (
                 <span style={{ color: "#999", fontStyle: "italic" }}>left the game</span>
               ) : (
