@@ -63,7 +63,7 @@ const ResultsPage: React.FC = () => {
 			key: `typing-${index}`,
 			round: `${reactionRows.length + index + 1}.`,
 			game: "Typing Speed",
-			score: `${score} wpm`,
+			score: score === -1 ? "Failed" : `${score} wpm`,
 			rawScore: score,
 		}));
 
@@ -94,7 +94,7 @@ const ResultsPage: React.FC = () => {
 				1
 			}.`,
 			game: "Click Speed",
-			score: `${score.toFixed(2)} clicks/s`,
+			score: score === -1 ? "Failed" : `${score.toFixed(2)} clicks/s`,
 			rawScore: score,
 		}));
 
@@ -109,14 +109,14 @@ const ResultsPage: React.FC = () => {
 
 		// Calculate best scores for high-score submission and row highlighting
 		const validReactionScores = reactionScores.filter((s) => s !== -1);
+		const validTypingScores = typingScores.filter((s) => s !== -1);
 		const validTimeIntervalScores = timeIntervalScores.filter((s) => s !== -1);
-		const bestReaction =
-			validReactionScores.length > 0 ? Math.min(...validReactionScores) : null;
-		const bestTyping = typingScores.length > 0 ? Math.max(...typingScores) : null;
-		const bestTimeInterval =
-			validTimeIntervalScores.length > 0 ? Math.min(...validTimeIntervalScores) : null;
+		const validClickSpeedScores = clickSpeedScores.filter((s) => s !== -1);
+		const bestReaction = validReactionScores.length > 0 ? Math.min(...validReactionScores) : null;
+		const bestTyping = validTypingScores.length > 0 ? Math.max(...validTypingScores) : null;
+		const bestTimeInterval = validTimeIntervalScores.length > 0 ? Math.min(...validTimeIntervalScores) : null;
 		const bestAim = aimTestScores.length > 0 ? Math.max(...aimTestScores) : null;
-		const bestClickSpeed = clickSpeedScores.length > 0 ? Math.max(...clickSpeedScores) : null;
+		const bestClickSpeed = validClickSpeedScores.length > 0 ? Math.max(...validClickSpeedScores) : null;
 
 		const submitHighScores = async () => {
 			try {
@@ -131,11 +131,11 @@ const ResultsPage: React.FC = () => {
 				const response = await apiService.put<HighScoreResponse>(
 					`/users/${userId}/highscores`,
 					{
-						reactionScores: reactionScores.length > 0 ? reactionScores : [],
-						typingScores: typingScores.length > 0 ? typingScores : [],
-						timeIntervalScores: timeIntervalScores.length > 0 ? timeIntervalScores : [],
+						reactionScores: validReactionScores,
+						typingScores: validTypingScores,
+						timeIntervalScores: validTimeIntervalScores,
 						aimTestScores: aimTestScores.length > 0 ? aimTestScores : [],
-						clickSpeedScores: clickSpeedScores.length > 0 ? clickSpeedScores : [],
+						clickSpeedScores: validClickSpeedScores,
 					},
 					{ Authorization: `Bearer ${token}` }
 				);
@@ -218,7 +218,7 @@ const ResultsPage: React.FC = () => {
 		if (
 			userId &&
 			token &&
-			(reactionScores.length > 0 || typingScores.length > 0 || timeIntervalScores.length > 0 || aimTestScores.length > 0 || clickSpeedScores.length > 0)
+			(validReactionScores.length > 0 || validTypingScores.length > 0 || validTimeIntervalScores.length > 0 || aimTestScores.length > 0 || validClickSpeedScores.length > 0)
 		) {
 			submitHighScores();
 		}

@@ -29,6 +29,8 @@ const clampRounds = (value: number): number => {
   return Math.max(0, Math.min(99, Math.trunc(value)));
 };
 
+const REACTION_TIMEOUT = 5000;
+
 function ReactionTimeInner() {
   const router = useRouter();
 
@@ -232,6 +234,16 @@ function ReactionTimeInner() {
     roundStartTimeoutRef.current = t;
     return () => { clearTimeout(t); roundStartTimeoutRef.current = null; };
   }, [roundStart, mode]);
+
+  useEffect(() => {
+    if (gameState !== "active") return;
+    const t = setTimeout(() => {
+      if (mode === "singleplayer") finishSingleplayerRound(-1);
+      else finishMultiplayerRound(-1);
+    }, REACTION_TIMEOUT);
+    return () => clearTimeout(t);
+  }, [gameState, mode]);
+
   // multiplayer round complete
   useEffect(() => {
     if (mode !== "multiplayer" || !roundComplete) return;
@@ -393,7 +405,7 @@ function ReactionTimeInner() {
     if (gameState === "idle") return "Get ready...";
     if (gameState === "waiting") return "Wait...";
     if (gameState === "active") return "CLICK!";
-    if (gameState === "result" && reactionTime === -1) return "Too early!";
+    if (reactionTime === -1) return "Failed!";
     return `${reactionTime}ms`;
   };
 

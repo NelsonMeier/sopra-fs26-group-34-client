@@ -106,8 +106,8 @@ export default function Scorecard({
   const roundRanks = getRanks(sortedByRound);
   const cumulativeRanks = getRanks(sortedByCumulative);
  
-  const formatScore = (score: number) => { //formats score for display, handling "too early" case 
-    if (score === -1) return "Too early!";
+  const formatScore = (score: number) => { //formats score for display, handling failed rounds
+    if (score === -1) return "Failed!";
     if (scoreUnit === "s" && score === 20000) return "Timed out!";
     if (scoreUnit === "s") return `${(score / 1000).toFixed(3)} s`;
     if (scoreUnit === "a") return `${score} pts`;

@@ -221,6 +221,7 @@ const TypingSpeedGameInner: React.FC = () => {
   useEffect(() => {
     if (mode !== "multiplayer" || !sharedQuote || gameState !== "waiting_quote") return;
     setQuote(sharedQuote);
+    setTimedOut(false);
     setUserInput(""); setStartTime(0);
     setGameState("active");
     setTimeout(() => inputRef.current?.focus(), 50);
@@ -269,8 +270,8 @@ const TypingSpeedGameInner: React.FC = () => {
     if (gameState !== "active") return;
     const t = setTimeout(() => {
       setTimedOut(true);
-      if(mode === "multiplayer") finishMultiplayerRound(0);
-      else finishRound(0);
+      if(mode === "multiplayer") finishMultiplayerRound(-1);
+      else finishRound(-1);
     }, 60000);
     return () => clearTimeout(t);
   }, [gameState]);
@@ -475,7 +476,7 @@ const TypingSpeedGameInner: React.FC = () => {
 
       {gameState === "waiting_others" && (
         <div style={{ fontFamily: "var(--font-chewy)", fontSize: "1.2rem", color: "black" }}>
-          {typingSpeed} wpm — waiting for other players...
+          {typingSpeed === -1 ? "Failed" : `${typingSpeed} wpm`} — waiting for other players...
         </div>
       )}
 
@@ -523,7 +524,7 @@ const TypingSpeedGameInner: React.FC = () => {
             <Col xs={24} sm={24}>
               <Statistic 
               title="WPM" 
-              value={typingSpeed}
+              value={typingSpeed === -1 ? "Failed" : typingSpeed}
                valueStyle={{ color: "#22c55e", fontSize: "28px" }} />
             </Col>
           </Row>

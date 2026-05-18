@@ -25,6 +25,7 @@ const clampRounds = (value: number): number => {
 };
 
 const ROUND_DURATION = 15000;
+const AUTO_START_DELAY = 7000;
 const TARGET_SIZE = 70;
 const AREA_WIDTH = 700;
 const AREA_HEIGHT = 450;
@@ -222,6 +223,14 @@ function AimTestInner() {
         setTargetPos(randomPos());
         setGameState("ready");
     }, [roundStart, mode]);
+
+    useEffect(() => {
+        if (gameState !== "ready") return;
+        const id = setTimeout(() => {
+            setGameState((current) => current === "ready" ? "active" : current);
+        }, AUTO_START_DELAY);
+        return () => clearTimeout(id);
+    }, [gameState]);
 
     useEffect(() => {
         if (gameState !== "active") return;

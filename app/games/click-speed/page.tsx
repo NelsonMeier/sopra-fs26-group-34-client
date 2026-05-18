@@ -11,6 +11,7 @@ type GameState = "idle" | "waiting" | "active" | "result" | "waiting_others" | "
 type Mode = "singleplayer" | "multiplayer";
 
 const ROUND_DURATION_SECONDS = 10;
+const AUTO_START_DELAY = 7000;
 
 const GAME_ROUTES: Record<string, string> = {
   "reaction time": "reaction-time",
@@ -177,6 +178,20 @@ function ClickSpeedInner() {
     return () => clearInterval(intervalId);
   }, [gameState, startTime]);
 
+  // singleplayer auto-start after waiting
+  useEffect(() => {
+    if (mode !== "singleplayer" || gameState !== "waiting") return;
+    const id = setTimeout(() => {
+      clickCountRef.current = 0;
+      setClickColorStep(0);
+      setStartTime(Date.now());
+      setTimeLeft(ROUND_DURATION_SECONDS);
+      setScore(null);
+      setGameState("active");
+    }, AUTO_START_DELAY);
+    return () => clearTimeout(id);
+  }, [gameState, mode]);
+
   // multiplayer
   useEffect(() => {
     if (mode !== "multiplayer" || !isAdmin || !roomId || sentFirstRound.current) return;
@@ -224,7 +239,10 @@ function ClickSpeedInner() {
       return next;
     });
     const cpsScores = Object.fromEntries(
-      Object.entries(roundComplete.scores).map(([p, clicks]) => [p, clicks / ROUND_DURATION_SECONDS])
+      Object.entries(roundComplete.scores).map(([p, clicks]) => [
+        p,
+        clicks === -1 ? -1 : clicks / ROUND_DURATION_SECONDS,
+      ])
     );
     setRoundScoresForCard(cpsScores);
     setDisconnectedPlayers(roundComplete.disconnected ?? []);
@@ -254,7 +272,7 @@ function ClickSpeedInner() {
   }, []);
 
   const finishSingleplayerRound = useCallback(() => {
-    const roundScore = clickCountRef.current / ROUND_DURATION_SECONDS;
+    const roundScore = clickCountRef.current === 0 ? -1 : clickCountRef.current / ROUND_DURATION_SECONDS;
     const nextScores = [...scores, roundScore];
     setTimeLeft(0);
     setScore(roundScore);
@@ -294,8 +312,8 @@ function ClickSpeedInner() {
       clearTimeout(roundTimerRef.current);
       roundTimerRef.current = null;
     }
-    const rawClicks = clickCountRef.current;            
-    const displayCps = rawClicks / ROUND_DURATION_SECONDS;
+    const rawClicks = clickCountRef.current === 0 ? -1 : clickCountRef.current;
+    const displayCps = rawClicks === -1 ? -1 : rawClicks / ROUND_DURATION_SECONDS;
     setScore(displayCps);
     send("/app/submitScore", {
       roomId,
@@ -374,8 +392,10 @@ function ClickSpeedInner() {
     if (gameState === "waiting")
       return mode === "singleplayer" ? "Start clicking as fast as you can!" : "Get ready...";
     if (gameState === "active") return timeLeft.toFixed(2);
-    if (gameState === "waiting_others") return `${score?.toFixed(2)} CPS — waiting for others…`;
-    if (gameState === "result") return `${score?.toFixed(2)} clicks/s`;
+    if (gameState === "waiting_others") {
+      return score === -1 ? "Failed — waiting for others…" : `${score?.toFixed(2)} CPS — waiting for others…`;
+    }
+    if (gameState === "result") return score === -1 ? "Failed" : `${score?.toFixed(2)} clicks/s`;
     return "";
   };
 
