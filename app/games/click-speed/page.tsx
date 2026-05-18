@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Button } from "antd";
+import { Button, Modal, message } from "antd";
 import type { SingleplayerRounds } from "../reaction-time/page";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import Scorecard, { calcPointsForRound } from "@/components/Scorecard";
@@ -11,6 +11,7 @@ type GameState = "idle" | "waiting" | "active" | "result" | "waiting_others" | "
 type Mode = "singleplayer" | "multiplayer";
 
 const ROUND_DURATION_SECONDS = 10;
+const AUTO_START_DELAY = 7000;
 
 const GAME_ROUTES: Record<string, string> = {
   "reaction time": "reaction-time",
@@ -36,6 +37,7 @@ const getButtonColor = (gameState: GameState, clickColorStep: number): string =>
 
 function ClickSpeedInner() {
   const router = useRouter();
+
   const searchParams = useSearchParams();
 
   const roomId = searchParams.get("roomId") ?? "";
@@ -45,7 +47,30 @@ function ClickSpeedInner() {
     typeof window !== "undefined" ? localStorage.getItem("username")?.replaceAll('"', "") ?? "": "";
   const userId = typeof window !== "undefined" ? localStorage.getItem("userId")?.replaceAll('"', "") ?? "" : "";
 
-  const { send, roundComplete, roundStart, nextGame } = useWebSocket(
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+
+  // intercept back button
+  useEffect(() => {
+    window.history.pushState(null, "", window.location.href);
+    const handlePopState = () => {
+      window.history.pushState(null, "", window.location.href);
+      if (mode !== "multiplayer") return;
+      setShowLeaveModal(true);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [userId]);
+
+  const handleLeaveConfirm = () => {
+    if (mode === "multiplayer" && !gameCompletedRef.current) {
+      globalThis.sessionStorage.removeItem("multiplayerCumulativePoints");
+      send("/app/playerLeft", { roomId: roomId, username, round: String(currentRound) });
+    }
+    gameCompletedRef.current = true;
+    router.push(`/users/${userId}`);
+  };
+
+  const { send, roundComplete, roundStart, sessionEnded, nextGame } = useWebSocket(
     roomId || "",
     userId,
     username
@@ -76,10 +101,12 @@ function ClickSpeedInner() {
     }
   });
   const [roundScoresForCard, setRoundScoresForCard] = useState<Record<string, number>>({});
+  const [disconnectedPlayers, setDisconnectedPlayers] = useState<string[]>([]);
 
   const roundStartTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sentFirstRound = useRef(false);
   const roundTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const gameCompletedRef = useRef(false);
 
   // cleanup
   useEffect(() => {
@@ -89,6 +116,24 @@ function ClickSpeedInner() {
       if (roundTimerRef.current) clearTimeout(roundTimerRef.current);
     };
   }, [timeoutId]);
+
+  // playerLeft on unmount
+  useEffect(() => {
+    return () => {
+      if (mode !== "multiplayer") return;
+      if (gameCompletedRef.current) return;
+      globalThis.sessionStorage.removeItem("multiplayerCumulativePoints");
+      send("/app/playerLeft", { roomId, username, round: String(currentRound) });
+    };
+  }, []);
+  // session ended (admin left)
+  useEffect(() => {
+    if (!sessionEnded) return;
+    if (isAdmin) return;
+    globalThis.sessionStorage.removeItem("multiplayerCumulativePoints");
+    globalThis.sessionStorage.removeItem("disconnectedPlayers");
+    setTimeout(() => router.push(`/users/${userId}`), 3000);
+  }, [sessionEnded]);
 
   // singleplayer
   useEffect(() => {
@@ -133,6 +178,20 @@ function ClickSpeedInner() {
     return () => clearInterval(intervalId);
   }, [gameState, startTime]);
 
+  // singleplayer auto-start after waiting
+  useEffect(() => {
+    if (mode !== "singleplayer" || gameState !== "waiting") return;
+    const id = setTimeout(() => {
+      clickCountRef.current = 0;
+      setClickColorStep(0);
+      setStartTime(Date.now());
+      setTimeLeft(ROUND_DURATION_SECONDS);
+      setScore(null);
+      setGameState("active");
+    }, AUTO_START_DELAY);
+    return () => clearTimeout(id);
+  }, [gameState, mode]);
+
   // multiplayer
   useEffect(() => {
     if (mode !== "multiplayer" || !isAdmin || !roomId || sentFirstRound.current) return;
@@ -169,7 +228,8 @@ function ClickSpeedInner() {
   //multiplayer ROUND_COMPLETE 
   useEffect(() => {
     if (mode !== "multiplayer" || !roundComplete) return;
-    const pts = calcPointsForRound(roundComplete.scores, false); // higher CPS = better
+    if (gameState !== "waiting_others") return;
+    const pts = calcPointsForRound(roundComplete.scores, false, roundComplete.disconnected ?? []); // higher CPS = better
     setCumulativePoints((prev) => {
       const next = { ...prev };
       for (const [player, p] of Object.entries(pts)) {
@@ -179,9 +239,13 @@ function ClickSpeedInner() {
       return next;
     });
     const cpsScores = Object.fromEntries(
-      Object.entries(roundComplete.scores).map(([p, clicks]) => [p, clicks / ROUND_DURATION_SECONDS])
+      Object.entries(roundComplete.scores).map(([p, clicks]) => [
+        p,
+        clicks === -1 ? -1 : clicks / ROUND_DURATION_SECONDS,
+      ])
     );
     setRoundScoresForCard(cpsScores);
+    setDisconnectedPlayers(roundComplete.disconnected ?? []);
     setGameState("scorecard");
   }, [roundComplete, mode]);
 
@@ -191,6 +255,7 @@ function ClickSpeedInner() {
     const slug = GAME_ROUTES[nextGame.game.toLowerCase()];
     if (!slug) return;
     const t = setTimeout(() => {
+      gameCompletedRef.current = true;
       router.push(`/games/${slug}?roomId=${roomId}&rounds=${nextGame.rounds}&isAdmin=false`);
     }, 2000);
     return () => clearTimeout(t);
@@ -207,7 +272,7 @@ function ClickSpeedInner() {
   }, []);
 
   const finishSingleplayerRound = useCallback(() => {
-    const roundScore = clickCountRef.current / ROUND_DURATION_SECONDS;
+    const roundScore = clickCountRef.current === 0 ? -1 : clickCountRef.current / ROUND_DURATION_SECONDS;
     const nextScores = [...scores, roundScore];
     setTimeLeft(0);
     setScore(roundScore);
@@ -247,8 +312,8 @@ function ClickSpeedInner() {
       clearTimeout(roundTimerRef.current);
       roundTimerRef.current = null;
     }
-    const rawClicks = clickCountRef.current;            
-    const displayCps = rawClicks / ROUND_DURATION_SECONDS;
+    const rawClicks = clickCountRef.current === 0 ? -1 : clickCountRef.current;
+    const displayCps = rawClicks === -1 ? -1 : rawClicks / ROUND_DURATION_SECONDS;
     setScore(displayCps);
     send("/app/submitScore", {
       roomId,
@@ -278,12 +343,15 @@ function ClickSpeedInner() {
       if (nextGame && isAdmin) {
         const slug = GAME_ROUTES[nextGame.game.toLowerCase()];
         if (slug) {
+          gameCompletedRef.current = true;
           router.push(`/games/${slug}?roomId=${roomId}&rounds=${nextGame.rounds}&isAdmin=true`);
           return;
         }
       }
       globalThis.sessionStorage.setItem("multiplayerFinalPoints", JSON.stringify(cumulativePoints));
+      globalThis.sessionStorage.setItem("disconnectedPlayers", JSON.stringify([...disconnectedPlayers]));
       globalThis.sessionStorage.removeItem("multiplayerCumulativePoints");
+      gameCompletedRef.current = true;
       router.push(`/multiplayer/results?roomId=${roomId}`);
       return;
     }
@@ -324,8 +392,10 @@ function ClickSpeedInner() {
     if (gameState === "waiting")
       return mode === "singleplayer" ? "Start clicking as fast as you can!" : "Get ready...";
     if (gameState === "active") return timeLeft.toFixed(2);
-    if (gameState === "waiting_others") return `${score?.toFixed(2)} CPS — waiting for others…`;
-    if (gameState === "result") return `${score?.toFixed(2)} clicks/s`;
+    if (gameState === "waiting_others") {
+      return score === -1 ? "Failed — waiting for others…" : `${score?.toFixed(2)} CPS — waiting for others…`;
+    }
+    if (gameState === "result") return score === -1 ? "Failed" : `${score?.toFixed(2)} clicks/s`;
     return "";
   };
 
@@ -335,18 +405,69 @@ function ClickSpeedInner() {
 
   if (gameState === "scorecard") {
     return (
-      <Scorecard
-        round={currentRound}
-        totalRounds={rounds}
-        scores={roundScoresForCard}
-        cumulativePoints={cumulativePoints}
-        lowerIsBetter={false}
-        scoreLabel="Click Speed"
-        scoreUnit="cps"
-        isAdmin={isAdmin}
-        hasNextGame={!!nextGame}
-        onNext={handleScorecardNext}
-      />
+      <>
+        <Scorecard
+          round={currentRound}
+          totalRounds={rounds}
+          scores={roundScoresForCard}
+          cumulativePoints={cumulativePoints}
+          lowerIsBetter={false}
+          scoreLabel="Click Speed"
+          scoreUnit="cps"
+          isAdmin={isAdmin}
+          hasNextGame={!!nextGame}
+          disconnectedPlayers={disconnectedPlayers}
+          onNext={handleScorecardNext}
+        />
+      {sessionEnded && !isAdmin && (
+        <div style={{
+          position: "fixed",
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: "rgba(0,0,0,0.75)",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 9999,
+        }}>
+          <div style={{
+            backgroundColor: "#B8D8E8",
+            borderRadius: "20px",
+            padding: "3rem",
+            textAlign: "center",
+            maxWidth: "420px",
+            boxShadow: "0px 8px 20px rgba(0,0,0,0.4)",
+          }}>
+            <h2 style={{ fontFamily: "var(--font-chewy)", fontSize: "2rem", marginBottom: "1rem" }}>
+              Oh no!
+            </h2>
+            <p style={{ fontFamily: "var(--font-chewy)", fontSize: "1.2rem", marginBottom: "0.5rem" }}>
+              Seems like the admin has left the game.
+            </p>
+            <p style={{ fontFamily: "var(--font-chewy)", fontSize: "1rem", color: "#555" }}>
+              Redirecting you to your profile...
+            </p>
+          </div>
+        </div>
+      )}
+        <Modal
+          open={showLeaveModal}
+          onCancel={() => setShowLeaveModal(false)}
+          footer={null}
+          centered
+        >
+          <div style={{ fontFamily: "var(--font-chewy)", textAlign: "center", padding: "1rem" }}>
+            <h2 style={{ fontSize: "1.8rem", marginBottom: "1rem" }}>Leave Game?</h2>
+            <p style={{ fontSize: "1.1rem", marginBottom: "2rem" }}>
+              {isAdmin ? "You are the admin — leaving will end the session for all players." : "Are you sure you want to leave? This will end your game session."}
+            </p>
+            <div style={{ display: "flex", justifyContent: "center", gap: "1rem" }}>
+              <Button onClick={() => setShowLeaveModal(false)} style={{ fontFamily: "var(--font-chewy)", fontSize: "1rem", height: "45px", width: "120px" }}>Stay</Button>
+              <Button onClick={handleLeaveConfirm} style={{ backgroundColor: "#e55", border: "none", color: "white", fontFamily: "var(--font-chewy)", fontSize: "1rem", height: "45px", width: "120px" }}>Leave</Button>
+            </div>
+          </div>
+        </Modal>
+      </>
     );
   }
 
@@ -414,7 +535,67 @@ function ClickSpeedInner() {
       >
         {getButtonText()}
       </Button>
-    </div>
+
+      <Modal
+        open={showLeaveModal}
+        onCancel={() => setShowLeaveModal(false)}
+        footer={null}
+        centered
+      >
+        <div style={{ fontFamily: "var(--font-chewy)", textAlign: "center", padding: "1rem" }}>
+          <h2 style={{ fontSize: "1.8rem", marginBottom: "1rem" }}>Leave Game?</h2>
+          <p style={{ fontSize: "1.1rem", marginBottom: "2rem" }}>
+            {isAdmin ? "You are the admin — leaving will end the session for all players." : "Are you sure you want to leave? This will end your game session."}
+          </p>
+          <div style={{ display: "flex", justifyContent: "center", gap: "1rem" }}>
+            <Button
+              onClick={() => setShowLeaveModal(false)}
+              style={{ fontFamily: "var(--font-chewy)", fontSize: "1rem", height: "45px", width: "120px" }}
+            >
+              Stay
+            </Button>
+            <Button
+              onClick={handleLeaveConfirm}
+              style={{ backgroundColor: "#e55", border: "none", color: "white", fontFamily: "var(--font-chewy)", fontSize: "1rem", height: "45px", width: "120px" }}
+            >
+              Leave
+            </Button>
+          </div>
+        </div>
+      </Modal>
+  
+      {sessionEnded && !isAdmin && (
+        <div style={{
+          position: "fixed",
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: "rgba(0,0,0,0.75)",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 9999,
+        }}>
+          <div style={{
+            backgroundColor: "#B8D8E8",
+            borderRadius: "20px",
+            padding: "3rem",
+            textAlign: "center",
+            maxWidth: "420px",
+            boxShadow: "0px 8px 20px rgba(0,0,0,0.4)",
+          }}>
+            <h2 style={{ fontFamily: "var(--font-chewy)", fontSize: "2rem", marginBottom: "1rem" }}>
+              Oh no!
+            </h2>
+            <p style={{ fontFamily: "var(--font-chewy)", fontSize: "1.2rem", marginBottom: "0.5rem" }}>
+              Seems like the admin has left the game.
+            </p>
+            <p style={{ fontFamily: "var(--font-chewy)", fontSize: "1rem", color: "#555" }}>
+              Redirecting you to your profile...
+            </p>
+          </div>
+        </div>
+      )}
+  </div>
   );
 }
 

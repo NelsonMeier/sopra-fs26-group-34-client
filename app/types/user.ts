@@ -11,6 +11,8 @@ export interface User {
   reaction?: GameRank | null;
   typing?: GameRank | null;
   timeInterval?: GameRank | null;
+  aimTest?: GameRank | null;
+  clickSpeed?: GameRank | null;
 }
 
 export interface GameRank {

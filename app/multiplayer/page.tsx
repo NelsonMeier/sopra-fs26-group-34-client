@@ -2,7 +2,7 @@
 
 import React, { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { Button } from "antd";
+import { Button, Modal } from "antd";
 import { useApi } from "@/hooks/useApi";
 import { useRouter, useSearchParams } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
@@ -43,6 +43,14 @@ function MultiplayerRoomInner() {
   const [friendsLoading, setFriendsLoading ] = useState(true);
   const [selectedFriends, setSelectedFriends] = useState<(string | number)[]>([]);
   const [showHelp, setShowHelp] = useState(false);
+
+  const [showStartError, setShowStartError] = useState<string | null>(null);
+  //clear stale session data from any previous multiplayer session
+  useEffect(() => {
+    globalThis.sessionStorage.removeItem("multiplayerCumulativePoints");
+    globalThis.sessionStorage.removeItem("disconnectedPlayers");
+    globalThis.sessionStorage.removeItem("multiplayerFinalPoints");
+  }, []);
 
   useEffect(() => {
     if (!isConnected || !userId || !username) return;
@@ -436,16 +444,81 @@ function MultiplayerRoomInner() {
         </div>
       </div>
 
+      {showStartError && (
+        <>
+          <div
+            onClick={() => setShowStartError(null)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              backgroundColor: "rgba(0,0,0,0.3)",
+              zIndex: 999,
+            }}
+          />
+          <div
+            style={{
+              position: "fixed",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              backgroundColor: "#B8D8E8",
+              padding: "2rem",
+              borderRadius: "20px",
+              zIndex: 1000,
+              textAlign: "center",
+              minWidth: "350px",
+              boxShadow: "0px 12px 30px rgba(0,0,0,0.3)",
+            }}
+          >
+            <div
+              style={{
+                fontFamily: "var(--font-chewy)",
+                marginBottom: "1.5rem",
+                fontSize: "1.4rem",
+                color: "black",
+              }}
+            >
+              Cannot start Game!
+            </div>
+            <div
+              style={{
+                fontFamily: "var(--font-chewy)",
+                marginBottom: "2rem",
+                fontSize: "1rem",
+                color: "#333",
+              }}
+            >
+              {showStartError}
+            </div>
+            <button
+              onClick={() => setShowStartError(null)}
+              style={{
+                backgroundColor: "#E8956D",
+                border: "none",
+                borderRadius: "10px",
+                padding: "10px 24px",
+                fontFamily: "var(--font-chewy)",
+                cursor: "pointer",
+                fontSize: "1rem",
+                color: "black",
+              }}
+            >
+              OK
+            </button>
+          </div>
+        </>
+      )}
+
       {isAdmin && (
         <div style={{ width: "100%", display: "flex", justifyContent: "center", marginTop: "2rem" }}>
           <Button
             onClick={() => {
-              if (joinedPlayers.length === 0) {
-                alert("You need at least one friend to join to start!");
+              if (joinedPlayers.length < 2) {
+                setShowStartError("You cannot start the game alone! At least one friend must join the room first.");
                 return;
               }
               if (!selectedGame) {
-                alert("Please select at least one game first!");
+                setShowStartError("Please select at least one game to play.");
                 return;
               }
               send("/app/startGame", { roomId });
