@@ -265,27 +265,21 @@ function ReactionTimeInner() {
 
 
 
+  // unified navigation for everyone when NEXT_GAME broadcast arrives
   useEffect(() => {
-    if (mode !== "multiplayer" || !nextGame || isAdmin) return;
+    if (mode !== "multiplayer" || !nextGame) return;
     const slug = GAME_ROUTES[nextGame.game.toLowerCase()];
     if (!slug) return;
-    const t = setTimeout(() => {
-      gameCompletedRef.current = true;
-      router.push(`/games/${slug}?roomId=${roomId}&rounds=${nextGame.rounds}&isAdmin=false`);
-    }, 2000);
-    return () => clearTimeout(t);
-  }, [nextGame, mode, isAdmin, router]);
+    gameCompletedRef.current = true;
+    router.push(`/games/${slug}?roomId=${roomId}&rounds=${nextGame.rounds}&isAdmin=${isAdmin}`);
+  }, [nextGame]);
   // scorecard next
   const handleScorecardNext = () => {
     const isLast = currentRound >= rounds;
     if (isLast) {
-      if (nextGame && isAdmin) {
-        const slug = GAME_ROUTES[nextGame.game.toLowerCase()];
-        if (slug) {
-          gameCompletedRef.current = true;
-          router.push(`/games/${slug}?roomId=${roomId}&rounds=${nextGame.rounds}&isAdmin=true`);
-          return;
-        }
+      if (roundComplete?.hasNextGame && isAdmin) {
+        send("/app/nextGame", { roomId });
+        return;
       }
       globalThis.sessionStorage.setItem("multiplayerFinalPoints", JSON.stringify(cumulativePoints));
       globalThis.sessionStorage.setItem("disconnectedPlayers", JSON.stringify([...disconnectedPlayers]));
@@ -346,7 +340,7 @@ function ReactionTimeInner() {
           lowerIsBetter={true}
           scoreLabel="Reaction Time"
           isAdmin={isAdmin}
-          hasNextGame={!!nextGame}
+          hasNextGame={!!roundComplete?.hasNextGame}
           disconnectedPlayers={disconnectedPlayers}
           onNext={handleScorecardNext}
         />

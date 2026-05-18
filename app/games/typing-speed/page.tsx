@@ -246,16 +246,14 @@ const TypingSpeedGameInner: React.FC = () => {
 
 
 
+  // unified navigation for everyone when NEXT_GAME broadcast arrives
   useEffect(() => {
-    if (mode !== "multiplayer" || !nextGame || isAdminParam) return;
+    if (mode !== "multiplayer" || !nextGame) return;
     const slug = GAME_ROUTES[nextGame.game.toLowerCase()];
     if (!slug) return;
-    const id = setTimeout(() => {
-      gameCompletedRef.current = true;
-      router.push(`/games/${slug}?roomId=${roomIdParam}&rounds=${nextGame.rounds}&isAdmin=false`);
-    }, 2000);
-    setTimeoutId(id);
-  }, [nextGame, mode, isAdminParam]);
+    gameCompletedRef.current = true;
+    router.push(`/games/${slug}?roomId=${roomIdParam}&rounds=${nextGame.rounds}&isAdmin=${isAdminParam}`);
+  }, [nextGame]);
   // update timer while playing
   useEffect(() => {
     if (gameState !== "active" || !startTime) return;
@@ -324,13 +322,9 @@ const TypingSpeedGameInner: React.FC = () => {
   const handleScorecardNext = () => {
     const isLast = currentRound >= roundsParam;
     if (isLast) {
-      if (nextGame && isAdminParam) {
-        const slug = GAME_ROUTES[nextGame.game.toLowerCase()];
-        if (slug) {
-          gameCompletedRef.current = true;
-          router.push(`/games/${slug}?roomId=${roomIdParam}&rounds=${nextGame.rounds}&isAdmin=true`);
-          return;
-        }
+      if (roundComplete?.hasNextGame && isAdminParam) {
+        send("/app/nextGame", { roomId: roomIdParam });
+        return;
       }
       globalThis.sessionStorage.setItem("multiplayerFinalPoints", JSON.stringify(cumulativePoints));
       globalThis.sessionStorage.setItem("disconnectedPlayers", JSON.stringify([...disconnectedPlayers]));
@@ -371,7 +365,7 @@ const TypingSpeedGameInner: React.FC = () => {
           lowerIsBetter={false}
           scoreLabel="Typing Speed"
           isAdmin={isAdminParam}
-          hasNextGame={!!nextGame}
+          hasNextGame={!!roundComplete?.hasNextGame}
           disconnectedPlayers={disconnectedPlayers}
           onNext={handleScorecardNext}
         />
