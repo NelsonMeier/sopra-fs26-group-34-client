@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState, useRef} from "react";
 import Link from "next/link";
 import { Button, Modal } from "antd";
 import { useApi } from "@/hooks/useApi";
@@ -34,7 +34,9 @@ function MultiplayerRoomInner() {
     // roomid in URL means we're joining an existing room, no roomId means we're creating a new one 
   const roomIdFromUrl = searchParams.get("roomId");
   const isAdmin       = !roomIdFromUrl;
-  const [roomId]      = useState<string>(() => roomIdFromUrl ?? uuidv4());
+  const adminRoomId = useRef<string | null>(null);
+  if (!adminRoomId.current) adminRoomId.current = uuidv4();
+  const roomId = roomIdFromUrl ?? adminRoomId.current;
 
   const { isConnected, joinedPlayers, gameStarted, selectedGame, rounds, nextGame, send } =
     useWebSocket(roomId, userId, username);

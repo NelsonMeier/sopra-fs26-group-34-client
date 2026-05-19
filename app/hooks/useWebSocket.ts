@@ -3,6 +3,7 @@ import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { getApiDomain } from "@/utils/domain";
 
+
 export function useWebSocket(roomId: string, userId: string, username: string) { //hook
   const clientRef = useRef<Client | null>(null); //store client instance
   const [isConnected, setIsConnected] = useState(false);
@@ -25,6 +26,7 @@ export function useWebSocket(roomId: string, userId: string, username: string) {
     scores: Record<string, number>;
     totalScores: Record<string, number>;
     disconnected: string[];
+    hasNextGame: boolean;
   } | null>(null);
 
   const [nextRoundSignal, setNextRoundSignal] = useState<number>(0);
@@ -87,6 +89,7 @@ export function useWebSocket(roomId: string, userId: string, username: string) {
               scores:       data.scores       as Record<string, number>,
               totalScores:  data.totalScores  as Record<string, number>,
               disconnected: (data.disconnected as string[]) ?? [],
+              hasNextGame:  (data.hasNextGame as boolean) ?? false,
             });
             setSubmittedInRound([]); //reset for next round
           }
